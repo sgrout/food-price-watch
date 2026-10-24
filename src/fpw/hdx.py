@@ -48,15 +48,19 @@ def parse_package(text: str) -> dict:
     return body["result"]
 
 
-def price_resource_url(package: dict) -> str:
-    """Download URL of the price CSV ('<Country> - Food Prices'), not the markets list."""
-    urls = [
-        r["url"] for r in package.get("resources", [])
+def price_resource(package: dict) -> dict:
+    """The price CSV resource ('<Country> - Food Prices', with `url` and `last_modified`), not the markets list."""
+    found = [
+        r for r in package.get("resources", [])
         if r.get("format", "").upper() == "CSV" and r.get("name", "").endswith("Food Prices")
     ]
-    if len(urls) != 1:
-        raise InvalidPayload(f"expected 1 price CSV in {package.get('name')}, found {len(urls)}")
-    return urls[0]
+    if len(found) != 1:
+        raise InvalidPayload(f"expected 1 price CSV in {package.get('name')}, found {len(found)}")
+    return found[0]
+
+
+def price_resource_url(package: dict) -> str:
+    return price_resource(package)["url"]
 
 
 def check_price_csv(text: str) -> int:

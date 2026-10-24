@@ -1,0 +1,42 @@
+resources:
+  jobs:
+    fpw_pipeline:
+      name: fpw_pipeline_${var.env}
+      description: WFP food prices (HDX) -> bronze snapshots -> silver versions + quality -> gold coverage + freshness
+
+      # Weekly, Monday 07:00 Amsterdam. HDX files change a few times a month; weekly snapshots tell us when each
+      # month first appears (publication lag) at the cost of a metadata check when nothing changed.
+      schedule:
+        quartz_cron_expression: "0 0 7 ? * MON"
+        timezone_id: Europe/Amsterdam
+        pause_status: UNPAUSED
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: env
+          default: ${var.env}
+        - name: countries
+          default: ${var.countries}
+
+      # No cluster defined = serverless compute (the only option on Free Edition).
+      tasks:
+        - task_key: bronze_hdx
+          notebook_task:
+            notebook_path: ../src/01_bronze_hdx.py
+
+        - task_key: silver_prices
+          depends_on:
+            - task_key: bronze_hdx
+          notebook_task:
+            notebook_path: ../src/02_silver_prices.py
+
+        - task_key: gold_coverage
+          depends_on:
+            - task_key: silver_prices
+          notebook_task:
+            notebook_path: ../src/03_gold_coverage.py
