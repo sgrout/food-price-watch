@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from fpw.baselines import LEVELS, MODELS, REPORT_LEVELS, prob_above
+from fpw.distribution import GRID_COLUMNS, GRID_LEVELS, cdf_at
 from fpw.spike import SPIKE_Z, fit_seasonal_trend
 
 LAG = 2
@@ -20,7 +21,10 @@ MIN_HISTORY = 36  # observations up to the last usable month
 MAX_STALENESS = 2  # the last observation may be at most this many months before the last usable month
 VALIDATION_START, HOLDOUT_START = 2020, 2023
 _REPORT_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in REPORT_LEVELS]
+_GRID_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in GRID_LEVELS]
 Q_COLUMNS = ["q025", "q10", "q50", "q90", "q975"]
+# Identity of a series carried into every forecast row, so forecasts can be grouped by market (e.g. a food basket).
+SERIES_INFO = ["market_id", "series_commodity_id", "unit"]
 
 
 def split_of(target_m: pd.Series) -> pd.Series:
@@ -40,6 +44,7 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
         full = np.full(int(m[-1]) - m0 + 1, np.nan)
         full[m - m0] = lp
         country, commodity = g["country"].iloc[0], g["commodity"].iloc[0]
+        info = tuple(g[c].iloc[0] for c in SERIES_INFO)
         for origin in origins:
             m_data = origin - lag
             n_hist = int(np.searchsorted(m, m_data, side="right"))
@@ -64,12 +69,20 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
                 for i, step in enumerate(steps):
                     if np.isnan(actual[i]):
                         continue
-                    out.append((sid, country, commodity, origin, int(step), int(targets[i]), int(ks[i]), name,
+                    out.append((sid, country, commodity, *info, origin, int(step), int(targets[i]), int(ks[i]), name,
                                 *q[i, _REPORT_IDX], prob_above(q[i], threshold[i]), actual[i], expected[i],
-                                fit.sigma, z_now))
-    cols = ["series_id", "country", "commodity", "origin", "step", "target", "k", "model", *Q_COLUMNS, "spike_prob",
-            "actual", "expected", "sigma", "z_now"]
-    return pd.DataFrame(out, columns=cols)
+                                fit.sigma, z_now, *q[i, _GRID_IDX]))
+    return with_pit(pd.DataFrame(out, columns=FORECAST_COLUMNS))
+
+
+FORECAST_COLUMNS = ["series_id", "country", "commodity", *SERIES_INFO, "origin", "step", "target", "k", "model", *Q_COLUMNS,
+                    "spike_prob", "actual", "expected", "sigma", "z_now", *GRID_COLUMNS]
+
+
+def with_pit(fc: pd.DataFrame) -> pd.DataFrame:
+    """Add the PIT: where the actual value fell in the predictive distribution (uniform if calibrated)."""
+    pit = cdf_at(fc[GRID_COLUMNS].to_numpy(), GRID_LEVELS, fc["actual"].to_numpy()) if len(fc) else []
+    return fc.assign(pit=pit)
 
 
 def common_rows(fc: pd.DataFrame) -> pd.DataFrame:
@@ -153,7 +166,13 @@ def calibration(scored: pd.DataFrame, by=("model", "split"), bins=np.linspace(0,
             .reset_index())
 
 
-def choose_model(summary: pd.DataFrame, split: str = "validation") -> str:
+# Phase 3 candidates, fixed before the backtest (the other models are reported for reference only).
+CANDIDATES = ("seasonal_rw", "seasonal_rw_cal", "lgbm", "lgbm_cal")
+
+
+def choose_model(summary: pd.DataFrame, split: str = "validation", candidates=None) -> str:
     """The rule fixed before the backtest: lowest mean pinball loss over all steps on the validation split."""
     v = summary[summary["split"] == split]
+    if candidates is not None:
+        v = v[v["model"].isin(candidates)]
     return str(v.groupby("model")["pinball"].mean().idxmin())

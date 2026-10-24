@@ -2,7 +2,7 @@ resources:
   jobs:
     fpw_backtest:
       name: fpw_backtest_${var.env}
-      description: Walk-forward backtest of the baseline forecasters and the spike definition (manual runs)
+      description: Walk-forward backtest of baselines, pooled LightGBM and recalibrated variants (manual runs)
 
       email_notifications:
         on_failure:
@@ -17,9 +17,20 @@ resources:
           default: ${resources.experiments.fpw_backtest_experiment.id}
         - name: first_origin_year
           default: "2008"
+        - name: first_ml_year
+          default: "2012"
 
-      # No schedule: run after a model change. No cluster = serverless; pandas, numpy and mlflow come with it.
+      # Serverless environment: lightgbm on top of the runtime (pandas, numpy, scipy, scikit-learn, mlflow).
+      environments:
+        - environment_key: ml
+          spec:
+            client: "4"
+            dependencies:
+              - lightgbm==4.7.0
+
+      # No schedule: run after a model change. No cluster = serverless.
       tasks:
-        - task_key: backtest_baselines
+        - task_key: backtest
+          environment_key: ml
           notebook_task:
-            notebook_path: ../src/04_backtest_baselines.py
+            notebook_path: ../src/04_backtest.py

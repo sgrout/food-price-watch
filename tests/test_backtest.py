@@ -100,6 +100,14 @@ def test_onset_metrics_only_use_series_not_in_alert_now():
     assert r["persistence_recall"] == pytest.approx(1 / 3)
 
 
+def test_pit_is_uniform_for_the_true_model():
+    rng = np.random.default_rng(7)
+    series = {f"s{i}": random_walk(150, 0.05, rng) for i in range(30)}
+    fc = walk_forward(panel(series), origins(150), models={"naive": naive})
+    hist = np.histogram(fc.loc[fc["step"] == 1, "pit"], bins=5, range=(0, 1))[0] / (fc["step"] == 1).sum()
+    assert np.abs(hist - 0.2).max() < 0.03
+
+
 def test_split_of():
     m = pd.Series([2019 * 12 + 11, 2020 * 12, 2022 * 12 + 11, 2023 * 12])
     assert list(split_of(m)) == ["dev", "validation", "validation", "holdout"]
@@ -109,11 +117,13 @@ def test_choose_model_uses_validation_mean_pinball():
     summary = pd.DataFrame({"model": ["a", "a", "b", "b", "b"], "split": ["validation"] * 4 + ["holdout"],
                             "step": [1, 2, 1, 2, 1], "pinball": [0.01, 0.05, 0.02, 0.03, 0.0]})
     assert choose_model(summary) == "b"  # mean 0.025 < 0.03; the holdout row does not count
+    assert choose_model(summary, candidates=["a"]) == "a"
 
 
 def test_backtest_frames_fit_their_schemas():
     rng = np.random.default_rng(6)
-    scored = score(common_rows(walk_forward(panel({"s": seasonal_ar1(120, 0.08, 0.6, rng)}), origins(120))))
+    scored = score(common_rows(walk_forward(panel({"s": seasonal_ar1(120, 0.08, 0.6, rng)}), origins(120))))\
+        .assign(calibrated=False)
     frames = {
         schemas.BACKTEST_FORECASTS: scored,
         schemas.BACKTEST_METRICS: summarize(scored),

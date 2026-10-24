@@ -8,6 +8,8 @@ import math
 
 import pandas as pd
 
+from fpw.distribution import GRID_COLUMNS
+
 FETCH_LOG = """country STRING, status STRING, message STRING, dataset STRING, license STRING,
     resource_last_modified STRING, sha256 STRING, n_rows BIGINT, file_path STRING,
     _source STRING, _source_url STRING, _ingested_at TIMESTAMP"""
@@ -33,10 +35,12 @@ COUNTRY_COVERAGE = """country STRING, markets BIGINT, series BIGINT, retail_stap
     suspect_rows BIGINT, latest_month DATE"""
 
 
-BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, origin BIGINT, step BIGINT, target BIGINT,
+BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, market_id BIGINT,
+    series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT,
     k BIGINT, model STRING, q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE,
     actual DOUBLE, expected DOUBLE, sigma DOUBLE, z_now DOUBLE, split STRING, in80 BOOLEAN, in95 BOOLEAN,
-    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN"""
+    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, """ + \
+    ", ".join(f"{c} DOUBLE" for c in GRID_COLUMNS)
 
 _METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, coverage80_se DOUBLE, coverage95 DOUBLE,
     coverage95_se DOUBLE, pinball DOUBLE, median_abs_err DOUBLE, spike_rate DOUBLE, brier DOUBLE,

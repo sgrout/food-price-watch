@@ -23,7 +23,7 @@ def seasonal_ar1(n: int, sigma: float, phi: float, rng, trend: float = 0.005, m0
 
 
 def panel(series: dict[str, np.ndarray], m0: int = 2005 * 12) -> pd.DataFrame:
-    rows = [pd.DataFrame({"series_id": sid, "country": "sim", "commodity": "Maize", "market": sid, "unit": "KG",
-                          "m": m0 + np.arange(len(lp)), "lp": lp})
-            for sid, lp in series.items()]
+    rows = [pd.DataFrame({"series_id": sid, "country": "sim", "market_id": i, "series_commodity_id": 51,
+                          "commodity": "Maize", "market": sid, "unit": "KG", "m": m0 + np.arange(len(lp)), "lp": lp})
+            for i, (sid, lp) in enumerate(series.items())]
     return pd.concat(rows, ignore_index=True)
