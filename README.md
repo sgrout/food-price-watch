@@ -46,6 +46,18 @@ was chosen on 2020-2022 and then checked once on 2023-2026:
   right about **half the time (47 %)** and caught **about 1 in 5 (21 %)** of the new spikes. Better than
   guessing, far from perfect, and that is what we will say on every page.
 
+**A smarter model, and honest ranges (Phase 3).** We then tried a machine-learning model that learns from all
+markets at once, and a correction that widens or narrows each forecast range using the method's own past mistakes
+(only mistakes that were already known at the time). We fixed the choices in advance, picked on 2020-2022, and
+checked once on 2023-2026:
+- The correction works for the ranges: the "80 % range" now contains the real price about **3 times in 4 (77 %)**
+  instead of 2 in 3. That is the forecast we will show (the machine-learning model, corrected).
+- It has a price: the typical error is about 10 % for next month and 15 % three months ahead, a bit more than the
+  uncorrected forecasts, because the correction still "remembered" the 2020-2022 crisis when prices calmed down.
+- For the same reason its spike warnings were too eager after 2023: when it said "55 % chance", a spike followed
+  about 35 % of the time. For new spikes it was **hardly better than just knowing how often spikes happen**. We will
+  say so on every page, and keep score from now on with forecasts stored before the prices are known.
+
 **Glossary.**
 - *Market / commodity / series:* one food in one market, priced every month, is one "series".
 - *Spike:* a price well above what is normal *for that time of year* (prices rise every lean season; that alone is not
@@ -188,6 +200,60 @@ fetch for 14 days, or latest data month older than 120 days).
 - Bundle resource keys must be unique across types (`fpw_backtest` job and experiment clashed); one resource per
   `<name>.<type>.yml` file.
 
+### Phase 3: recalibration and a pooled ML model
+
+**Candidates, fixed before the backtest:** `seasonal_rw` (Phase 2 winner), `seasonal_rw_cal`, `lgbm`, `lgbm_cal`.
+Selection: lowest validation mean pinball (`choose_model(..., candidates=CANDIDATES)`); ML only if it beats the best
+baseline; holdout 2023+ once (it had already been used once to confirm the Phase 2 baseline). Same cases for all
+models (`common_rows`; ML starts in 2012, so dev = 2012-2019).
+
+- **Recalibration** (`fpw/calibrate.py`): quantile recalibration with past PITs. At origin O, the PITs of forecasts
+  whose target was published by O (target <= O - 2), last 60 months, per model x country x step, >= 300; quantile'(tau)
+  = quantile(G^-1(tau)) and P'(spike) = 1 - G(1 - P(spike)). Grids are interpolated in normal-score space with
+  linear tails (`fpw/distribution.py`), so an interval can widen beyond the model's own 97.5 % quantile.
+- **Pooled LightGBM** (`fpw/features.py`, `fpw/ml.py`): 11 quantile models (2.5 % ... 97.5 %) of the log change from
+  the last observation; 22 features: step, k, target month, history length, ALPS state (z now, residual, sigma, phi,
+  expected seasonal change), momentum (1/3/6/12-month changes, 12-month volatility), the seasonal_rw median change and
+  80 % width, the same food's median 1- and 3-month change and z across the country's markets, country and commodity
+  group. Refit every January on cases published by then (purge), last 10 years; fixed parameters (250 trees,
+  learning rate 0.06, 31 leaves, min 200 rows per leaf, 80 % row and column sampling). Quantiles sorted (no crossing).
+
+**Results** (means over steps 1-5):
+
+| Split | Model | Pinball | 80 % cover | 95 % cover | Spike Brier | Onset Brier | Onset clim. |
+|---|---|---|---|---|---|---|---|
+| validation | **lgbm_cal** | **0.0257** | 75 % | 93 % | **0.126** | **0.143** | 0.196 |
+| validation | seasonal_rw_cal | 0.0274 | 75 % | 93 % | 0.131 | 0.154 | 0.196 |
+| validation | seasonal_rw | 0.0274 | 66 % | 83 % | 0.135 | 0.160 | 0.196 |
+| validation | lgbm | 0.0283 | 60 % | 80 % | 0.139 | 0.159 | 0.196 |
+| holdout | lgbm | **0.0262** | 65 % | 85 % | **0.119** | **0.102** | 0.117 |
+| holdout | seasonal_rw | 0.0270 | 69 % | 87 % | 0.123 | 0.103 | 0.117 |
+| holdout | **lgbm_cal** | 0.0276 | 77 % | 93 % | 0.128 | 0.115 | 0.117 |
+| holdout | seasonal_rw_cal | 0.0283 | **80 %** | **96 %** | 0.126 | 0.109 | 0.117 |
+
+- **Chosen (rule, kept after the holdout by decision of the user): `lgbm_cal`.** It beats the calibrated baseline on
+  the holdout pinball (0.0276 vs 0.0283) but not on spike Brier (0.128 vs 0.126), and the raw models are sharper.
+- **Recalibration fixes coverage** (holdout 80 % interval: 65 -> 77 % for lgbm, 69 -> 80 % for seasonal_rw) but
+  **costs sharpness and spike skill after 2023**: the 60-month PIT window still holds the 2020-22 crisis errors, so it
+  over-widens and over-predicts spikes when prices calm down (lgbm_cal: forecast 0.55 -> observed 0.35). Onset Brier
+  of lgbm_cal 0.115 vs climatology 0.117: **no meaningful skill for new spikes on the holdout**. At step 3 (next
+  month) its onset alerts (p >= 0.5) had precision 0.42 and recall 0.51.
+- Raw lgbm is the least honest model (validation 80 % interval: 60 %) but the sharpest; it would be the best model
+  if its uncertainty were calibrated without the crisis memory. Candidates for later (to be fixed up front and judged
+  on the live track record, not on 2023+): a shorter or recency-weighted PIT window, and calibrating spike
+  probabilities separately (e.g. isotonic on past onsets).
+- Median |log error| on the holdout, lgbm_cal: 0.095 next month (step 3), 0.144 three months ahead (step 5).
+
+**Gotchas found**
+- Two test failures were sampling noise in my own tests (100-300 PITs give a 90 % quantile SE of 0.017-0.03 in level;
+  seed 1 started ~3 SE low); judged over seeds instead of loosening thresholds.
+- LightGBM's scikit-learn API needs `scikit-learn`; macOS needs `libomp` (Homebrew).
+- `grep` in a pipe buffers a long-running script's log until it ends: use `python -u` or no filter.
+- LightGBM is not bit-for-bit reproducible across machines (thread count x row sampling): the Databricks run gave
+  lgbm_cal holdout pinball 0.0274 vs 0.0276 locally (validation 0.0258 vs 0.0257); baselines match exactly. The
+  conclusions are the same. Backtest job on serverless: 27.7 min (3 baselines + lgbm + recalibration, 2.2 M rows).
+- **The 2023+ holdout is now spent twice.** Model changes from here are judged on the live track record.
+
 ### How to run
 
 ```bash
@@ -198,7 +264,7 @@ databricks bundle validate --strict -t dev --profile Fx-Workspace
 databricks bundle deploy -t dev --profile Fx-Workspace
 databricks bundle run fpw_pipeline -t dev --profile Fx-Workspace          # weekly on its own; this runs it now
 databricks bundle run fpw_pipeline -t dev --profile Fx-Workspace --only gold_coverage   # one task
-databricks bundle run fpw_backtest -t dev --profile Fx-Workspace          # ~5 min on serverless
+databricks bundle run fpw_backtest -t dev --profile Fx-Workspace          # ~28 min on serverless: run only after model changes
 ```
 
 Rebuild silver from bronze (all files are kept in the volume): drop `fpw_dev_silver.wfp_price_versions` and run the

@@ -48,6 +48,14 @@ This file is the brief for coding agents. Read it fully before the first change,
     `seasonal_rw`. Its intervals are too narrow (holdout 80 % -> 69 %) and must be calibrated before publishing.
   - **The 2023+ holdout is spent** for the baselines; Phase 3 must define a fresh final test and not tune on it.
   - Bundle: one resource per `resources/<name>.<type>.yml`; resource keys unique across types.
+- **Phase 3 decisions (2026-10-24):**
+  - Production forecast: **`lgbm_cal`** (pooled LightGBM quantile model + PIT recalibration), chosen by the fixed
+    rule and kept by the user after a mixed holdout (coverage 77/93 %, pinball 0.0276; spike probabilities
+    over-eager after 2023, no onset skill over climatology). Pages must show these holdout numbers and say that new-
+    spike warnings have no proven skill yet.
+  - The 2023+ holdout is spent. New candidates (shorter/recency-weighted PIT window, separate spike calibration) are
+    fixed up front and judged on the live track record only.
+  - Backtest notebook `04_backtest.py` runs all models; job `fpw_backtest` uses the `ml` environment (lightgbm).
 
 ---
 
