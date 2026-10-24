@@ -8,7 +8,7 @@ count for the cross-market features and are what a live forecast predicts.
 import numpy as np
 import pandas as pd
 
-from fpw.backtest import LAG, MAX_STALENESS, MIN_HISTORY, SERIES_INFO, STEPS
+from fpw.backtest import LAG, MAX_STALENESS, MIN_HISTORY, SERIES_INFO, STEPS, history_at, series_arrays
 from fpw.baselines import LEVELS, seasonal_rw
 from fpw.spike import fit_seasonal_trend
 
@@ -35,23 +35,20 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
     steps = np.asarray(steps)
     out = []
     for sid, g in panel.groupby("series_id", sort=False):
-        m, lp = g["m"].to_numpy(), g["lp"].to_numpy()
-        m0 = int(m[0])
-        full = np.full(int(m[-1]) - m0 + 1, np.nan)
-        full[m - m0] = lp
+        m, lp, sus, m0, full, clean = series_arrays(g)
         country, commodity = g["country"].iloc[0], g["commodity"].iloc[0]
         info = tuple(g[c].iloc[0] for c in SERIES_INFO)
         group = commodity_group(commodity)
         for origin in origins:
             m_data = origin - lag
-            n_hist = int(np.searchsorted(m, m_data, side="right"))
-            if n_hist < min_history or m_data - m[n_hist - 1] > max_staleness:
+            hist = history_at(m, lp, sus, m0, full, m_data, min_history, max_staleness)
+            if hist is None:
                 continue
-            m_last = int(m[n_hist - 1])
-            fit = fit_seasonal_trend(m[:n_hist], lp[:n_hist])
+            mh, lph, arr, eligible = hist
+            n_hist, m_last = len(mh), int(mh[-1])
+            fit = fit_seasonal_trend(mh, lph)
             if fit is None:
                 continue
-            arr = full[: m_last - m0 + 1]
             lp_last = arr[-1]
             back = {j: arr[-1 - j] if len(arr) > j else np.nan for j in (1, 3, 6, 12)}
             d1 = np.diff(arr[-13:])
@@ -64,14 +61,14 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
             for i, step in enumerate(steps):
                 t = int(targets[i])
                 out.append((sid, country, commodity, *info, group, origin, int(step), t, int(ks[i]), m_last, lp_last,
-                            full[t - m0] if t <= m[-1] else np.nan, expected[i], fit.sigma, fit.phi, fit.resid_last,
+                            clean[t - m0] if t <= m[-1] else np.nan, expected[i], fit.sigma, fit.phi, fit.resid_last,
                             fit.resid_last / fit.sigma, n_hist, t % 12, seas_change[i],
                             lp_last - back[1], lp_last - back[3], lp_last - back[6], lp_last - back[12], vol12,
                             srw[i, _Q50] - lp_last if srw is not None else np.nan,
-                            srw[i, _Q90] - srw[i, _Q10] if srw is not None else np.nan))
+                            srw[i, _Q90] - srw[i, _Q10] if srw is not None else np.nan, eligible))
     cols = ["series_id", "country", "commodity", *SERIES_INFO, "commodity_group", "origin", "step", "target", "k", "m_last",
             "lp_last", "actual", "expected", "sigma", "phi", "resid_last", "z_now", "n_hist", "target_month",
-            "seas_change", "ret1", "ret3", "ret6", "ret12", "vol12", "srw_change", "srw_width80"]
+            "seas_change", "ret1", "ret3", "ret6", "ret12", "vol12", "srw_change", "srw_width80", "eligible_at_origin"]
     cases = pd.DataFrame(out, columns=cols)
     return add_group_features(cases)
 

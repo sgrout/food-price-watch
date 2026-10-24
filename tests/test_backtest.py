@@ -126,10 +126,64 @@ def test_backtest_frames_fit_their_schemas():
         .assign(calibrated=False)
     frames = {
         schemas.BACKTEST_FORECASTS: scored,
-        schemas.BACKTEST_METRICS: summarize(scored),
-        schemas.BACKTEST_METRICS_COUNTRY: summarize(scored, by=("model", "split", "country", "step")),
-        schemas.SPIKE_CALIBRATION: calibration(scored),
+        schemas.BACKTEST_METRICS: summarize(scored).assign(population="all"),
+        schemas.BACKTEST_METRICS_COUNTRY: summarize(scored, by=("model", "split", "country", "step"))
+        .assign(population="all"),
+        schemas.SPIKE_CALIBRATION: calibration(scored).assign(population="all"),
     }
     for ddl, df in frames.items():
         assert sorted(schemas.columns(ddl)) == sorted(df.columns)
         assert len(schemas.to_rows(df, ddl)) == len(df)
+
+
+# --- point in time through the real quality flags (review 2026-10-24, issue 1) ---
+
+def real_panel(values, start="2015-01"):
+    """Prices -> quality flags -> panel, exactly as the pipeline does (the simulated panels skip flag_suspects)."""
+    from fpw.panel import monthly_panel
+    from fpw.quality import flag_suspects
+    from helpers import months, prices
+    return monthly_panel(flag_suspects(prices(months(start, values))))
+
+
+def test_a_blip_in_the_last_usable_month_is_used_until_its_reversal_is_published():
+    values = [100.0] * 60 + [300.0, 100.0, 100.0, 100.0]  # month 60 is a blip, reverted in month 61
+    p = real_panel(values)
+    blip_m = int(p["m"].iloc[60])
+    assert p["suspect_from"].iloc[60] == blip_m + 1  # known as an error once month 61 is out
+    at_blip = walk_forward(p, [blip_m + LAG], models={"naive": naive})  # last usable month = the blip
+    assert np.allclose(at_blip["q50"], np.log(300.0))  # live would forecast from the blip, so the backtest does too
+    after = walk_forward(p, [blip_m + 1 + LAG], models={"naive": naive})  # reversal published: blip dropped
+    assert np.allclose(after["q50"], np.log(100.0))
+
+
+def test_known_data_errors_are_never_scored_as_targets():
+    values = [100.0] * 60 + [300.0, 100.0, 100.0, 100.0]
+    p = real_panel(values)
+    blip_m = int(p["m"].iloc[60])
+    fc = walk_forward(p, range(blip_m - 3, blip_m + 1), models={"naive": naive})
+    assert len(fc) and blip_m not in set(fc["target"])
+
+
+def test_forecasts_through_the_real_flags_do_not_change_when_the_future_changes():
+    """The test that would have caught issue 1: flags are recomputed on the shocked data."""
+    rng = np.random.default_rng(8)
+    walk = 100 * np.exp(np.cumsum(rng.normal(0, 0.03, 90)))
+    origin_idx = 70
+    last = origin_idx - LAG  # last usable month: a x3 jump in both versions
+    persists = np.concatenate([walk[:last], walk[last:] * 3])  # the jump stays: not a data error
+    reverts = np.concatenate([walk[:last], [walk[last] * 3], walk[last + 1:]])  # reverts next month: spike_revert
+    p1, p2 = real_panel(list(persists)), real_panel(list(reverts))
+    assert p2["suspect_from"].notna().sum() == 1 and p1["suspect_from"].isna().all()
+    origin = int(p1["m"].iloc[origin_idx])
+    cols = ["model", "step", "q025", "q10", "q50", "q90", "q975", "spike_prob", "expected", "sigma"]
+    a, b = walk_forward(p1, [origin]), walk_forward(p2, [origin])
+    pd.testing.assert_frame_equal(a[cols].reset_index(drop=True), b[cols].reset_index(drop=True))
+
+
+def test_eligible_at_origin_applies_the_publication_rule_to_the_history_then():
+    p = real_panel([100.0 + i % 12 for i in range(80)])
+    first_m = int(p["m"].iloc[0])
+    fc = walk_forward(p, [first_m + 50 + LAG, first_m + 70 + LAG], models={"naive": naive})
+    by_origin = fc.groupby("origin")["eligible_at_origin"].first()
+    assert list(by_origin) == [False, True]  # 51 months of history, then 71 (rule: >= 60)

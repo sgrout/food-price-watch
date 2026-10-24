@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from fpw.baselines import LEVELS, MODELS, REPORT_LEVELS, prob_above
+from fpw.coverage import MIN_COMPLETENESS, MIN_MONTHS
 from fpw.distribution import GRID_COLUMNS, GRID_LEVELS, cdf_at
 from fpw.spike import SPIKE_Z, fit_seasonal_trend
 
@@ -33,32 +34,64 @@ def split_of(target_m: pd.Series) -> pd.Series:
                      index=target_m.index)
 
 
+def series_arrays(g: pd.DataFrame):
+    """Per series: months, log prices, month each value is known to be suspect (inf = never), dense arrays of all
+    values and of the values that are never suspect (the only ones scored as targets)."""
+    m, lp = g["m"].to_numpy(), g["lp"].to_numpy()
+    sus = g["suspect_from"].to_numpy(dtype=float) if "suspect_from" in g else np.full(len(m), np.nan)
+    sus = np.where(np.isnan(sus), np.inf, sus)
+    m0 = int(m[0])
+    full = np.full(int(m[-1]) - m0 + 1, np.nan)
+    full[m - m0] = lp
+    clean = full.copy()
+    clean[m[np.isfinite(sus)] - m0] = np.nan
+    return m, lp, sus, m0, full, clean
+
+
+def history_at(m, lp, sus, m0, full, m_data, min_history=MIN_HISTORY, max_staleness=MAX_STALENESS):
+    """The history usable when the last published month is m_data: observations up to m_data minus those already
+    known to be data errors (sus <= m_data). A suspect value whose confirming month comes later is still used, as a
+    live run would. Returns (months, log prices, dense array up to the last observation, eligible) or None.
+
+    `eligible` applies the publication rule (fpw.coverage) to this history, so the track record can be shown for
+    the series that would have been published at that origin.
+    """
+    upto = int(np.searchsorted(m, m_data, side="right"))
+    known_bad = sus[:upto] <= m_data
+    mh, lph = m[:upto][~known_bad], lp[:upto][~known_bad]
+    if len(mh) < min_history or m_data - mh[-1] > max_staleness:
+        return None
+    m_last = int(mh[-1])
+    arr = full[: m_last - m0 + 1].copy()
+    bad = m[:upto][known_bad]
+    arr[bad[bad <= m_last] - m0] = np.nan
+    eligible = len(mh) >= MIN_MONTHS and len(mh) / (m_last - int(mh[0]) + 1) >= MIN_COMPLETENESS
+    return mh, lph, arr, eligible
+
+
 def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, steps=STEPS,
                  min_history: int = MIN_HISTORY, max_staleness: int = MAX_STALENESS) -> pd.DataFrame:
     """One row per (series, origin, step, model) whose target month was observed (only those can be scored)."""
     steps = np.asarray(steps)
     out = []
     for sid, g in panel.groupby("series_id", sort=False):
-        m, lp = g["m"].to_numpy(), g["lp"].to_numpy()
-        m0 = int(m[0])
-        full = np.full(int(m[-1]) - m0 + 1, np.nan)
-        full[m - m0] = lp
+        m, lp, sus, m0, full, clean = series_arrays(g)
         country, commodity = g["country"].iloc[0], g["commodity"].iloc[0]
         info = tuple(g[c].iloc[0] for c in SERIES_INFO)
         for origin in origins:
             m_data = origin - lag
-            n_hist = int(np.searchsorted(m, m_data, side="right"))
-            if n_hist < min_history or m_data - m[n_hist - 1] > max_staleness:
+            hist = history_at(m, lp, sus, m0, full, m_data, min_history, max_staleness)
+            if hist is None:
                 continue
+            mh, lph, arr, eligible = hist
             targets = m_data + steps
-            actual = np.array([full[t - m0] if t <= m[-1] else np.nan for t in targets])
+            actual = np.array([clean[t - m0] if t <= m[-1] else np.nan for t in targets])
             if np.isnan(actual).all():
                 continue
-            m_last = int(m[n_hist - 1])
-            fit = fit_seasonal_trend(m[:n_hist], lp[:n_hist])
+            fit = fit_seasonal_trend(mh, lph)
             if fit is None:  # no spike definition without a seasonal fit: not scored
                 continue
-            arr = full[: m_last - m0 + 1]
+            m_last = int(mh[-1])
             ks = targets - m_last
             expected, threshold = fit.expected(targets), fit.spike_threshold(targets)
             z_now = fit.resid_last / fit.sigma
@@ -71,12 +104,12 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
                         continue
                     out.append((sid, country, commodity, *info, origin, int(step), int(targets[i]), int(ks[i]), name,
                                 *q[i, _REPORT_IDX], prob_above(q[i], threshold[i]), actual[i], expected[i],
-                                fit.sigma, z_now, *q[i, _GRID_IDX]))
+                                fit.sigma, z_now, eligible, *q[i, _GRID_IDX]))
     return with_pit(pd.DataFrame(out, columns=FORECAST_COLUMNS))
 
 
 FORECAST_COLUMNS = ["series_id", "country", "commodity", *SERIES_INFO, "origin", "step", "target", "k", "model", *Q_COLUMNS,
-                    "spike_prob", "actual", "expected", "sigma", "z_now", *GRID_COLUMNS]
+                    "spike_prob", "actual", "expected", "sigma", "z_now", "eligible_at_origin", *GRID_COLUMNS]
 
 
 def with_pit(fc: pd.DataFrame) -> pd.DataFrame:
