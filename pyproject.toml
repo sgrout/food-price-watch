@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "food-price-watch"
+version = "0.1.0"
+description = "Open, probabilistic early warning for staple food price spikes (WFP prices on HDX), on Databricks"
+requires-python = ">=3.12"
+# On Databricks serverless, requests and pandas come with the runtime.
+dependencies = ["requests", "pandas>=2.2,<3"]  # pandas 3 not yet supported by PySpark
+
+[project.optional-dependencies]
+# Private dashboard (app/), deployed as a Databricks App.
+app = ["streamlit", "databricks-sql-connector", "databricks-sdk"]
+# Local development only. On Databricks, Spark is provided by the runtime.
+dev = ["pytest", "pyyaml", "pyspark~=4.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["fpw*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,36 @@
+bundle:
+  name: food_price_watch
+
+include:
+  - resources/*.yml
+
+sync:
+  exclude:
+    - tests/**
+    - .github/**
+    - data/**
+
+workspace:
+  # Free Edition workspace shared with fx_medallion; CLI profile Fx-Workspace.
+  host: https://dbc-101f908c-607f.cloud.databricks.com
+
+variables:
+  catalog:
+    default: workspace
+  env:
+    default: dev
+  countries:
+    description: Comma-separated HDX country slugs (pilots for Phase 1)
+    default: mali,burkina-faso,burundi
+
+# One catalog on Free Edition, so environments are schema prefixes: workspace.fpw_dev_bronze / silver / gold / ml.
+targets:
+  dev:
+    # Not `mode: development`: that mode pauses every schedule and does not allow unpausing them (fx_medallion
+    # lesson). dev is the only environment for now, so it keeps its schedules; presets keep the visible prefix.
+    default: true
+    presets:
+      name_prefix: "[dev] "
+      trigger_pause_status: UNPAUSED
+    variables:
+      env: dev

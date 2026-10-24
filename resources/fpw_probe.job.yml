@@ -1,0 +1,21 @@
+resources:
+  jobs:
+    fpw_probe:
+      name: fpw_probe_${var.env}
+      description: >
+        One-off reachability probe: can serverless reach HDX (CKAN API + S3 redirect) and do the pilot CSVs have the
+        expected format? Writes no tables. Run manually: databricks bundle run fpw_probe -t dev --profile Fx-Workspace
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      parameters:
+        - name: countries
+          default: ${var.countries}
+
+      # No cluster defined = serverless compute (the only option on Free Edition). No schedule: manual runs only.
+      tasks:
+        - task_key: probe_hdx
+          notebook_task:
+            notebook_path: ../src/00_probe_hdx.py
