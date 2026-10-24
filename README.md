@@ -263,6 +263,16 @@ models (`common_rows`; ML starts in 2012, so dev = 2012-2019).
   Burkina Faso 6-7 %; Burundi 1-3 %. Real sticky prices or values carried forward without collection cannot be told
   apart from the data; this makes affected series look calmer than they are. Candidate (to decide): a
   `repeated_price` flag that keeps the values but marks them, and a question to WFP.
+- **WFP's variability rule applied** (from WFP's forecasting/ALPS method note: show a series only if cv >= 15 %
+  over the whole series or >= 10 % over the last 3 years, or (max - min) / mean >= 50 % / 30 %; suspect rows
+  excluded; "pv" read as range over the mean price). Of our 909 eligible series only **11 fail** the full rule
+  (Burkina Faso 9, Mali 2): over decades of inflation almost every series varies enough. The 3-year part is more
+  telling: **85 series are flat in the last 3 years** (both 3-year indicators below threshold): Mali 52, Burkina
+  Faso 26, Burundi 7. They are the repeated-price series: median 44 % of their last-3-year months sit in runs of
+  >= 4 identical prices, against 0 % for the other series; of series with > 60 % repeated months, 59 % are flat.
+  The flattest are **imported rice in Bamako districts** (Niarela, Kouremale, Djikoroni, Lafiabougou: 85-96 %
+  repeated months), plausibly a really stable import price. The blockade towns pass (Djibo millet 23 % repeated),
+  except Sebba imported rice (63 %).
 
 **Gotchas found**
 - Two test failures were sampling noise in my own tests (100-300 PITs give a 90 % quantile SE of 0.017-0.03 in level;
