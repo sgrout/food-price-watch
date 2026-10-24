@@ -33,6 +33,22 @@ COUNTRY_COVERAGE = """country STRING, markets BIGINT, series BIGINT, retail_stap
     suspect_rows BIGINT, latest_month DATE"""
 
 
+BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, origin BIGINT, step BIGINT, target BIGINT,
+    k BIGINT, model STRING, q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE,
+    actual DOUBLE, expected DOUBLE, sigma DOUBLE, z_now DOUBLE, split STRING, in80 BOOLEAN, in95 BOOLEAN,
+    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN"""
+
+_METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, coverage80_se DOUBLE, coverage95 DOUBLE,
+    coverage95_se DOUBLE, pinball DOUBLE, median_abs_err DOUBLE, spike_rate DOUBLE, brier DOUBLE,
+    brier_climatology DOUBLE, alert_rate DOUBLE, precision DOUBLE, recall DOUBLE, persistence_precision DOUBLE,
+    persistence_recall DOUBLE, onset_n BIGINT, onset_rate DOUBLE, onset_brier DOUBLE, onset_brier_climatology DOUBLE,
+    onset_precision DOUBLE, onset_recall DOUBLE"""
+
+BACKTEST_METRICS = "model STRING, split STRING, step BIGINT, " + _METRICS
+BACKTEST_METRICS_COUNTRY = "model STRING, split STRING, country STRING, step BIGINT, " + _METRICS
+SPIKE_CALIBRATION = "model STRING, split STRING, bin BIGINT, n BIGINT, mean_prob DOUBLE, observed DOUBLE"
+
+
 def columns(ddl: str) -> list[str]:
     return [part.split()[0] for part in ddl.split(",")]
 

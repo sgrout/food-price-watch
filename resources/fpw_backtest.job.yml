@@ -1,0 +1,25 @@
+resources:
+  jobs:
+    fpw_backtest:
+      name: fpw_backtest_${var.env}
+      description: Walk-forward backtest of the baseline forecasters and the spike definition (manual runs)
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: env
+          default: ${var.env}
+        - name: experiment_id
+          default: ${resources.experiments.fpw_backtest_experiment.id}
+        - name: first_origin_year
+          default: "2008"
+
+      # No schedule: run after a model change. No cluster = serverless; pandas, numpy and mlflow come with it.
+      tasks:
+        - task_key: backtest_baselines
+          notebook_task:
+            notebook_path: ../src/04_backtest_baselines.py

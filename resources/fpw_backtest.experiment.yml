@@ -1,0 +1,5 @@
+resources:
+  experiments:
+    # MLflow experiment, deployed per target like the jobs (lives in the bundle's workspace folder)
+    fpw_backtest_experiment:
+      name: ${workspace.root_path}/fpw_backtest_${var.env}
