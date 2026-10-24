@@ -23,7 +23,7 @@ PRICE_VERSIONS = _PRICE_COLUMNS + ", is_removed BOOLEAN, valid_from TIMESTAMP"
 EXCHANGE_RATES = _PRICE_COLUMNS + """, series_commodity_id BIGINT, first_seen_at TIMESTAMP,
     last_changed_at TIMESTAMP, n_versions BIGINT"""
 
-PRICES = EXCHANGE_RATES + ", quality_flag STRING, is_suspect BOOLEAN"
+PRICES = EXCHANGE_RATES + ", quality_flag STRING, is_suspect BOOLEAN, confirmed_date DATE"
 
 SERIES_COVERAGE = """country STRING, market_id BIGINT, series_commodity_id BIGINT, pricetype STRING, unit STRING,
     market STRING, commodity STRING, category STRING, n_suspect BIGINT, n_breaks BIGINT, first_date DATE,
@@ -39,7 +39,7 @@ BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, mark
     series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT,
     k BIGINT, model STRING, q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE,
     actual DOUBLE, expected DOUBLE, sigma DOUBLE, z_now DOUBLE, split STRING, in80 BOOLEAN, in95 BOOLEAN,
-    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, """ + \
+    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, eligible_at_origin BOOLEAN, """ + \
     ", ".join(f"{c} DOUBLE" for c in GRID_COLUMNS)
 
 _METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, coverage80_se DOUBLE, coverage95 DOUBLE,
@@ -48,9 +48,9 @@ _METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, co
     persistence_recall DOUBLE, onset_n BIGINT, onset_rate DOUBLE, onset_brier DOUBLE, onset_brier_climatology DOUBLE,
     onset_precision DOUBLE, onset_recall DOUBLE"""
 
-BACKTEST_METRICS = "model STRING, split STRING, step BIGINT, " + _METRICS
-BACKTEST_METRICS_COUNTRY = "model STRING, split STRING, country STRING, step BIGINT, " + _METRICS
-SPIKE_CALIBRATION = "model STRING, split STRING, bin BIGINT, n BIGINT, mean_prob DOUBLE, observed DOUBLE"
+BACKTEST_METRICS = "population STRING, model STRING, split STRING, step BIGINT, " + _METRICS
+BACKTEST_METRICS_COUNTRY = "population STRING, model STRING, split STRING, country STRING, step BIGINT, " + _METRICS
+SPIKE_CALIBRATION = "population STRING, model STRING, split STRING, bin BIGINT, n BIGINT, mean_prob DOUBLE, observed DOUBLE"
 
 
 def columns(ddl: str) -> list[str]:

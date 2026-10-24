@@ -19,6 +19,15 @@ def test_mali_2017_style_one_month_spike_that_reverts_is_suspect():
     assert sum(suspect) == 1  # the months around it are fine
 
 
+def test_suspects_carry_the_date_they_become_known():
+    df = flag_suspects(prices(months("2017-05", [140, 140, 140, 500, 142, 142])
+                              + [("2017-11", float("nan"))])).sort_values("date")
+    known = dict(zip(df["date"].astype(str), df["confirmed_date"]))
+    assert str(known["2017-08-15"]) == "2017-09-15"  # spike_revert: known once the reversal month is out
+    assert str(known["2017-11-15"]) == "2017-11-15"  # invalid price: known at once
+    assert known["2017-07-15"] is None
+
+
 def test_milder_market_in_the_same_episode_is_also_caught():
     f, _ = flags([175, 175, 175, 386, 198, 193])
     assert f[3] == "spike_revert"

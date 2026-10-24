@@ -8,6 +8,9 @@
 # MAGIC - `lgbm`: pooled LightGBM quantile model, refit every January on cases published by then (from `first_ml_year`);
 # MAGIC - `*_cal`: seasonal_rw and lgbm recalibrated with their own past, published errors (PITs).
 # MAGIC
+# MAGIC History is point in time, also for data errors: a suspect value is dropped only from origins at which the month
+# MAGIC revealing it was published; known errors are never scored as targets. Metrics are written for all scored cases
+# MAGIC and for the series eligible for publication at the origin (`population`).
 # MAGIC All models are compared on the same cases (`common_rows`). The chosen model follows the fixed rule
 # MAGIC (`fpw.backtest.choose_model`: validation mean pinball among `CANDIDATES`).
 # MAGIC Writes `fpw_{env}_gold.backtest_forecasts`, `backtest_metrics`, `backtest_metrics_country`,
@@ -65,10 +68,14 @@ calibrated = recalibrate(raw[raw["model"].isin(["seasonal_rw", "lgbm"])])
 log(f"recalibrated: {len(calibrated):,} forecasts ({int(calibrated['calibrated'].sum()):,} with enough past PITs)")
 
 scored = score(common_rows(pd.concat([raw, calibrated], ignore_index=True)))
-metrics = summarize(scored)
-metrics_country = summarize(scored, by=("model", "split", "country", "step"))
-spike_cal = calibration(scored)
-chosen = choose_model(metrics, candidates=CANDIDATES)
+# Two populations: all scored cases (model choice) and the series eligible for publication at the origin
+# (the track record shown next to a published forecast).
+populations = {"all": scored, "eligible": scored[scored["eligible_at_origin"]]}
+metrics = pd.concat([summarize(s).assign(population=k) for k, s in populations.items()], ignore_index=True)
+metrics_country = pd.concat([summarize(s, by=("model", "split", "country", "step")).assign(population=k)
+                             for k, s in populations.items()], ignore_index=True)
+spike_cal = pd.concat([calibration(s).assign(population=k) for k, s in populations.items()], ignore_index=True)
+chosen = choose_model(metrics[metrics["population"] == "all"], candidates=CANDIDATES)
 log(f"{len(scored):,} scored rows in common, {scored['series_id'].nunique():,} series; chosen on validation: {chosen}")
 
 # COMMAND ----------
@@ -104,21 +111,22 @@ with mlflow.start_run(run_name="backtest"):
         "lgbm_features": ",".join(FEATURES), **{f"lgbm_{k}": v for k, v in PARAMS.items()},
         "n_series": scored["series_id"].nunique(), "n_rows": len(scored),
     })
+    mlflow.log_param("eligible_rows", int(scored["eligible_at_origin"].sum()))
     mlflow.log_table(metrics, "metrics.json")
     mlflow.log_table(spike_cal, "spike_calibration.json")
     for model in sorted(scored["model"].unique()):
         with mlflow.start_run(run_name=model, nested=True):
             mlflow.log_param("model", model)
             for _, r in metrics[metrics["model"] == model].iterrows():
-                prefix = f"{r['split']}_step{r['step']}"
+                prefix = f"{r['population']}_{r['split']}_step{r['step']}"
                 mlflow.log_metrics({f"{prefix}_{m}": float(r[m]) for m in
                                     ["pinball", "coverage80", "coverage95", "brier", "onset_brier"]})
 
 # COMMAND ----------
 
 display(spark.sql(f"""
-    SELECT model, split, ROUND(AVG(pinball), 4) AS pinball, ROUND(AVG(coverage80), 3) AS coverage80,
+    SELECT population, model, split, ROUND(AVG(pinball), 4) AS pinball, ROUND(AVG(coverage80), 3) AS coverage80,
            ROUND(AVG(coverage95), 3) AS coverage95, ROUND(AVG(brier), 3) AS brier,
            ROUND(AVG(onset_brier), 3) AS onset_brier, ROUND(AVG(onset_brier_climatology), 3) AS onset_climatology
-    FROM {gold}.backtest_metrics GROUP BY ALL ORDER BY split, pinball
+    FROM {gold}.backtest_metrics GROUP BY ALL ORDER BY population, split, pinball
 """))

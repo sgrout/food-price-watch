@@ -56,6 +56,10 @@ This file is the brief for coding agents. Read it fully before the first change,
   - The 2023+ holdout is spent. New candidates (shorter/recency-weighted PIT window, separate spike calibration) are
     fixed up front and judged on the live track record only.
   - Backtest notebook `04_backtest.py` runs all models; job `fpw_backtest` uses the `ml` environment (lightgbm).
+  - Point in time also for data errors: suspect values are dropped from a backtest history only once their
+    `confirmed_date` month is <= origin - 2 (`backtest.history_at`); known errors are never scored, live or backtest.
+    Any new test of look-ahead must run the real `flag_suspects`, not only simulated panels.
+  - Track record shown with a forecast = metrics with `population = 'eligible'` (eligible at the origin).
   - Forecast rows carry `market_id`, `series_commodity_id`, `unit` (basket preparation; proposal in
     `docs/proposal-users-and-features.md`, not approved). Open data finding: runs of identical prices (Mali 16-30 %).
 

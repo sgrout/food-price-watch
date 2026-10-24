@@ -30,6 +30,10 @@ def flag_suspects(prices: pd.DataFrame) -> pd.DataFrame:
 
     Flags: invalid_price (missing or <= 0), spike_revert (jump and full reversal), level_shift (a break),
     unconfirmed_jump (a big move in the latest observation of a series: may be a real spike, kept, not suspect).
+
+    `confirmed_date`: when a suspect value is known to be one. A spike_revert needs the next observation (the
+    reversal), so a backtest may only drop it from origins at which that month was published; an invalid price is
+    known at once.
     """
     df = prices.copy()
     df["quality_flag"] = pd.Series([None] * len(df), index=df.index, dtype=object)
@@ -59,6 +63,10 @@ def flag_suspects(prices: pd.DataFrame) -> pd.DataFrame:
     flags = pd.Series(flags, index=v.index)
     df.loc[flags[flags != ""].index, "quality_flag"] = flags[flags != ""]
     df["is_suspect"] = df["quality_flag"].isin(SUSPECT_FLAGS)
+    df["confirmed_date"] = pd.Series([None] * len(df), index=df.index, dtype=object)
+    df.loc[~valid, "confirmed_date"] = df.loc[~valid, "date"]
+    sr = spike_revert[spike_revert].index
+    df.loc[sr, "confirmed_date"] = next_t[sr].dt.date
     return df
 
 

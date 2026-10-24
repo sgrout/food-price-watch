@@ -14,14 +14,16 @@ def test_month_index_round_trip():
     assert list(m % 12) == [0, 11] and month_date(m.iloc[1]).isoformat() == "2024-12-15"
 
 
-def test_panel_keeps_series_identity_and_drops_suspect_and_non_staples():
+def test_panel_keeps_series_identity_marks_suspects_and_drops_non_staples():
     df = pd.concat([
         prices(months("2020-01", [100, 100, 500, 100]), market_id=7),  # one spike_revert
         prices(months("2020-01", [100] * 4), market_id=7, commodity="Livestock (goat)", commodity_id=9),
         prices(months("2020-01", [100] * 4), market_id=7, pricetype="Wholesale"),
     ], ignore_index=True)
     p = monthly_panel(flag_suspects(df))
-    assert p["series_id"].nunique() == 1 and len(p) == 3
+    assert p["series_id"].nunique() == 1 and len(p) == 4  # the suspect month stays, marked
+    assert list(p["suspect_from"].isna()) == [True, True, False, True]
+    assert p["suspect_from"].iloc[2] == p["m"].iloc[3]  # known when the reversal month is published
     row = p.iloc[0]
     assert (row["country"], row["market_id"], row["series_commodity_id"], row["unit"]) == ("mali", 7, 51, "KG")
     assert np.isclose(p["lp"].iloc[0], np.log(100))
