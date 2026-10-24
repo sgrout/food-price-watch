@@ -9,4 +9,4 @@ __pycache__/
 *.egg-info/
 build/
 # Downloaded raw data stays out of git; trimmed fixtures live in tests/data/
-data/
+/data/

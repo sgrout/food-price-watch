@@ -1,0 +1,21 @@
+date,admin1,admin2,market,market_id,latitude,longitude,category,commodity,commodity_id,unit,priceflag,pricetype,currency,price,usdprice
+2003-01-15,Bamako,Bamako,Bamako,247,12.65,-8,cereals and tubers,Maize,51,KG,actual,Retail,XOF,153.65,0.37
+2003-01-15,Bamako,Bamako,Bamako,247,12.65,-8,cereals and tubers,Millet,73,KG,actual,Retail,XOF,185.42,0.44
+2003-01-15,Bamako,Bamako,Bamako,247,12.65,-8,cereals and tubers,Sorghum,65,KG,actual,Retail,XOF,176.25,0.42
+2003-01-15,Bamako,Bamako,Niarela,253,12.65,-8,cereals and tubers,Maize,51,KG,actual,Retail,XOF,156.25,0.37
+2003-01-15,Bamako,Bamako,Niarela,253,12.65,-8,cereals and tubers,Millet,73,KG,actual,Retail,XOF,175,0.42
+2003-01-15,Gao,Gao,Gao,248,16.27,-0.04,cereals and tubers,Maize,51,KG,actual,Retail,XOF,175,0.42
+2003-01-15,Gao,Gao,Gao,248,16.27,-0.04,cereals and tubers,Millet,73,KG,actual,Retail,XOF,198,0.47
+2003-01-15,Gao,Gao,Gao,248,16.27,-0.04,cereals and tubers,Sorghum,65,KG,actual,Retail,XOF,220,0.52
+2003-01-15,Koulikoro,Koulikoro,Koulikoro Ba,251,12.89,-7.54,cereals and tubers,Maize,51,KG,actual,Retail,XOF,162.5,0.39
+2003-01-15,Koulikoro,Koulikoro,Koulikoro Ba,251,12.89,-7.54,cereals and tubers,Millet,73,KG,actual,Retail,XOF,160.5,0.38
+2003-01-15,Koulikoro,Koulikoro,Koulikoro Ba,251,12.89,-7.54,cereals and tubers,Sorghum,65,KG,actual,Retail,XOF,163.5,0.39
+2003-01-15,Mopti,Mopti,Mopti Digue,252,14.49,-4.19,cereals and tubers,Maize,51,KG,actual,Retail,XOF,172.3,0.41
+2003-01-15,Mopti,Mopti,Mopti Digue,252,14.49,-4.19,cereals and tubers,Millet,73,KG,actual,Retail,XOF,180.43,0.43
+2003-01-15,Mopti,Mopti,Mopti Digue,252,14.49,-4.19,cereals and tubers,Sorghum,65,KG,actual,Retail,XOF,180.54,0.43
+2003-01-15,Segou,Segou,Ségou Centre,901,13.45,-6.27,cereals and tubers,Maize,51,KG,actual,Retail,XOF,141.25,0.34
+2003-01-15,Segou,Segou,Ségou Centre,901,13.45,-6.27,cereals and tubers,Millet,73,KG,actual,Retail,XOF,150,0.36
+2003-01-15,Segou,Segou,Ségou Centre,901,13.45,-6.27,cereals and tubers,Sorghum,65,KG,actual,Retail,XOF,150,0.36
+2003-01-15,Sikasso,Sikasso,Sikasso Centre,256,11.31,-5.67,cereals and tubers,Maize,51,KG,actual,Retail,XOF,119.25,0.28
+2003-01-15,Sikasso,Sikasso,Sikasso Centre,256,11.31,-5.67,cereals and tubers,Millet,73,KG,actual,Retail,XOF,158.75,0.38
+2003-01-15,Sikasso,Sikasso,Sikasso Centre,256,11.31,-5.67,cereals and tubers,Sorghum,65,KG,actual,Retail,XOF,149.5,0.36
