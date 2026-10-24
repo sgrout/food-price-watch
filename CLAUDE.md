@@ -29,6 +29,17 @@ This file is the brief for coding agents. Read it fully before the first change,
 - **Serverless probe (2026-10-24, job `fpw_probe`):** HDX API and the S3 redirect are reachable from serverless for
   all three pilots. The CSV has no per-row publication date and HDX overwrites the file, so point-in-time history
   starts with our own bronze snapshots; older backtests need an assumed publication lag (estimate it in Phase 1).
+- **Phase 1 conventions (2026-10-24):**
+  - Bronze = files as received in volume `fpw_{env}_bronze.raw` + append-only `hdx_fetch_log`; download only when the
+    HDX resource `last_modified` changed. HDX updates weekly (Sundays ~09:30 UTC); our job runs Monday 07:00.
+  - Silver = `wfp_price_versions` (temporal: a row per new/changed/removed key, `valid_from` = snapshot time) is the
+    source of truth for point in time (`fpw.silver.as_of`); `wfp_prices` / `exchange_rates` are rebuilt from it.
+  - Series key = `country, market_id, series_commodity_id, pricetype, unit`; renamed commodities are linked only via
+    `fpw.countries.CONTINUATIONS`, with evidence in a comment, and are guarded by `check_continuations`.
+  - Suspect rows (`is_suspect`) are excluded from history and models by default; never change values.
+  - Pandas for logic (the data is small); explicit DDLs in `fpw/schemas.py` + `to_rows` for every table write.
+  - Publication lag (CKAN activity stream): a data month first appears 1-2.5 months after the 15th and is then
+    incomplete. Phase 2 backtests must assume a lag; "month M usable from M+2" is the conservative default.
 
 ---
 
