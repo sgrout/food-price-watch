@@ -15,9 +15,11 @@ next to every forecast.
 **What it is not.** It does not replace WFP or FEWS NET, who make the official food-security assessments. It is a free,
 open extra tool for small organizations without their own data team. It earns no money.
 
-**Where it stands.** *Phase 1 (data) is done.* Every Monday the project downloads WFP's latest prices for the three
-pilot countries, **Mali, Burkina Faso and Burundi**, keeps every version it has seen, and checks the data. About
-320,000 prices go back to 2003. There are no forecasts yet; that is Phase 2.
+**Where it stands.** *Phase 4 is done:* every Monday the project downloads WFP's latest prices for **Mali,
+Burkina Faso and Burundi**, checks them, and makes forecasts for the next months with the method chosen in Phase 3.
+The forecasts are stored before anyone knows the outcome, so they can be scored honestly later. A private web page
+(only for people with a login to the project's Databricks workspace) shows, per market and food: the price history,
+the forecast range, the chance of a spike, a short explanation in words, and the track record. Nothing is public yet.
 
 **What the checks found.** Food price data has mistakes, and we mark them rather than quietly correcting them:
 - In August 2017, the maize price in most Malian markets tripled for exactly one month and then went back to normal.
@@ -337,6 +339,59 @@ models (`common_rows`; ML starts in 2012, so dev = 2012-2019).
   update the trend during a suspected crisis and to adjust it after devaluations (§3.2.3), which is the same weakness
   as review issue 4. Candidate for later (judged on the live track record): a break dummy when a `level_shift` is
   detected. The note names adjusting cash/voucher transfer values as a use (§2), which supports the basket idea.
+
+### Phase 4: live forecasts and the private app
+
+**Pipeline.** `fpw_training` (first Monday of the month, 06:00) trains the pooled LightGBM quantile model on the
+cases published by then and registers it as `workspace.fpw_dev_ml.lgbm_quantile` (MLflow pyfunc wrapping the 11
+quantile models, with the `fpw` package as code). Every version gets `@challenger`; it becomes `@champion` only if a
+sanity gate passes (finite, non-crossing quantiles, in-sample 80 % coverage 0.6-0.95, enough rows). The gate checks
+that a model is not broken; its quality is judged by the backtest and the live track record. The weekly
+`fpw_pipeline` gained two tasks:
+- `06_live_forecast`: loads `@champion`, forecasts this month's origin with data up to origin - 2 (the backtest
+  rule), recalibrates with past published PITs (backtest + scored live), **appends** raw and calibrated rows to
+  `gold.live_forecasts` (never overwritten) and rebuilds `gold.live_summary` (one row per series, with the text).
+- `07_score_live`: the official forecast per origin is the last run of that month; it is scored once the target
+  month and the month after it are published (known data errors are not scored), into `gold.live_scores` and
+  `gold.live_metrics`.
+
+**Explanations in words** (`fpw/explain.py`, `fpw/texts.py`): built by code from the model inputs and the forecast
+(level vs the usual level for the season, change over 3 months, the same food across the country's markets, the
+next-month and 3-month ranges, the spike chance, a fixed caveat). A test checks that every number in the text comes
+from the computed facts. Templates are a string catalog, so French is a translation, not a rewrite.
+
+**App** (`app/`, Streamlit as a Databricks App `fpw-dev-<user>`, SQL warehouse, service principal with SELECT on the
+gold and silver schemas via `scripts/grant_app_access.sh`): pages *Market and food* (status with icon + label, data
+date, explanation, next-month and 3-month ranges, spike chance for next month only, fan chart, table view, country
+track record), *Track record* (backtest for eligible series, live once matured, per horizon a verdict whether
+new-spike warnings beat the base rate), *Methods* (plain English, limits, ALPS-style vs ALPS). WFP attribution on
+every page.
+
+**Results (dev, 2026-10-24).** Model v1: 483,901 training cases, gate passed (in-sample 80 % coverage 0.802),
+`@champion`. First live run: origin October 2026, data up to August 2026, 1,091 series x 5 steps, all calibrated.
+Status now: Burkina Faso 291 normal / 6 stress; Burundi 403 / 14; Mali 352 normal, 19 stress, 5 alert, 1 crisis.
+Headless `AppTest` of all three pages against the real tables: no exceptions. Live scores: none yet (the first
+targets mature about three months after the first forecast).
+
+**Track record as the app shows it** (holdout 2023+, eligible series, lgbm_cal): 80 % range held 80 / 79 / 77 / 76 /
+76 % for steps 1-5; typical error 5 / 7 / 10 / 13 / 15 %; new-spike warnings better than the base rate for steps
+1-3 (next month: Brier 0.109 vs 0.114, -3.9 %) and **worse** at 2 and 3 months ahead (0.134 vs 0.125, 0.154 vs
+0.135). The app therefore shows a spike chance for next month only.
+
+**Gotchas found**
+- A bundle resource key must be unique, and `data_month` existed twice in the summary schema (series vs run): the
+  schema tests caught it (`last_obs_month` for the series).
+- `print` output of serverless notebook tasks is not reliably captured: results are read from MLflow tags / tables.
+- The plotly default template fights the app theme: transparent background, faint grid.
+- The app's own service principal is only exercised when a page is opened in a browser (login needed).
+
+**Start / stop the app** (Free Edition: max 3 apps, stopped after 24 h; a running app uses the daily quota):
+
+```bash
+databricks bundle run fpw_app -t dev --profile Fx-Workspace       # deploy changes + start
+databricks apps stop fpw-dev-sander-grout --profile Fx-Workspace   # stop when done
+databricks bundle run fpw_training -t dev --profile Fx-Workspace  # retrain now (also first Monday monthly)
+```
 
 ### How to run
 

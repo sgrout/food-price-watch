@@ -63,6 +63,14 @@ This file is the brief for coding agents. Read it fully before the first change,
   - Spike definition vs WFP ALPS (2014 note, checked): same regression structure and thresholds; ours uses log prices,
     a 10-year origin-only window and sigma with n - 13 (z ~5 % smaller). Comparison table in README; call it
     "ALPS-style", never "ALPS".
+- **Phase 4 conventions (2026-10-24):**
+  - Production model: UC `workspace.fpw_{env}_ml.lgbm_quantile`, `@champion` via a sanity gate (not a quality gate),
+    trained monthly by `fpw_training`; live forecasts use the backtest data rule (origin - 2).
+  - `gold.live_forecasts` is append-only (the track record); official forecast = last run of the month; scoring waits
+    for the month after the target. Never rewrite or delete live forecasts.
+  - User text only from `fpw.explain` facts + `fpw.texts` templates (no hand-written or LLM numbers); a test enforces it.
+  - App (`app/`) is self-contained (no `fpw` import); mirrored helpers are tested against `fpw` (`month_date`).
+    Spike chance is shown for next month only, because new-spike warnings are worse than the base rate further out.
   - Forecast rows carry `market_id`, `series_commodity_id`, `unit` (basket preparation; proposal in
     `docs/proposal-users-and-features.md`, not approved). Open data finding: runs of identical prices (Mali 16-30 %).
 
