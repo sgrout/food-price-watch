@@ -1,0 +1,5 @@
+resources:
+  experiments:
+    # One MLflow run per monthly training (gate checks, parameters, the logged pyfunc)
+    fpw_training_experiment:
+      name: ${workspace.root_path}/fpw_training_${var.env}
