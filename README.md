@@ -22,7 +22,7 @@ pilot countries, **Mali, Burkina Faso and Burundi**, keeps every version it has 
 **What the checks found.** Food price data has mistakes, and we mark them rather than quietly correcting them:
 - In August 2017, the maize price in most Malian markets tripled for exactly one month and then went back to normal.
   A real price spike does not vanish that fast, so these values are marked "suspect" and will not be used to train
-  forecasts (about 1 in 300 prices is marked this way).
+  forecasts (743 of 320,000 prices, about 1 in 430, are marked this way).
 - In December 2025 WFP renamed "Beans" in Burundi to "Beans (yellow)". We link the two so the 20-year bean history is
   not lost, and the computer checks that the price level really stays the same at the switch.
 - The newest month is always incomplete for a while: prices appear on the website one to two and a half months
