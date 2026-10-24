@@ -318,10 +318,25 @@ models (`common_rows`; ML starts in 2012, so dev = 2012-2019).
   comparability and explain it on the pages; a short-term "sudden rise" indicator is a later candidate, judged on
   the live track record.
 - **Issues 5 and 6**: dropout checked (Phase 3, mild); calibration uses only past, published outcomes, as advised.
-- **ALPS reference**: WFP, *Technical Guidance Note: Calculation and Use of the Alert for Price Spikes (ALPS)
-  Indicator*, April 2014 (`documents.wfp.org/.../wfp264186.pdf`). The server refuses automated downloads (HTTP 403),
-  so the differences from our definition (log vs level prices, 10-year origin-only window vs whole series) are noted
-  from the reviewer's summary and still to be checked against the PDF.
+- **ALPS reference** (checked against the PDF): WFP, *Technical Guidance Note: Calculation and Use of the Alert for
+  Price Spikes (ALPS) Indicator*, April 2014, https://documents.wfp.org/stellent/groups/public/documents/manual_guide_proced/wfp264186.pdf
+  (non-commercial reproduction allowed with acknowledgement; we link instead of keeping a copy).
+
+  | | WFP ALPS | food-price-watch |
+  |---|---|---|
+  | Model | OLS of the price level on a linear trend + 12 monthly dummies, no constant | the same on the log price (relative deviations) |
+  | Window | whole series up to now, refit monthly | last 10 years, only data published by the origin |
+  | Indicator | residual / sd of residuals (Stata `egen sd`, n - 1) | residual / sigma with n - 13: our z is ~5 % smaller at 120 months |
+  | Sign | only positive deviations count (below trend = normal) | signed z; spike = z >= 1, so the same for spikes |
+  | Thresholds | normal < 0.25 <= stress < 1 <= alert < 2 <= crisis | spike = z >= 1 (alert or crisis) |
+  | Minimum data | 36 months | 36 observations and every calendar month at least twice |
+  | Stationarity, breaks | ADF test first; a break dummy advised for single markets | none; `level_shift` flags breaks but the fit does not use them |
+
+  WFP notes that historical ALPS values use the whole series, i.e. information not available at the time (§3.2.4);
+  our historical spikes are computed as of each origin, so they will not match WFP's charts. WFP also advises not to
+  update the trend during a suspected crisis and to adjust it after devaluations (§3.2.3), which is the same weakness
+  as review issue 4. Candidate for later (judged on the live track record): a break dummy when a `level_shift` is
+  detected. The note names adjusting cash/voucher transfer values as a use (§2), which supports the basket idea.
 
 ### How to run
 
