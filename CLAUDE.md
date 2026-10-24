@@ -60,6 +60,9 @@ This file is the brief for coding agents. Read it fully before the first change,
     `confirmed_date` month is <= origin - 2 (`backtest.history_at`); known errors are never scored, live or backtest.
     Any new test of look-ahead must run the real `flag_suspects`, not only simulated panels.
   - Track record shown with a forecast = metrics with `population = 'eligible'` (eligible at the origin).
+  - Spike definition vs WFP ALPS (2014 note, checked): same regression structure and thresholds; ours uses log prices,
+    a 10-year origin-only window and sigma with n - 13 (z ~5 % smaller). Comparison table in README; call it
+    "ALPS-style", never "ALPS".
   - Forecast rows carry `market_id`, `series_commodity_id`, `unit` (basket preparation; proposal in
     `docs/proposal-users-and-features.md`, not approved). Open data finding: runs of identical prices (Mali 16-30 %).
 
