@@ -1,0 +1,154 @@
+# food-price-watch
+
+Open, free early warning for food price spikes in vulnerable countries: probabilistic forecasts of staple food prices
+per local market, honest about uncertainty, published as a public website plus downloadable data for small NGOs and
+local organizations that have no data team of their own. Non-commercial; no money-making features.
+
+This file is the brief for coding agents. Read it fully before the first change, and keep it current.
+
+---
+
+## About the user
+
+- A .NET developer who just built a full data/ML project on Databricks (`sgrout/fx_medallion` on GitHub: medallion
+  pipeline, walk-forward backtests, MLflow, LLM classification, Dash app, monitoring). Explain new concepts with .NET
+  analogies and say *why*, not only *what*.
+- Prefers small, verifiable steps, honest results (including negative ones), and a plain-English README section his
+  non-technical wife can follow.
+- The reference for structure, testing and lessons learned is the template
+  `/Users/sgrout/Repository/Databricks/fx_medallion/docs/databricks-project-template.md` (local clone; the GitHub repo
+  `sgrout/fx_medallion` is private) and the fx_medallion code itself (tags `phase-0` … `phase-7`). Reuse its patterns;
+  don't re-derive them. The general rules are already included below; the template adds the Databricks-specific
+  details (bundles, Free Edition limits, app and alert gotchas), which are needed only if Databricks is chosen as the
+  platform.
+
+## Why this project, and its limits
+
+- WFP (World Food Programme) publishes monthly retail/wholesale food prices for thousands of markets as open data.
+  A sharp rise in staple prices (maize, rice, sorghum, wheat flour, beans, oil) is an early sign of food insecurity.
+- Large actors already analyse this: WFP HungerMap LIVE and its price-spike indicator (ALPS), FEWS NET. This project does
+  **not** replace them. Its niche: **open, market-level, probabilistic forecasts with a published, honest track
+  record**, in formats a small organization can use (simple pages, CSV/JSON, email alerts).
+- Never present forecasts as certain. Every page shows the uncertainty band, the data date, the source, and the
+  backtest track record for that kind of forecast. Link to WFP/FEWS NET for official assessments.
+- No personal data is involved. Respect each dataset's license and attribution requirements (check on HDX; WFP data is
+  typically CC BY-IGO: attribute WFP on every page and download).
+
+## Data (verify everything on first ingestion; these are starting points, not facts)
+
+- **WFP food prices on HDX** (Humanitarian Data Exchange, `data.humdata.org`, CKAN API, no key): per-country datasets
+  (`wfp-food-prices-for-<country>`) with a CSV of all markets, plus a global dataset. Expected columns: `date, admin1,
+  admin2, market, market_id, latitude, longitude, category, commodity, commodity_id, unit, priceflag, pricetype,
+  currency, price, usdprice`. Check `priceflag` (actual vs aggregated vs forecast values: keep actual only, or flag),
+  `pricetype` (Retail vs Wholesale: never mix in one series), and `unit` (KG, 50 KG, L, … : normalise per series, don't
+  convert blindly).
+- Optional drivers for later phases (each needs a reachability and license check first):
+  exchange rates (local currency vs USD), fuel prices (WFP datasets often include them), rainfall/vegetation anomalies
+  (e.g. CHIRPS, FEWS NET data portal), global commodity prices (FAO / World Bank pink sheet).
+- **Publication lag matters.** Monthly prices appear weeks after the month ends, and old months get revised or filled
+  in later. Store the ingestion date in bronze, and in backtests use only data that had been *published* by the forecast
+  date (point in time), not only data *dated* before it.
+
+## Domain pitfalls to design for
+
+- Gaps: markets start, stop and skip months; commodities change names. A series needs a minimum history and recency
+  before it gets a forecast; otherwise say "not enough data".
+- Currency: many target countries have high inflation or devaluations. Forecast in **local currency** (what households
+  pay), in log space; show USD only as context. Watch for redenominations (sudden 1000x level shifts → treat as a
+  break, not a spike).
+- Seasonality: lean seasons and harvests drive regular price cycles; a spike means *above the usual season*, not just
+  "up". WFP's ALPS idea (price vs its seasonal trend) is a good reference definition and a natural baseline.
+- Outliers and data-entry errors (an extra zero) are common: robust checks in silver, never silently "fix" values.
+- Many series, little history each (monthly, often < 10 years): pooled models across markets/commodities with series
+  features usually beat one model per series; baselines first.
+
+## Product
+
+- **Users:** analysts at small NGOs, local organizations, journalists, researchers. Assume English first; French matters
+  for West and Central Africa (later phase).
+- **Website (public, free, static):** a country page (map of markets, list of current warnings), a market/commodity
+  page (history + forecast fan for 1–3 months ahead, probability of a spike, data date, source, track record), a
+  methods page (plain English), and downloads (CSV/JSON of all current forecasts, versioned).
+- **Alerts (later):** an RSS feed or email digest per country of series whose spike probability crossed a threshold.
+- Accessibility: works on slow connections and phones (static pages, small payloads, no heavy JS framework).
+
+## Platform: decide in Phase 0, with the user
+
+Databricks Free Edition is meant for personal/learning use and its Apps always require a Databricks login, so it cannot
+host the public site. Present these two options with trade-offs and let the user choose:
+
+1. **GitHub Actions + DuckDB/Parquet + static site** (recommended default: free, public, small data): a scheduled
+   workflow runs the pipeline in Python (DuckDB/pandas/Polars), stores bronze/silver/gold as Parquet (in the repo for
+   small data, or object storage), and publishes the site to GitHub Pages (or Cloudflare Pages).
+2. **Databricks (small paid workspace) for the pipeline** + the same static site: more practice with Databricks
+   (bundles, Unity Catalog, MLflow, jobs) at a small monthly cost; the gold output is exported to the static site.
+
+Whichever is chosen, keep the medallion layers, the logic/IO split and the tests identical, so moving later is cheap.
+
+## Architecture rules (platform-independent)
+
+- **Medallion:** bronze = raw downloads exactly as received (CSV/JSON text) + `_source`, `_source_url`, `_ingested_at`,
+  append-only; silver = typed, normalised, deduplicated per business key (`country, market_id, commodity_id, pricetype,
+  unit, date`), quality-checked; gold = forecasts, spike probabilities, track record, site data. Silver/gold writes are
+  idempotent (merge/overwrite by key), so reruns are safe.
+- **Logic vs I/O:** all logic in a Python package `src/fpw/` as pure functions (DataFrames in, DataFrames out) with
+  tests; scripts/notebooks only handle parameters, paths/tables and writes.
+- **Source outages:** parsers raise a typed `InvalidPayload` on anything that is not the expected format (error pages,
+  empty files); the pipeline skips and logs it, keeps the last good data, and a freshness check fails loudly if a source
+  stays stale. Every scheduled run notifies the user on failure.
+- **Point in time:** features and backtests use only data published before the forecast date. Every feature gets a test
+  that changes the future and asserts the past is unchanged.
+- **Forecasts are distributions** (quantiles, e.g. 10/50/90 and 2.5/97.5) of the log price 1, 2 and 3 months ahead, plus a
+  spike probability. Judge them on coverage, pinball loss and, for spikes, precision/recall and calibration of the
+  probability.
+- **Models:** baselines first (last value, seasonal naive, seasonal random walk / ETS, an ALPS-style seasonal-trend
+  rule), then pooled ML (e.g. LightGBM quantile on log returns with series features). ML is used only if it beats the
+  best baseline in a walk-forward backtest (refit per period on earlier data, purge overlap, choose on validation,
+  check once on a holdout). Decide candidates up front; stop tuning when the backtest stops being a fair judge.
+- **Track record:** store live forecasts before the outcome is known; publish coverage and spike-alert hit rates per
+  country and horizon on the site.
+- **Keep it explainable:** for each warning, show the main drivers in words (e.g. "above the seasonal norm for 3 months,
+  fuel up 20%"), produced by code from the model inputs. If an LLM is used for text, it only rephrases provided facts and
+  passes deterministic guardrails (no invented numbers).
+
+## Testing
+
+- `pytest`; tests use tiny hand-built frames with an obvious answer, plus trimmed copies of real downloads (including a
+  broken/error payload) as fixtures in `tests/data/`.
+- Test kinds that paid off before: no look-ahead, idempotency (rerun = same rows), parsers vs real/broken payloads,
+  forecasts vs simulated series with known properties (calibration), statistical tolerances based on effective sample
+  size, generated site data vs its schema.
+- CI (GitHub Actions) runs the tests on every push and pull request.
+
+## Working agreements
+
+1. **Plan each phase** and present the choices that are the user's; start after approval.
+2. **Branch per phase** (`phase-N-<name>`), one commit per step with numbers in the message when there are results,
+   merge `--no-ff`, tag `phase-N`. Small fixes on their own short branch.
+3. **Probe each source before building on it** (reachability from where the pipeline will run, license, a sample of
+   the real format). Never work around an access control or rate limit; back off politely.
+4. **Ask before irreversible or outward-facing actions** (deleting data, creating a public repository, publishing the
+   site, enabling emails).
+5. **Report honestly:** what was verified, what was not, and negative results with numbers.
+6. **Docs every phase:** README with a plain-English section first (what it does, how sure it is, what it is not), then
+   technical documentation with results and gotchas; update this file when a convention changes.
+
+## Phases (adjust with the user)
+
+0. **Foundation:** platform decision, repo, `pyproject.toml` (Python 3.12), package `src/fpw/`, tests + CI, README skeleton.
+1. **Ingest 2–3 pilot countries** (choose with the user, by data coverage: many markets, long monthly history, recent
+   updates): bronze → silver with normalisation and quality checks; a data-coverage report per country.
+2. **Baselines + walk-forward backtest** for 1–3 months ahead; spike definition (ALPS-style) and its baseline hit rate.
+3. **Better models:** pooled quantile model with series and calendar features; drivers (exchange rate, fuel) only if they
+   pass a point-in-time check and improve the backtest.
+4. **Static website:** country and market pages with fan charts, warnings, downloads, methods page, attribution.
+5. **Schedule + monitoring:** monthly (or weekly) runs, freshness checks, live track record, failure notifications.
+6. **Scale and reach:** all WFP countries with enough data, French pages, RSS/email alerts; ask NGOs for feedback.
+
+## First session: start here
+
+1. Read this file (and the fx_medallion template at the local path above if Databricks is chosen); summarise the plan
+   back in a few lines.
+2. Ask the user for the platform choice (above) and the pilot countries, proposing a shortlist based on a quick,
+   read-only look at HDX coverage.
+3. Then do Phase 0 on branch `phase-0-foundation`.
