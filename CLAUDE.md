@@ -26,6 +26,9 @@ This file is the brief for coding agents. Read it fully before the first change,
   Sudan), so keep it and record the flag instead of dropping it. Malawi has a few rows in SOS (data error to flag).
   Coverage (retail staples, >= 96 months, >= 80 % complete, recent): Burkina Faso 261 series / 62 markets, Mali 216 /
   62, Burundi 160 / 58.
+- **Serverless probe (2026-10-24, job `fpw_probe`):** HDX API and the S3 redirect are reachable from serverless for
+  all three pilots. The CSV has no per-row publication date and HDX overwrites the file, so point-in-time history
+  starts with our own bronze snapshots; older backtests need an assumed publication lag (estimate it in Phase 1).
 
 ---
 
