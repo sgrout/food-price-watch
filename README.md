@@ -383,7 +383,8 @@ targets mature about three months after the first forecast).
   schema tests caught it (`last_obs_month` for the series).
 - `print` output of serverless notebook tasks is not reliably captured: results are read from MLflow tags / tables.
 - The plotly default template fights the app theme: transparent background, faint grid.
-- The app's own service principal is only exercised when a page is opened in a browser (login needed).
+- The app's own service principal is only exercised when a page is opened in a browser (login needed); checked
+  by the user on 2026-10-24: the app works.
 
 **Start / stop the app** (Free Edition: max 3 apps, stopped after 24 h; a running app uses the daily quota):
 
