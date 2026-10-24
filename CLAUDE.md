@@ -40,6 +40,14 @@ This file is the brief for coding agents. Read it fully before the first change,
   - Pandas for logic (the data is small); explicit DDLs in `fpw/schemas.py` + `to_rows` for every table write.
   - Publication lag (CKAN activity stream): a data month first appears 1-2.5 months after the 15th and is then
     incomplete. Phase 2 backtests must assume a lag; "month M usable from M+2" is the conservative default.
+- **Phase 2 conventions (2026-10-24):**
+  - Backtest: origin O uses data <= O - 2; steps 1-5 from that month (1-2 nowcast, 3-5 = next 1-3 calendar months).
+    Splits by target month: dev < 2020, validation 2020-2022, holdout 2023+. Compare models on `common_rows` only.
+  - Spike = ALPS-style z >= 1 (`fpw.spike`); report onsets (not in alert at origin) separately from persistence.
+  - Selection rule in code (`fpw.backtest.choose_model`: validation mean pinball). Current best baseline:
+    `seasonal_rw`. Its intervals are too narrow (holdout 80 % -> 69 %) and must be calibrated before publishing.
+  - **The 2023+ holdout is spent** for the baselines; Phase 3 must define a fresh final test and not tune on it.
+  - Bundle: one resource per `resources/<name>.<type>.yml`; resource keys unique across types.
 
 ---
 

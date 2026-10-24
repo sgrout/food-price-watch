@@ -32,6 +32,20 @@ pilot countries, **Mali, Burkina Faso and Burundi**, keeps every version it has 
 forecast it. That gives **909 series**: Mali 244, Burkina Faso 291, Burundi 374 (maize, millet, sorghum, rice, beans,
 cassava flour, cooking oil).
 
+**How good are simple forecasts? (Phase 2).** Before trying anything clever we tested three simple methods on the
+past: we pretended to stand in every month since 2008, used only what had been published by then, made a forecast,
+and compared it with what really happened. The best simple method ("same seasonal pattern as in earlier years")
+was chosen on 2020-2022 and then checked once on 2023-2026:
+- Its typical error is about 9 % of the price for next month and about 12 % for three months ahead.
+- Its "80 % range" contained the real price only **about 7 times in 10**. The ranges are too narrow; that must be
+  fixed before anyone sees them (first task of Phase 3).
+- Spikes (a price clearly above what is normal for that time of year) were common: about 1 in 8 months before 2020,
+  1 in 2 in 2020-2022 (the world food price crisis and conflict in the Sahel), almost 1 in 3 since 2023.
+- Once a market is in a spike it usually stays there for months, so "it is high now" is already a strong signal.
+  The hard part is a *new* spike: when the method said a new spike was more likely than not for next month, it was
+  right about **half the time (47 %)** and caught **about 1 in 5 (21 %)** of the new spikes. Better than
+  guessing, far from perfect, and that is what we will say on every page.
+
 **Glossary.**
 - *Market / commodity / series:* one food in one market, priced every month, is one "series".
 - *Spike:* a price well above what is normal *for that time of year* (prices rise every lean season; that alone is not
@@ -125,6 +139,55 @@ fetch for 14 days, or latest data month older than 120 days).
 - Writing pandas to Delta: explicit DDLs (`fpw/schemas.py`) because an all-null column cannot be inferred and NaN
   must become NULL; a test checks every frame against its schema.
 
+### Phase 2: baselines and walk-forward backtest
+
+**Setup** (`fpw/panel.py`, `spike.py`, `baselines.py`, `backtest.py`; job `fpw_backtest`, manual, MLflow experiment
+`fpw_backtest_dev`).
+- Panel: retail staples from `silver.wfp_prices`, suspect rows excluded, one log price per series and month.
+- Point in time: at origin month O only data up to O - 2 is used (publication lag, see Phase 1). Steps 1-5 are
+  counted from that month: 1-2 = nowcast, 3-5 = the next 1-3 calendar months. A series needs >= 36 observations and
+  data within 2 months of O - 2. Every model is refit at every origin (2008-01 onwards).
+- Spike (ALPS-style): z = (log price - expected) / sigma from a seasonal-level + linear-trend fit on the last 10
+  years of usable data; spike = z >= 1. *Onset* = a spike at the target for a series not in alert at the origin.
+- Candidates (fixed up front): `naive` (random walk; sqrt(k)-scaled empirical 1-month changes), `seasonal_rw` (last
+  value + mean k-month change for the calendar month + empirical residuals), `alps_ar1` (seasonal trend + AR(1)
+  residual, Gaussian, with parameter variance). Spike probability = each model's predictive P(above threshold).
+- Splits by target month: dev < 2020, validation 2020-2022 (choose: lowest mean pinball over steps 1-5, in code
+  `choose_model`), holdout 2023+ (checked once). Same cases for every model (`common_rows`): 573,448 per model,
+  1,417 series.
+
+**Results** (means over steps 1-5; "onset clim." = Brier score of always forecasting the onset base rate):
+
+| Split | Model | Pinball | 80 % cover | 95 % cover | Spike Brier | Onset Brier | Onset clim. |
+|---|---|---|---|---|---|---|---|
+| validation | **seasonal_rw** | **0.0274** | 66 % | 83 % | **0.135** | 0.160 | 0.196 |
+| validation | naive | 0.0292 | 69 % | 89 % | 0.142 | 0.159 | 0.196 |
+| validation | alps_ar1 | 0.0349 | 65 % | 82 % | 0.199 | 0.185 | 0.196 |
+| holdout | **seasonal_rw** | **0.0270** | 69 % | 87 % | **0.123** | **0.103** | 0.117 |
+| holdout | naive | 0.0281 | 74 % | 92 % | 0.131 | 0.115 | 0.117 |
+| holdout | alps_ar1 | 0.0282 | 78 % | 92 % | 0.136 | 0.104 | 0.117 |
+
+- **Chosen: `seasonal_rw`**, confirmed on the holdout (best pinball, spike and onset Brier).
+- **Negative: intervals are too narrow** for every model after 2020 (seasonal_rw 80 % interval: 69 % on the
+  holdout, 66 % on validation; dev 74 %); high spike probabilities are overconfident (holdout: forecast 0.85 ->
+  observed 0.73). Not publishable as is; calibration is the first task of Phase 3.
+- Spike base rate: dev 12 %, validation 50 %, holdout 29 % (step 3). Persistence ("in alert now -> in alert at the
+  target") has precision 0.73 / recall 0.65 at step 3 on the holdout, so the onset metrics are the real test.
+  Onsets at step 3 = next month (holdout, alert at p >= 0.5): seasonal_rw precision 0.47, recall 0.21; Brier 0.106
+  vs 0.120. Median |log error| seasonal_rw holdout: 0.086 at step 3, 0.114 at step 5.
+- `alps_ar1` assumes prices return to their old trend; after the 2020-22 shocks they did not, so its spike
+  probabilities were far too low on validation (forecast 0.24 -> observed 0.59). It never issues an onset alert.
+- In dev, `naive` onset Brier is worse than climatology at steps 3-5: a random walk has no seasonal knowledge.
+
+**Gotchas found**
+- On simulated data, before any real result: `naive` with overlapping k-month changes undercovered (72.5 % at step
+  5) and `alps_ar1` without parameter uncertainty had too-low spike probabilities; both specs fixed and tested.
+- The fitted residual sd is biased low (~10 %) for persistent residuals: a 10-year trend absorbs slow movements.
+- The holdout has now been used for these baselines. Phase 3 needs its own clean test (e.g. a later holdout start
+  or the live track record) and must not tune on 2023+.
+- Bundle resource keys must be unique across types (`fpw_backtest` job and experiment clashed); one resource per
+  `<name>.<type>.yml` file.
+
 ### How to run
 
 ```bash
@@ -135,6 +198,7 @@ databricks bundle validate --strict -t dev --profile Fx-Workspace
 databricks bundle deploy -t dev --profile Fx-Workspace
 databricks bundle run fpw_pipeline -t dev --profile Fx-Workspace          # weekly on its own; this runs it now
 databricks bundle run fpw_pipeline -t dev --profile Fx-Workspace --only gold_coverage   # one task
+databricks bundle run fpw_backtest -t dev --profile Fx-Workspace          # ~5 min on serverless
 ```
 
 Rebuild silver from bronze (all files are kept in the volume): drop `fpw_dev_silver.wfp_price_versions` and run the
