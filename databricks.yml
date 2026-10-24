@@ -22,6 +22,13 @@ variables:
   countries:
     description: Comma-separated HDX country slugs (pilots for Phase 1)
     default: mali,burkina-faso,burundi
+  app_name:
+    description: "App name: lowercase, digits, hyphens, max 30 chars (workspace-global, so per user in dev)"
+    default: fpw-dev-${workspace.current_user.domain_friendly_name}
+  warehouse_id:
+    description: SQL warehouse the app queries
+    lookup:
+      warehouse: Serverless Starter Warehouse
 
 # One catalog on Free Edition, so environments are schema prefixes: workspace.fpw_dev_bronze / silver / gold / ml.
 targets:

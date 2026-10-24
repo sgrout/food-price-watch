@@ -1,0 +1,10 @@
+# Used when the app is deployed from the UI or `databricks apps deploy`; the bundle (resources/fpw_app.app.yml)
+# carries the same settings in its `config` block.
+command: ["streamlit", "run", "app.py"]
+env:
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: sql-warehouse
+  - name: FPW_CATALOG
+    value: workspace
+  - name: FPW_ENV
+    value: dev
