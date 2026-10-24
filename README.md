@@ -244,6 +244,26 @@ models (`common_rows`; ML starts in 2012, so dev = 2012-2019).
   probabilities separately (e.g. isotonic on past onsets).
 - Median |log error| on the holdout, lgbm_cal: 0.095 next month (step 3), 0.144 three months ahead (step 5).
 
+**Preparation for a market food basket, and two data checks** (requested after reviewing
+`docs/proposal-users-and-features.md`; analyses only, no model change):
+- Forecast rows now carry `market_id`, `series_commodity_id` and `unit` (panel, cases, backtest tables), so forecasts
+  can be grouped per market. Every forecast row already stores its PIT and an 11-level quantile grid: what a basket
+  built from correlated item forecasts needs. Basket compositions and unit conversions are to be kept as versioned
+  data files when that work starts. (The Databricks gold table gets the new columns at the next `fpw_backtest` run.)
+- **Do markets go silent after a spike?** Mildly. Share of target months missing (step 3): 11.2 % when z < 0 at the
+  origin, 12.7 % in alert, and since 2023 18.7 % in crisis (z >= 2) vs 12.6 %. Series silent for all 5 following
+  months: Burundi 3.1 % in alert vs 1.7 % not, Mali 4.3 % vs 3.6 %, Burkina Faso 0.2 % vs 0.3 %. So spike metrics
+  are computed on slightly fewer cases in crisis states; the bias is modest, not dramatic.
+- **Are blockade-town spikes excluded as suspect?** No. Djibo, Arbinda, Sebba, Gorom Gorom, Dori, Titao, Diapaga and
+  Fada N'Gourma report every year to 2026 (with gaps, e.g. Djibo Oct 2025 - Jan 2026); only 2 of their 7,720 retail
+  rows were ever flagged `spike_revert` (2015, 2021).
+- **Open finding: repeated prices.** Djibo millet is exactly 368 and sorghum exactly 316 XOF/kg from June to
+  September 2026, well below 2023-25, while FEWS NET reports blockade price rises in the area. Share of retail
+  prices inside a run of >= 4 identical consecutive months: Mali 30 % before 2020, 22 % 2020-22, 16 % since 2023;
+  Burkina Faso 6-7 %; Burundi 1-3 %. Real sticky prices or values carried forward without collection cannot be told
+  apart from the data; this makes affected series look calmer than they are. Candidate (to decide): a
+  `repeated_price` flag that keeps the values but marks them, and a question to WFP.
+
 **Gotchas found**
 - Two test failures were sampling noise in my own tests (100-300 PITs give a 90 % quantile SE of 0.017-0.03 in level;
   seed 1 started ~3 SE low); judged over seeds instead of loosening thresholds.
