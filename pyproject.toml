@@ -15,7 +15,7 @@ dependencies = ["requests", "pandas>=2.2,<3"]  # pandas 3 not yet supported by P
 app = ["streamlit", "databricks-sql-connector", "databricks-sdk"]
 # Local development only. On Databricks, Spark is provided by the runtime.
 # Forecasting models. On Databricks: scipy and scikit-learn come with the runtime, lightgbm via the job environment.
-ml = ["scipy", "scikit-learn", "lightgbm==4.7.0"]
+ml = ["scipy", "scikit-learn", "lightgbm==4.7.0", "mlflow-skinny"]
 dev = ["pytest", "pyyaml", "pyspark~=4.0", "food-price-watch[ml]"]
 
 [tool.setuptools.packages.find]

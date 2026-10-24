@@ -49,6 +49,17 @@ def predict_grid(models: list, cases: pd.DataFrame) -> np.ndarray:
     return cases["lp_last"].to_numpy()[:, None] + change
 
 
+def rows_from_grid(cases: pd.DataFrame, grid: np.ndarray, model: str = "lgbm") -> pd.DataFrame:
+    """Forecast rows (backtest.FORECAST_COLUMNS) from cases and their predicted log-price grids; the spike
+    probability is P(above the case's ALPS-style threshold) under the grid. Used by the backtest and live."""
+    rows = cases.assign(model=model)
+    rows[GRID_COLUMNS] = grid
+    rows[Q_COLUMNS] = grid[:, _REPORT_IN_GRID]
+    threshold = (cases["expected"] + SPIKE_Z * cases["sigma"]).to_numpy()
+    rows["spike_prob"] = 1 - cdf_at(grid, GRID_LEVELS, threshold)
+    return rows[FORECAST_COLUMNS]
+
+
 def lgbm_walk_forward(cases: pd.DataFrame, first_test_year: int, params=PARAMS, train_years: int = TRAIN_YEARS,
                       lag: int = LAG, seed: int = 0) -> pd.DataFrame:
     """Forecast rows (same columns as backtest.walk_forward) for every observed case from first_test_year on."""
@@ -61,12 +72,7 @@ def lgbm_walk_forward(cases: pd.DataFrame, first_test_year: int, params=PARAMS, 
         if test.empty or len(train) < MIN_TRAIN_ROWS:
             continue
         grid = predict_grid(fit_quantile_models(train, params=params, seed=seed), test)
-        rows = test.assign(model="lgbm")
-        rows[GRID_COLUMNS] = grid
-        rows[Q_COLUMNS] = grid[:, _REPORT_IN_GRID]
-        threshold = (test["expected"] + SPIKE_Z * test["sigma"]).to_numpy()
-        rows["spike_prob"] = 1 - cdf_at(grid, GRID_LEVELS, threshold)
-        out.append(rows[FORECAST_COLUMNS])
+        out.append(rows_from_grid(test, grid))
     if not out:
         return pd.DataFrame(columns=FORECAST_COLUMNS + ["pit"])
     return with_pit(pd.concat(out, ignore_index=True))
