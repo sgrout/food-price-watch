@@ -38,7 +38,7 @@ COUNTRY_COVERAGE = """country STRING, markets BIGINT, series BIGINT, retail_stap
 BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, origin BIGINT, step BIGINT, target BIGINT,
     k BIGINT, model STRING, q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE,
     actual DOUBLE, expected DOUBLE, sigma DOUBLE, z_now DOUBLE, split STRING, in80 BOOLEAN, in95 BOOLEAN,
-    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, """ + \
+    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, """ + \
     ", ".join(f"{c} DOUBLE" for c in GRID_COLUMNS)
 
 _METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, coverage80_se DOUBLE, coverage95 DOUBLE,

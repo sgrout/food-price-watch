@@ -117,11 +117,13 @@ def test_choose_model_uses_validation_mean_pinball():
     summary = pd.DataFrame({"model": ["a", "a", "b", "b", "b"], "split": ["validation"] * 4 + ["holdout"],
                             "step": [1, 2, 1, 2, 1], "pinball": [0.01, 0.05, 0.02, 0.03, 0.0]})
     assert choose_model(summary) == "b"  # mean 0.025 < 0.03; the holdout row does not count
+    assert choose_model(summary, candidates=["a"]) == "a"
 
 
 def test_backtest_frames_fit_their_schemas():
     rng = np.random.default_rng(6)
-    scored = score(common_rows(walk_forward(panel({"s": seasonal_ar1(120, 0.08, 0.6, rng)}), origins(120))))
+    scored = score(common_rows(walk_forward(panel({"s": seasonal_ar1(120, 0.08, 0.6, rng)}), origins(120))))\
+        .assign(calibrated=False)
     frames = {
         schemas.BACKTEST_FORECASTS: scored,
         schemas.BACKTEST_METRICS: summarize(scored),

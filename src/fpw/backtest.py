@@ -163,7 +163,13 @@ def calibration(scored: pd.DataFrame, by=("model", "split"), bins=np.linspace(0,
             .reset_index())
 
 
-def choose_model(summary: pd.DataFrame, split: str = "validation") -> str:
+# Phase 3 candidates, fixed before the backtest (the other models are reported for reference only).
+CANDIDATES = ("seasonal_rw", "seasonal_rw_cal", "lgbm", "lgbm_cal")
+
+
+def choose_model(summary: pd.DataFrame, split: str = "validation", candidates=None) -> str:
     """The rule fixed before the backtest: lowest mean pinball loss over all steps on the validation split."""
     v = summary[summary["split"] == split]
+    if candidates is not None:
+        v = v[v["model"].isin(candidates)]
     return str(v.groupby("model")["pinball"].mean().idxmin())
