@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from fpw.baselines import LEVELS, MODELS, REPORT_LEVELS, prob_above
+from fpw.distribution import GRID_COLUMNS, GRID_LEVELS, cdf_at
 from fpw.spike import SPIKE_Z, fit_seasonal_trend
 
 LAG = 2
@@ -20,6 +21,7 @@ MIN_HISTORY = 36  # observations up to the last usable month
 MAX_STALENESS = 2  # the last observation may be at most this many months before the last usable month
 VALIDATION_START, HOLDOUT_START = 2020, 2023
 _REPORT_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in REPORT_LEVELS]
+_GRID_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in GRID_LEVELS]
 Q_COLUMNS = ["q025", "q10", "q50", "q90", "q975"]
 
 
@@ -66,10 +68,18 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
                         continue
                     out.append((sid, country, commodity, origin, int(step), int(targets[i]), int(ks[i]), name,
                                 *q[i, _REPORT_IDX], prob_above(q[i], threshold[i]), actual[i], expected[i],
-                                fit.sigma, z_now))
-    cols = ["series_id", "country", "commodity", "origin", "step", "target", "k", "model", *Q_COLUMNS, "spike_prob",
-            "actual", "expected", "sigma", "z_now"]
-    return pd.DataFrame(out, columns=cols)
+                                fit.sigma, z_now, *q[i, _GRID_IDX]))
+    return with_pit(pd.DataFrame(out, columns=FORECAST_COLUMNS))
+
+
+FORECAST_COLUMNS = ["series_id", "country", "commodity", "origin", "step", "target", "k", "model", *Q_COLUMNS,
+                    "spike_prob", "actual", "expected", "sigma", "z_now", *GRID_COLUMNS]
+
+
+def with_pit(fc: pd.DataFrame) -> pd.DataFrame:
+    """Add the PIT: where the actual value fell in the predictive distribution (uniform if calibrated)."""
+    pit = cdf_at(fc[GRID_COLUMNS].to_numpy(), GRID_LEVELS, fc["actual"].to_numpy()) if len(fc) else []
+    return fc.assign(pit=pit)
 
 
 def common_rows(fc: pd.DataFrame) -> pd.DataFrame:

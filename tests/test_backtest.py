@@ -100,6 +100,14 @@ def test_onset_metrics_only_use_series_not_in_alert_now():
     assert r["persistence_recall"] == pytest.approx(1 / 3)
 
 
+def test_pit_is_uniform_for_the_true_model():
+    rng = np.random.default_rng(7)
+    series = {f"s{i}": random_walk(150, 0.05, rng) for i in range(30)}
+    fc = walk_forward(panel(series), origins(150), models={"naive": naive})
+    hist = np.histogram(fc.loc[fc["step"] == 1, "pit"], bins=5, range=(0, 1))[0] / (fc["step"] == 1).sum()
+    assert np.abs(hist - 0.2).max() < 0.03
+
+
 def test_split_of():
     m = pd.Series([2019 * 12 + 11, 2020 * 12, 2022 * 12 + 11, 2023 * 12])
     assert list(split_of(m)) == ["dev", "validation", "validation", "holdout"]
