@@ -6,6 +6,27 @@ local organizations that have no data team of their own. Non-commercial; no mone
 
 This file is the brief for coding agents. Read it fully before the first change, and keep it current.
 
+## Project (decided in the first session, 2026-10-24)
+
+- **Platform: Databricks** (chosen by the user as a learning project; overrides the "recommended default" below).
+  Workspace `https://dbc-101f908c-607f.cloud.databricks.com` (Free Edition), CLI profile **`Fx-Workspace`**: always
+  pass `--profile Fx-Workspace`. The workspace is shared with fx_medallion: same daily quota, same 3-app limit.
+- **Catalog / schemas:** catalog `workspace`; schemas `fpw_{env}_bronze|silver|gold|ml` (project prefix keeps them
+  apart from fx_medallion's `dev_*`). Deployed target: `dev` only for now.
+- **Package:** `fpw` under `src/`; notebooks `src/NN_<layer>_<what>.py`; bundle `databricks.yml` + `resources/`.
+- **App:** Streamlit, as a Databricks App, **private to the user** (needs a Databricks login) and started on demand.
+  The public static site comes later, after the user decides how to export gold data to a public host.
+- **Pilot countries:** Mali, Burkina Faso, Burundi (two data-rich Sahel countries with XOF pegged to the euro, plus a
+  high-inflation currency to exercise currency handling).
+- **HDX findings from the first probe (laptop, 2026-10-24):** 100 per-country datasets `wfp-food-prices-for-<country>`,
+  license CC BY-IGO, columns exactly as listed under Data. The resource download URL answers with an HTML redirect to
+  S3 (follow redirects; an unfollowed redirect is an `InvalidPayload`). All dates are the 15th of the month.
+  `priceflag` values: `actual`, `aggregate`, `actual,aggregate`; `aggregate` is a monthly value aggregated from
+  higher-frequency collections and since ~2016 carries most data in some countries (Nigeria, Malawi, Somalia, South
+  Sudan), so keep it and record the flag instead of dropping it. Malawi has a few rows in SOS (data error to flag).
+  Coverage (retail staples, >= 96 months, >= 80 % complete, recent): Burkina Faso 261 series / 62 markets, Mali 216 /
+  62, Burundi 160 / 58.
+
 ---
 
 ## About the user
@@ -72,7 +93,7 @@ This file is the brief for coding agents. Read it fully before the first change,
 - **Alerts (later):** an RSS feed or email digest per country of series whose spike probability crossed a threshold.
 - Accessibility: works on slow connections and phones (static pages, small payloads, no heavy JS framework).
 
-## Platform: decide in Phase 0, with the user
+## Platform: decide in Phase 0, with the user (decided: Databricks, see "Project" above)
 
 Databricks Free Edition is meant for personal/learning use and its Apps always require a Databricks login, so it cannot
 host the public site. Present these two options with trade-offs and let the user choose:
@@ -141,7 +162,8 @@ Whichever is chosen, keep the medallion layers, the logic/IO split and the tests
 2. **Baselines + walk-forward backtest** for 1–3 months ahead; spike definition (ALPS-style) and its baseline hit rate.
 3. **Better models:** pooled quantile model with series and calendar features; drivers (exchange rate, fuel) only if they
    pass a point-in-time check and improve the backtest.
-4. **Static website:** country and market pages with fan charts, warnings, downloads, methods page, attribution.
+4. **Private Streamlit app** (Databricks App): country and market pages with fan charts, warnings, methods,
+   attribution. Later, once the user chooses an export target: the public static website with downloads.
 5. **Schedule + monitoring:** monthly (or weekly) runs, freshness checks, live track record, failure notifications.
 6. **Scale and reach:** all WFP countries with enough data, French pages, RSS/email alerts; ask NGOs for feedback.
 
