@@ -35,7 +35,8 @@ COUNTRY_COVERAGE = """country STRING, markets BIGINT, series BIGINT, retail_stap
     suspect_rows BIGINT, latest_month DATE"""
 
 
-BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, origin BIGINT, step BIGINT, target BIGINT,
+BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, market_id BIGINT,
+    series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT,
     k BIGINT, model STRING, q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE,
     actual DOUBLE, expected DOUBLE, sigma DOUBLE, z_now DOUBLE, split STRING, in80 BOOLEAN, in95 BOOLEAN,
     pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, """ + \

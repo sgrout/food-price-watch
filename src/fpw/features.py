@@ -8,7 +8,7 @@ count for the cross-market features and are what a live forecast predicts.
 import numpy as np
 import pandas as pd
 
-from fpw.backtest import LAG, MAX_STALENESS, MIN_HISTORY, STEPS
+from fpw.backtest import LAG, MAX_STALENESS, MIN_HISTORY, SERIES_INFO, STEPS
 from fpw.baselines import LEVELS, seasonal_rw
 from fpw.spike import fit_seasonal_trend
 
@@ -40,6 +40,7 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
         full = np.full(int(m[-1]) - m0 + 1, np.nan)
         full[m - m0] = lp
         country, commodity = g["country"].iloc[0], g["commodity"].iloc[0]
+        info = tuple(g[c].iloc[0] for c in SERIES_INFO)
         group = commodity_group(commodity)
         for origin in origins:
             m_data = origin - lag
@@ -62,13 +63,13 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
             seas_change = expected - fit.expected(m_last)
             for i, step in enumerate(steps):
                 t = int(targets[i])
-                out.append((sid, country, commodity, group, origin, int(step), t, int(ks[i]), m_last, lp_last,
+                out.append((sid, country, commodity, *info, group, origin, int(step), t, int(ks[i]), m_last, lp_last,
                             full[t - m0] if t <= m[-1] else np.nan, expected[i], fit.sigma, fit.phi, fit.resid_last,
                             fit.resid_last / fit.sigma, n_hist, t % 12, seas_change[i],
                             lp_last - back[1], lp_last - back[3], lp_last - back[6], lp_last - back[12], vol12,
                             srw[i, _Q50] - lp_last if srw is not None else np.nan,
                             srw[i, _Q90] - srw[i, _Q10] if srw is not None else np.nan))
-    cols = ["series_id", "country", "commodity", "commodity_group", "origin", "step", "target", "k", "m_last",
+    cols = ["series_id", "country", "commodity", *SERIES_INFO, "commodity_group", "origin", "step", "target", "k", "m_last",
             "lp_last", "actual", "expected", "sigma", "phi", "resid_last", "z_now", "n_hist", "target_month",
             "seas_change", "ret1", "ret3", "ret6", "ret12", "vol12", "srw_change", "srw_width80"]
     cases = pd.DataFrame(out, columns=cols)

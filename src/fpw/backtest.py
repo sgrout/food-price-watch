@@ -23,6 +23,8 @@ VALIDATION_START, HOLDOUT_START = 2020, 2023
 _REPORT_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in REPORT_LEVELS]
 _GRID_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in GRID_LEVELS]
 Q_COLUMNS = ["q025", "q10", "q50", "q90", "q975"]
+# Identity of a series carried into every forecast row, so forecasts can be grouped by market (e.g. a food basket).
+SERIES_INFO = ["market_id", "series_commodity_id", "unit"]
 
 
 def split_of(target_m: pd.Series) -> pd.Series:
@@ -42,6 +44,7 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
         full = np.full(int(m[-1]) - m0 + 1, np.nan)
         full[m - m0] = lp
         country, commodity = g["country"].iloc[0], g["commodity"].iloc[0]
+        info = tuple(g[c].iloc[0] for c in SERIES_INFO)
         for origin in origins:
             m_data = origin - lag
             n_hist = int(np.searchsorted(m, m_data, side="right"))
@@ -66,13 +69,13 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
                 for i, step in enumerate(steps):
                     if np.isnan(actual[i]):
                         continue
-                    out.append((sid, country, commodity, origin, int(step), int(targets[i]), int(ks[i]), name,
+                    out.append((sid, country, commodity, *info, origin, int(step), int(targets[i]), int(ks[i]), name,
                                 *q[i, _REPORT_IDX], prob_above(q[i], threshold[i]), actual[i], expected[i],
                                 fit.sigma, z_now, *q[i, _GRID_IDX]))
     return with_pit(pd.DataFrame(out, columns=FORECAST_COLUMNS))
 
 
-FORECAST_COLUMNS = ["series_id", "country", "commodity", "origin", "step", "target", "k", "model", *Q_COLUMNS,
+FORECAST_COLUMNS = ["series_id", "country", "commodity", *SERIES_INFO, "origin", "step", "target", "k", "model", *Q_COLUMNS,
                     "spike_prob", "actual", "expected", "sigma", "z_now", *GRID_COLUMNS]
 
 

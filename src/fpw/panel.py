@@ -25,7 +25,7 @@ def series_ids(df: pd.DataFrame) -> pd.Series:
 
 
 def monthly_panel(prices: pd.DataFrame, staples_only: bool = True) -> pd.DataFrame:
-    """Retail series as (series_id, country, commodity, market, m, lp), suspect rows and invalid prices excluded.
+    """Retail series as (series_id, identity columns, m, lp), suspect rows and invalid prices excluded.
 
     `commodity` and `market` are the latest names of a series (a linked commodity keeps its newest name). Two
     observations in one series-month (only possible across a commodity link) are averaged in log space.
@@ -34,7 +34,8 @@ def monthly_panel(prices: pd.DataFrame, staples_only: bool = True) -> pd.DataFra
     if staples_only:
         p = p[p["commodity"].str.contains(STAPLE_PATTERN, case=False, regex=True)]
     p = p.assign(series_id=series_ids(p), m=month_index(p["date"]).to_numpy(), lp=np.log(p["price"].astype(float)))
-    names = p.sort_values("m").groupby("series_id")[["country", "commodity", "market", "unit"]].last()
+    names = p.sort_values("m").groupby("series_id")[["country", "market_id", "series_commodity_id", "commodity",
+                                                    "market", "unit"]].last()
     out = p.groupby(["series_id", "m"], as_index=False)["lp"].mean().join(names, on="series_id")
-    return out[["series_id", "country", "commodity", "market", "unit", "m", "lp"]].sort_values(["series_id", "m"])\
+    return out[["series_id", "country", "market_id", "series_commodity_id", "commodity", "market", "unit", "m", "lp"]].sort_values(["series_id", "m"])\
         .reset_index(drop=True)
