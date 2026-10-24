@@ -25,7 +25,7 @@ _REPORT_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in REPORT_LEVELS]
 _GRID_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in GRID_LEVELS]
 Q_COLUMNS = ["q025", "q10", "q50", "q90", "q975"]
 # Identity of a series carried into every forecast row, so forecasts can be grouped by market (e.g. a food basket).
-SERIES_INFO = ["market_id", "series_commodity_id", "unit"]
+SERIES_INFO = ["market_id", "market", "series_commodity_id", "unit"]
 
 
 def split_of(target_m: pd.Series) -> pd.Series:

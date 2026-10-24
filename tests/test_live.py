@@ -6,7 +6,7 @@ from fpw.backtest import LAG
 from fpw.distribution import GRID_COLUMNS
 from fpw.features import build_cases
 from fpw.live import (MODEL_INPUT, QuantileGridModel, calibration_pool, latest_runs, live_forecasts, sanity_gate,
-                      score_live, train_final)
+                      score_live, summarize_live, train_final)
 from fpw.ml import PARAMS, fit_quantile_models, predict_grid, training_rows
 from simulate import panel, seasonal_ar1
 
@@ -117,3 +117,32 @@ def test_score_live_waits_for_the_following_month_and_skips_known_errors():
     s = score_live(live, p)
     # last-3: known error; last: the month after is not published yet -> only last-2 and last-1 are scored
     assert sorted(s["target"]) == [last - 2, last - 1] and s["in80"].all()
+
+
+def test_summary_has_one_row_per_series_with_text(world):
+    _, cases, origin, model, _ = world
+    now = cases[cases["origin"] == origin]
+    fc = live_forecasts(now, model, calibration_pool(pd.DataFrame(), pd.DataFrame(), origin))
+    s = summarize_live(now, fc[fc["model"] == "lgbm_cal"], currencies={"mali": "XOF"})
+    assert len(s) == now["series_id"].nunique() and s["series_id"].is_unique
+    row = s.iloc[0]
+    assert row["next_q10"] <= row["next_q50"] <= row["next_q90"] and 0 <= row["next_spike"] <= 1
+    assert row["next_month"] == origin - LAG + 3 and row["last_month"] == origin - LAG + 5
+    assert "XOF/KG" in row["explanation"] and "no proven skill" in row["explanation"]
+
+
+def test_live_frames_fit_their_schemas(world):
+    from fpw import schemas
+    p, cases, origin, model, _ = world
+    now = cases[cases["origin"] == origin]
+    run = dict(model_version="1", run_at=pd.Timestamp("2026-10-26 06:00"), data_month=origin - LAG)
+    fc = live_forecasts(now, model, calibration_pool(pd.DataFrame(), pd.DataFrame(), origin)).assign(**run)
+    summary = summarize_live(now, fc[fc["model"] == "lgbm_cal"], currencies={"mali": "XOF"}).assign(**run)
+    # score as if the outcomes were in: shift the forecast origin back so its targets are observed
+    past = cases[cases["origin"] == origin - 12]
+    scored = score_live(live_forecasts(past, model, calibration_pool(pd.DataFrame(), pd.DataFrame(), origin - 12))
+                        .assign(**run), p)
+    assert len(scored)
+    for ddl, df in [(schemas.LIVE_FORECASTS, fc), (schemas.LIVE_SUMMARY, summary), (schemas.LIVE_SCORES, scored)]:
+        assert sorted(schemas.columns(ddl)) == sorted(df.columns), set(schemas.columns(ddl)) ^ set(df.columns)
+        assert len(schemas.to_rows(df, ddl)) == len(df)

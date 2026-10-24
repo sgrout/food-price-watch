@@ -46,5 +46,5 @@ def test_forecast_rows_can_be_grouped_by_market():
                     for c, i in [("Maize", 51), ("Millet", 73)]], ignore_index=True)
     p = monthly_panel(flag_suspects(df))
     fc = walk_forward(p, [p["m"].max() - 3], models={"naive": naive})
-    assert set(fc["market_id"]) == {3} and set(fc["series_commodity_id"]) == {51, 73} and set(fc["unit"]) == {"KG"}
+    assert set(fc["market_id"]) == {3} and set(fc["market"]) == {"M3"} and set(fc["series_commodity_id"]) == {51, 73} and set(fc["unit"]) == {"KG"}
     assert fc.groupby(["market_id", "origin", "step"]).size().eq(2).all()  # both foods of the market, per case

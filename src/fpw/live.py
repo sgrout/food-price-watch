@@ -94,3 +94,35 @@ def score_live(live: pd.DataFrame, panel: pd.DataFrame) -> pd.DataFrame:
     if rows.empty:
         return rows
     return score(with_pit(rows))
+
+
+SUMMARY_FEATURES = ["m_last", "resid_last", "ret3", "grp_ret3", "grp_n", "commodity_group"]  # z_now is in the rows
+
+
+def summarize_live(cases: pd.DataFrame, fc: pd.DataFrame, currencies: dict[str, str], lang: str = "en") -> pd.DataFrame:
+    """One row per series for the app: status now, next month and three months ahead (prices), spike
+    probability, and the explanation text. `fc` = the calibrated live rows of one run."""
+    from fpw.explain import LAST_STEP, NEXT_STEP, describe, facts
+
+    feats = cases.drop_duplicates(["series_id"])[["series_id", *SUMMARY_FEATURES]]
+    rows = fc.merge(feats, on="series_id", how="left")
+    out = []
+    for sid, g in rows.groupby("series_id", sort=False):
+        if not {NEXT_STEP, LAST_STEP} <= set(g["step"]):
+            continue
+        f = facts(g, currency=currencies[g["country"].iloc[0]])
+        by_step = g.set_index("step")
+        first = g.iloc[0]
+        out.append({
+            "series_id": sid, **{c: first[c] for c in ["country", "market_id", "series_commodity_id", "unit",
+                                                       "market", "commodity", "commodity_group", "origin",
+                                                       "eligible_at_origin"]},
+            "currency": f["currency"], "last_obs_month": f["data_month"], "status": f["status"],
+            "level_pct": f["level_pct"], "trend_pct": f["trend_pct"], "market_pct": f["market_pct"],
+            "next_month": f["next_month"], "next_q10": f["next_lo"], "next_q50": float(np.exp(by_step.loc[NEXT_STEP, "q50"])),
+            "next_q90": f["next_hi"], "next_spike": f["next_spike"],
+            "last_month": f["last_month"], "last_q10": f["last_lo"], "last_q50": float(np.exp(by_step.loc[LAST_STEP, "q50"])),
+            "last_q90": f["last_hi"], "last_spike": f["last_spike"],
+            "explanation": describe(f, lang),
+        })
+    return pd.DataFrame(out)

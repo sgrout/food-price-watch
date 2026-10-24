@@ -36,7 +36,7 @@ COUNTRY_COVERAGE = """country STRING, markets BIGINT, series BIGINT, retail_stap
 
 
 BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, market_id BIGINT,
-    series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT,
+    market STRING, series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT,
     k BIGINT, model STRING, q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE,
     actual DOUBLE, expected DOUBLE, sigma DOUBLE, z_now DOUBLE, split STRING, in80 BOOLEAN, in95 BOOLEAN,
     pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, eligible_at_origin BOOLEAN, """ + \
@@ -52,6 +52,23 @@ BACKTEST_METRICS = "population STRING, model STRING, split STRING, step BIGINT, 
 BACKTEST_METRICS_COUNTRY = "population STRING, model STRING, split STRING, country STRING, step BIGINT, " + _METRICS
 SPIKE_CALIBRATION = "population STRING, model STRING, split STRING, bin BIGINT, n BIGINT, mean_prob DOUBLE, observed DOUBLE"
 
+
+_FORECAST = """series_id STRING, country STRING, commodity STRING, market_id BIGINT, market STRING,
+    series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT, k BIGINT, model STRING,
+    q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE, actual DOUBLE, expected DOUBLE,
+    sigma DOUBLE, z_now DOUBLE, eligible_at_origin BOOLEAN, calibrated BOOLEAN, """ + \
+    ", ".join(f"{c} DOUBLE" for c in GRID_COLUMNS)
+_RUN = ", model_version STRING, run_at TIMESTAMP, data_month BIGINT"
+
+# Append-only: every weekly run's forecasts, stored before the outcome is known (the honest track record).
+LIVE_FORECASTS = _FORECAST + _RUN
+LIVE_SCORES = BACKTEST_FORECASTS + _RUN
+
+LIVE_SUMMARY = """series_id STRING, country STRING, market_id BIGINT, series_commodity_id BIGINT, unit STRING,
+    market STRING, commodity STRING, commodity_group STRING, origin BIGINT, eligible_at_origin BOOLEAN,
+    currency STRING, last_obs_month BIGINT, status STRING, level_pct BIGINT, trend_pct BIGINT, market_pct BIGINT,
+    next_month BIGINT, next_q10 DOUBLE, next_q50 DOUBLE, next_q90 DOUBLE, next_spike DOUBLE, last_month BIGINT,
+    last_q10 DOUBLE, last_q50 DOUBLE, last_q90 DOUBLE, last_spike DOUBLE, explanation STRING""" + _RUN
 
 def columns(ddl: str) -> list[str]:
     return [part.split()[0] for part in ddl.split(",")]
