@@ -284,6 +284,45 @@ models (`common_rows`; ML starts in 2012, so dev = 2012-2019).
   conclusions are the same. Backtest job on serverless: 27.7 min (3 baselines + lgbm + recalibration, 2.2 M rows).
 - **The 2023+ holdout is now spent twice.** Model changes from here are judged on the live track record.
 
+### Review fixes (external review 2026-10-24, `docs/review-2026-10-24-backtest.md`)
+
+- **Issue 1, look-ahead through the suspect flags (confirmed, fixed).** `spike_revert` is decided with the *next*
+  month, but suspect rows were removed before the backtest, so a blip in the last usable month (O - 2) was already
+  gone at origin O, while a live run would still see it. Affected: 76 of 122,689 scored series-origin cases (0.06 %).
+  My no-look-ahead test missed it because its simulated panels skip `flag_suspects`. Now `flag_suspects` records
+  `confirmed_date`, the panel keeps suspect rows with `suspect_from`, and `backtest.history_at` (shared by the
+  baselines and the LightGBM features) drops them only from origins at which that month was published. A new test
+  recomputes the real flags on changed future data; under the old code the median forecast differed by 1.12 in log.
+  Convention: known data errors are not scored as targets, and the live track record follows the same rule (a target
+  month is scored once the following month is published).
+- **Issue 3, backtest population vs published population (fixed).** Forecast rows carry `eligible_at_origin` (the
+  publication rule, >= 60 usable months and >= 75 % complete, applied to the history at that origin); metrics are
+  written for `population` = `all` (model choice) and `eligible` (the track record shown with a forecast).
+- **Effect** (Databricks run after the fix; baselines identical to the local run, LightGBM within 0.0003): validation
+  mean pinball lgbm_cal 0.0259 (was 0.0257), seasonal_rw_cal 0.0275 (0.0274), seasonal_rw 0.0274 (0.0274), lgbm
+  0.0287 (0.0283); **lgbm_cal stays the choice**; holdout differences <= 0.0002 pinball, <= 0.4 points coverage.
+  The Phase 2 and Phase 3 tables above were computed before the fix and are left as they were.
+- **Published track record: holdout 2023+, series eligible at the origin** (194,652 cases per model, 83 %):
+
+  | Model | Pinball | 80 % cover | 95 % cover | Spike Brier | Onset Brier | Onset clim. |
+  |---|---|---|---|---|---|---|
+  | **lgbm_cal** | 0.0273 | 78 % | 94 % | 0.123 | 0.108 | 0.112 |
+  | seasonal_rw_cal | 0.0282 | 81 % | 96 % | 0.123 | 0.106 | 0.112 |
+  | lgbm | 0.0262 | 64 % | 85 % | 0.116 | 0.099 | 0.112 |
+  | seasonal_rw | 0.0268 | 69 % | 88 % | 0.119 | 0.099 | 0.112 |
+
+- **Issue 2, revisions** are not simulated and cannot be for the past (snapshots start 2026-10-24): to be stated on
+  the methods page; after a few months of weekly snapshots, compare first-seen with current values (Phase 5). Asked
+  WFP.
+- **Issue 4, "spike" partly measures persistent inflation**: decision (user): keep the ALPS-style definition for
+  comparability and explain it on the pages; a short-term "sudden rise" indicator is a later candidate, judged on
+  the live track record.
+- **Issues 5 and 6**: dropout checked (Phase 3, mild); calibration uses only past, published outcomes, as advised.
+- **ALPS reference**: WFP, *Technical Guidance Note: Calculation and Use of the Alert for Price Spikes (ALPS)
+  Indicator*, April 2014 (`documents.wfp.org/.../wfp264186.pdf`). The server refuses automated downloads (HTTP 403),
+  so the differences from our definition (log vs level prices, 10-year origin-only window vs whole series) are noted
+  from the reviewer's summary and still to be checked against the PDF.
+
 ### How to run
 
 ```bash
