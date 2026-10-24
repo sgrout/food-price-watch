@@ -1,0 +1,36 @@
+resources:
+  jobs:
+    fpw_training:
+      name: fpw_training_${var.env}
+      description: Monthly training of the production model (pooled LightGBM quantiles), registered in Unity Catalog
+
+      # First Monday of the month, 06:00 Amsterdam: before the weekly pipeline (07:00) scores with @champion.
+      schedule:
+        quartz_cron_expression: "0 0 6 ? * MON#1"
+        timezone_id: Europe/Amsterdam
+        pause_status: UNPAUSED
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: env
+          default: ${var.env}
+        - name: experiment_id
+          default: ${resources.experiments.fpw_training_experiment.id}
+
+      environments:
+        - environment_key: ml
+          spec:
+            client: "4"
+            dependencies:
+              - lightgbm==4.7.0
+
+      tasks:
+        - task_key: train_model
+          environment_key: ml
+          notebook_task:
+            notebook_path: ../src/05_train_model.py

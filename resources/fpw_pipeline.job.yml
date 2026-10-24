@@ -2,7 +2,7 @@ resources:
   jobs:
     fpw_pipeline:
       name: fpw_pipeline_${var.env}
-      description: WFP food prices (HDX) -> bronze snapshots -> silver versions + quality -> gold coverage + freshness
+      description: WFP food prices (HDX) -> bronze -> silver + quality -> gold coverage + freshness -> live forecast + scoring
 
       # Weekly, Monday 07:00 Amsterdam. HDX files change a few times a month; weekly snapshots tell us when each
       # month first appears (publication lag) at the cost of a metadata check when nothing changed.
@@ -23,7 +23,15 @@ resources:
         - name: countries
           default: ${var.countries}
 
-      # No cluster defined = serverless compute (the only option on Free Edition).
+      # No cluster defined = serverless compute (the only option on Free Edition). The live tasks load the
+      # registered LightGBM model, so they need lightgbm.
+      environments:
+        - environment_key: ml
+          spec:
+            client: "4"
+            dependencies:
+              - lightgbm==4.7.0
+
       tasks:
         - task_key: bronze_hdx
           notebook_task:
@@ -40,3 +48,18 @@ resources:
             - task_key: silver_prices
           notebook_task:
             notebook_path: ../src/03_gold_coverage.py
+
+        # Live forecast with @champion (trained monthly by fpw_training), appended to gold.live_forecasts
+        - task_key: live_forecast
+          depends_on:
+            - task_key: gold_coverage
+          environment_key: ml
+          notebook_task:
+            notebook_path: ../src/06_live_forecast.py
+
+        - task_key: score_live
+          depends_on:
+            - task_key: live_forecast
+          environment_key: ml
+          notebook_task:
+            notebook_path: ../src/07_score_live.py

@@ -1,0 +1,22 @@
+resources:
+  apps:
+    fpw_app:
+      # Workspace-global name, max 30 characters, lowercase/digits/hyphens; per user in dev.
+      name: ${var.app_name}
+      description: food-price-watch (private) - live food price forecasts with track record
+      source_code_path: ../app
+      config:
+        command: ["streamlit", "run", "app.py"]
+        env:
+          - name: DATABRICKS_WAREHOUSE_ID
+            value_from: sql-warehouse  # snake_case here; app.yaml uses valueFrom
+          # Bundle variables are not resolved in app env vars: plain values (dev is the only target for now).
+          - name: FPW_CATALOG
+            value: workspace
+          - name: FPW_ENV
+            value: dev
+      resources:
+        - name: sql-warehouse
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: CAN_USE
