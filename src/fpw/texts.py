@@ -7,6 +7,11 @@ thousands separator and before %, :, decimal comma.
 
 NNBSP = " "  # narrow no-break space (French thousands separator, before % and :)
 
+# Public name of the site (owner decision 2026-10-25, domain staplesignals.org). Code, repositories and tables keep
+# the internal name food-price-watch.
+SITE_NAME = "Staple Signals"
+SITE_URL = "https://staplesignals.org"
+
 LANGUAGES = ("en", "fr")
 
 MONTHS = {
@@ -97,8 +102,8 @@ ATTRIBUTION = {
           "Exchange (HDX), CC BY-IGO.",
 }
 DISCLAIMER = {
-    "en": "Forecasts by food-price-watch, not an official WFP or FEWS NET assessment. "
+    "en": "Forecasts by Staple Signals, not an official WFP or FEWS NET assessment. "
           "Official assessments: https://hungermap.wfp.org and https://fews.net",
-    "fr": "Prévisions de food-price-watch, pas une évaluation officielle du PAM ni de FEWS NET. "
+    "fr": "Prévisions de Staple Signals, pas une évaluation officielle du PAM ni de FEWS NET. "
           "Évaluations officielles : https://hungermap.wfp.org et https://fews.net",
 }

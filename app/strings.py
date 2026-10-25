@@ -12,10 +12,10 @@ STATUS = {
 }
 
 ATTRIBUTION = ("Data: World Food Programme (WFP), via the Humanitarian Data Exchange (HDX), CC BY-IGO. "
-               "Forecasts: food-price-watch (not an official WFP or FEWS NET assessment). "
+               "Forecasts: Staple Signals (not an official WFP or FEWS NET assessment). "
                "Official assessments: [WFP HungerMap](https://hungermap.wfp.org) · [FEWS NET](https://fews.net).")
 
-TITLE = "food-price-watch"
+TITLE = "Staple Signals"
 NOT_ELIGIBLE = ("Not enough data for a forecast: a series needs at least 5 years of mostly complete, recent prices. "
                 "Prices are shown without a forecast.")
 

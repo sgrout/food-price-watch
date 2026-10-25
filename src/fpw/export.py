@@ -223,10 +223,10 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
     stamp = pd.Timestamp(generated_at).strftime("%Y-%m-%d")
     files[f"downloads/forecasts_{stamp}.csv"] = out.getvalue().encode("utf-8")
     files["downloads/README.txt"] = (
-        f"food-price-watch forecasts, generated {stamp}.\n{ATTRIBUTION}\n{DISCLAIMER}\n"
+        f"Staple Signals forecasts (staplesignals.org), generated {stamp}.\n{ATTRIBUTION}\n{DISCLAIMER}\n"
         "Prices are in local currency per unit (nominal). p10-p90 = 80 % range, p025-p975 = 95 % range.\n"
         "spike_probability is given for next month only. Columns: see docs/export-contract.md.\n\n"
-        f"Prévisions food-price-watch, générées le {stamp}.\n{ATTRIBUTION_I18N['fr']}\n{DISCLAIMER_I18N['fr']}\n"
+        f"Prévisions Staple Signals (staplesignals.org), générées le {stamp}.\n{ATTRIBUTION_I18N['fr']}\n{DISCLAIMER_I18N['fr']}\n"
         "Prix en monnaie locale par unité (nominaux). p10-p90 = intervalle à 80 %, p025-p975 = intervalle à 95 %.\n"
         "spike_probability (probabilité de flambée) est donnée pour le mois prochain seulement.\n").encode("utf-8")
 

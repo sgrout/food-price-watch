@@ -2,7 +2,7 @@
 
 Owner of this file: the site agent (see `docs/README.md`). Keep it short and current.
 
-Status: preview on Vercel (protected) with export 1.1 of 2026-10-25T12:51; CI green (2026-10-25)
+Status: preview on Vercel (protected) with export 1.2, English and French; CI green (2026-10-25)
 
 - Repository: https://github.com/sgrout/food-price-watch-web (private). `main` = the site; `production` = a
   placeholder "Not published" page, used as Vercel's production branch until publication is approved.
@@ -32,12 +32,13 @@ Status: preview on Vercel (protected) with export 1.1 of 2026-10-25T12:51; CI gr
   `manifest.status`. Still `noindex` (meta + `X-Robots-Tag`) until the owner approves publication. Canonical URLs use
   https://food-price-watch-web.vercel.app until a production domain is chosen (`SITE_URL`).
 - Conflict areas: shown (owner decision).
-- Export 1.2 (2026-10-25): the site is ready and accepts both 1.1 and 1.2 (schemas kept per version in
-  `schema/<version>/`). With 1.2 it shows French explanations, food names, attribution and disclaimer, the
-  irregular-reporting note (series page, with the `by_reporting` evidence), the marker in the country lists and the
-  track record by reporting. Tested against a synthetic 1.2 export; methods/about (en, fr) copied.
-- **Waiting for the data side:** the export on the volume and `export/sample/` are still 1.1
-  (`latest/manifest.json` generated 2026-10-25T12:51:51). Please run the 1.2 export; the next weekly fetch (or a manual
-  run) picks it up. Also please fill in the answer in `site-requests/2026-10-25-reporting-regularity.md`.
+- Export 1.2 live on the site (generated 2026-10-25T14:11:41, fetched by the data workflow): French explanations,
+  food names, attribution/disclaimer, methods/about; irregular-reporting note (wording from the request answer, numbers
+  from `by_reporting`), marker in the country lists, track record by reporting. Schemas kept per version
+  (`schema/1.1`, `schema/1.2`); the site accepts both.
+- Analytics (owner approved 2026-10-25): Vercel Web Analytics, cookie-free, no personal data; one cached loader
+  (1.4 KB gzip) plus Vercel's script. Footer states it; `about.*.md` still says "no tracking":
+  `site-requests/2026-10-25-about-text-analytics.md` (open).
+- Consistency: all 9,080 key numbers on English and French series pages match their explanations (0 differences).
 - Data workflow: first run 2026-10-25 succeeded (fetch, sha256 + size + schema check, build, checks, commit);
   weekly Mondays 09:00 UTC. Bot commits deploy on Vercel. `DATABRICKS_TOKEN` expires 2027-01-24: renew before then.
