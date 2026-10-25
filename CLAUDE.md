@@ -71,6 +71,8 @@ This file is the brief for coding agents. Read it fully before the first change,
   - User text only from `fpw.explain` facts + `fpw.texts` templates (no hand-written or LLM numbers); a test enforces it.
   - App (`app/`) is self-contained (no `fpw` import); mirrored helpers are tested against `fpw` (`month_date`).
     Spike chance is shown for next month only, because new-spike warnings are worse than the base rate further out.
+  - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by
+    location; `hidden.json` on the site is only for data-quality problems, with the owner's agreement.
   - Forecast rows carry `market_id`, `series_commodity_id`, `unit` (basket preparation; proposal in
     `docs/proposal-users-and-features.md`, not approved). Open data finding: runs of identical prices (Mali 16-30 %).
 

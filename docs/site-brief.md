@@ -89,7 +89,8 @@ build shows a "Data may be out of date" banner if `generated_at` is older than 1
 prominently so staleness is visible to users.
 
 Hiding: a config file (e.g. `hidden.json` with country ids and series ids) removes pages from the build without code
-changes. The publication policy for conflict-affected areas is pending.
+changes. It is **empty by default**: the owner decided (2026-10-25) to show everything that has data, conflict-affected
+areas included (e.g. Kidal, Adjelhoc). Use it only for data-quality problems, and only after the owner agrees.
 
 Secrets: `DATABRICKS_HOST` and `DATABRICKS_TOKEN` only as CI secrets; never in the repository, the build output, the
 browser or `docs/`.
