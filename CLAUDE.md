@@ -199,7 +199,7 @@ Whichever is chosen, keep the medallion layers, the logic/IO split and the tests
    site, enabling emails).
    **The GitHub repository `sgrout/food-price-watch` is public** (since 2026-10-25): everything committed, including
    `docs/`, reviews and the git history, is public. Never commit secrets, tokens, signed URLs or personal data;
-   redact real payloads before they become fixtures. Code is MIT (`LICENSE`); WFP data stays CC BY-IGO and is
+   redact real payloads before they become fixtures. Code is MIT (`LICENSE`); WFP data stays CC BY-IGO (`DATA_LICENSE.md`) and is
    attributed wherever it is stored (`tests/data/README.md`, `export/sample/README.md`, every export file).
 5. **Report honestly:** what was verified, what was not, and negative results with numbers.
 6. **Docs every phase:** README with a plain-English section first (what it does, how sure it is, what it is not), then
