@@ -211,7 +211,9 @@ Whichever is chosen, keep the medallion layers, the logic/IO split and the tests
    pass a point-in-time check and improve the backtest.
 4. **Private Streamlit app** (Databricks App): country and market pages with fan charts, warnings, methods,
    attribution. Later, once the user chooses an export target: the public static website with downloads.
-5a. **Public export** (done 2026-10-25): weekly JSON/CSV export to a UC volume for the public static site on Vercel
+5a. **Public export** (done 2026-10-25). **Communication with the site agent goes through `docs/`** (`docs/README.md`):
+   at the start of each session, check `docs/site-requests/` for open requests and `docs/site-status.md`; this side
+   owns `site-brief.md`, `export-contract.md`, `site-content/`. Export details: weekly JSON/CSV export to a UC volume for the public static site on Vercel
    (built by a separate agent from `docs/export-contract.md`; no database). Changing an exported field means updating
    `fpw/export.py`, `scripts/export_schemas.py` (regenerate `export/schema/`), the contract and the sample together.
 5. **Schedule + monitoring:** monthly (or weekly) runs, freshness checks, live track record, failure notifications.

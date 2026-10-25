@@ -121,4 +121,5 @@ first live forecasts mature (about January 2027); then show live next to backtes
 ## 6. Contact / change process
 
 Changes to the contract are made in this repository (`src/fpw/export.py`, `scripts/export_schemas.py`, this file)
-and released with the weekly export; the schemas in `export/schema/` are the source of truth.
+and released with the weekly export; the schemas in `export/schema/` are the source of truth. The site side asks for
+changes through `docs/site-requests/` (see `docs/README.md`); site requirements are in `docs/site-brief.md`.
