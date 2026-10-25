@@ -15,11 +15,11 @@ next to every forecast.
 **What it is not.** It does not replace WFP or FEWS NET, who make the official food-security assessments. It is a free,
 open extra tool for small organizations without their own data team. It earns no money.
 
-**Where it stands.** *Phase 4 is done:* every Monday the project downloads WFP's latest prices for **Mali,
-Burkina Faso and Burundi**, checks them, and makes forecasts for the next months with the method chosen in Phase 3.
-The forecasts are stored before anyone knows the outcome, so they can be scored honestly later. A private web page
-(only for people with a login to the project's Databricks workspace) shows, per market and food: the price history,
-the forecast range, the chance of a spike, a short explanation in words, and the track record. Nothing is public yet.
+**Where it stands.** *A public beta* (from October 2026) at **staplesignals.org** ("Staple Signals"), in English
+and French. Every Monday the project downloads WFP's latest prices for **Mali, Burkina Faso and Burundi**, checks
+them, makes forecasts for the next months and stores them before anyone knows the outcome, so they can be scored
+honestly later. The site says "beta" on every page until the live track record shows, after at least six months,
+that the ranges hold about as often as they claim. A private page for the project owner shows the same data.
 
 **What the checks found.** Food price data has mistakes, and we mark them rather than quietly correcting them:
 - In August 2017, the maize price in most Malian markets tripled for exactly one month and then went back to normal.

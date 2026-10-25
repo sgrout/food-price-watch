@@ -191,3 +191,12 @@ def test_every_wfp_commodity_in_the_sample_has_a_french_name():
     from fpw.texts import COMMODITY_FR
     names = {r["commodity"] for r in json.loads((SAMPLE / "index.json").read_text())["series"]}
     assert names <= set(COMMODITY_FR)
+
+
+def test_status_must_be_known_and_beta_is_valid():
+    files = build_export(*inputs(), generated_at=datetime(2026, 10, 26), status="beta")
+    m = json.loads(files["manifest.json"])
+    jsonschema.validate(m, json.loads((SCHEMAS / "manifest.schema.json").read_text()))
+    assert m["status"] == "beta"
+    with pytest.raises(ValueError):
+        build_export(*inputs(), generated_at=datetime(2026, 10, 26), status="live")

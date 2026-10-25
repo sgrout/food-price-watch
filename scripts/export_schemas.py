@@ -13,7 +13,7 @@ price = {"type": "number", "exclusiveMinimum": 0}
 nprice = {"type": ["number", "null"], "exclusiveMinimum": 0}
 prob = {"type": ["number", "null"], "minimum": 0, "maximum": 1}
 status = {"enum": ["normal", "stress", "alert", "crisis"]}
-version = {"const": "1.2"}
+version = {"const": "1.3"}
 common = {"forecast_origin": month, "data_up_to": month, "model_version": {"type": "string"}}
 attribution = {"type": "string", "pattern": "World Food Programme"}
 country_id = {"enum": ["mali", "burkina-faso", "burundi"]}
@@ -34,7 +34,7 @@ track_row = obj({"step": {"type": "integer", "minimum": 1, "maximum": 5}, "horiz
 
 SCHEMAS = {
     "manifest": obj({
-        "schema_version": version, "status": {"enum": ["preview", "published"]},
+        "schema_version": version, "status": {"enum": ["preview", "beta", "published"]},
         "generated_at": {"type": "string"}, **common, "run_at": {"type": "string"},
         "countries": {"type": "array", "items": country_id},
         "counts": obj({"series": {"type": "integer"}, "series_with_forecast": {"type": "integer"}}),

@@ -2,7 +2,7 @@
 
 Owner of this file: the site agent (see `docs/README.md`). Keep it short and current.
 
-Status: preview on Vercel (protected) with export 1.2, English and French; CI green (2026-10-25)
+Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.3, status beta); CI green
 
 - Repository: https://github.com/sgrout/food-price-watch-web (private). `main` = the site; `production` = a
   placeholder "Not published" page, used as Vercel's production branch until publication is approved.
@@ -36,6 +36,19 @@ Status: preview on Vercel (protected) with export 1.2, English and French; CI gr
   food names, attribution/disclaimer, methods/about; irregular-reporting note (wording from the request answer, numbers
   from `by_reporting`), marker in the country lists, track record by reporting. Schemas kept per version
   (`schema/1.1`, `schema/1.2`); the site accepts both.
+- Public beta (go 2026-10-25): site ready. Name Staple Signals; schemas 1.3 copied (from your working tree, to
+  re-sync when committed); `status: beta` shows the §4.6 banner (en/fr) linked to the track record; unknown status =
+  preview; French pages note "Traduction non revue"; feedback link to the data repo's GitHub issues. Tested on a
+  synthetic 1.3 beta export: all checks pass, axe 0, Lighthouse 100/100/96/SEO 100.
+- **Search indexing: the owner asked for it now** (overrides the soft-launch default in
+  `go-public-beta.md` step 4). Indexing follows `manifest.status`: preview = `noindex` + robots disallow;
+  beta/published = indexable, robots.txt with sitemap. Canonical: https://staplesignals.org.
+- Domain: staplesignals.org on Vercel production (HTTPS OK, www → apex 308). Production serves branch `main`.
+- Live check 2026-10-25 (production = branch `main`): en/fr pages 200 with the beta banner, robots.txt allows +
+  sitemap, no `noindex`, HTTPS + HSTS, 404 page, analytics script served. Lighthouse on the live site (mobile):
+  100/100/100/100, LCP 0.8-0.9 s, TBT 0, CLS 0, 9-18 KB transferred per page.
+- **Open for the data side:** `site-requests/2026-10-25-about-text-analytics.md` (about texts still say "no tracking"
+  while analytics is on); your 1.3 changes are still uncommitted in the data repo.
 - Analytics (owner approved 2026-10-25): Vercel Web Analytics, cookie-free, no personal data; one cached loader
   (1.4 KB gzip) plus Vercel's script. Footer states it; `about.*.md` still says "no tracking":
   `site-requests/2026-10-25-about-text-analytics.md` (open).
