@@ -16,7 +16,7 @@ app = ["streamlit==1.38.0", "plotly==5.24.1", "databricks-sql-connector", "datab
 # Local development only. On Databricks, Spark is provided by the runtime.
 # Forecasting models. On Databricks: scipy and scikit-learn come with the runtime, lightgbm via the job environment.
 ml = ["scipy", "scikit-learn", "lightgbm==4.7.0", "mlflow-skinny"]
-dev = ["pytest", "pyyaml", "pyspark~=4.0", "plotly", "food-price-watch[ml]"]
+dev = ["pytest", "pyyaml", "pyspark~=4.0", "plotly", "jsonschema", "food-price-watch[ml]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

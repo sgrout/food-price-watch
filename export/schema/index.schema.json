@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "food-price-watch export: index.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "forecast_origin": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "data_up_to": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "model_version": {
+      "type": "string"
+    },
+    "attribution": {
+      "type": "string",
+      "pattern": "World Food Programme"
+    },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "country": {
+            "enum": [
+              "mali",
+              "burkina-faso",
+              "burundi"
+            ]
+          },
+          "market": {
+            "type": "string"
+          },
+          "admin1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "commodity": {
+            "type": "string"
+          },
+          "commodity_group": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "normal",
+              "stress",
+              "alert",
+              "crisis"
+            ]
+          },
+          "last_observed_month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "next_month": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "next_p10": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "next_p50": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "next_p90": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "next_spike_probability": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "country",
+          "market",
+          "admin1",
+          "commodity",
+          "commodity_group",
+          "unit",
+          "currency",
+          "eligible",
+          "status",
+          "last_observed_month",
+          "next_month",
+          "next_p10",
+          "next_p50",
+          "next_p90",
+          "next_spike_probability",
+          "latitude",
+          "longitude"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "forecast_origin",
+    "data_up_to",
+    "model_version",
+    "attribution",
+    "series"
+  ],
+  "additionalProperties": false
+}

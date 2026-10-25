@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "food-price-watch export: series/<id>.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string"
+    },
+    "country": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "enum": [
+            "mali",
+            "burkina-faso",
+            "burundi"
+          ]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "market": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "admin1": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin2": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "latitude": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "longitude": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "admin1",
+        "admin2",
+        "latitude",
+        "longitude"
+      ],
+      "additionalProperties": false
+    },
+    "commodity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "group"
+      ],
+      "additionalProperties": false
+    },
+    "unit": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "price_type": {
+      "const": "retail"
+    },
+    "eligible": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": [
+            "normal",
+            "stress",
+            "alert",
+            "crisis"
+          ]
+        },
+        "level_vs_usual_pct": {
+          "type": "integer"
+        },
+        "month": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        }
+      },
+      "required": [
+        "code",
+        "level_vs_usual_pct",
+        "month"
+      ],
+      "additionalProperties": false
+    },
+    "explanation": {
+      "type": "object",
+      "properties": {
+        "en": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "dates": {
+      "type": "object",
+      "properties": {
+        "forecast_origin": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        "data_up_to": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        "model_version": {
+          "type": "string"
+        },
+        "last_observed_month": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        "run_at": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "forecast_origin",
+        "data_up_to",
+        "model_version",
+        "last_observed_month",
+        "run_at"
+      ],
+      "additionalProperties": false
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "flag": {
+            "enum": [
+              null,
+              "data_error",
+              "break",
+              "unconfirmed_jump"
+            ]
+          }
+        },
+        "required": [
+          "month",
+          "price",
+          "flag"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "forecast": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "step": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "horizon": {
+            "enum": [
+              "nowcast_last_month",
+              "nowcast_this_month",
+              "next_month",
+              "in_2_months",
+              "in_3_months"
+            ]
+          },
+          "p025": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "p10": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "p50": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "p90": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "p975": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "usual_level": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "spike_threshold": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "spike_probability": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "show_spike_probability": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "month",
+          "step",
+          "horizon",
+          "p025",
+          "p10",
+          "p50",
+          "p90",
+          "p975",
+          "usual_level",
+          "spike_threshold",
+          "spike_probability",
+          "show_spike_probability"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "attribution": {
+      "type": "string",
+      "pattern": "World Food Programme"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "country",
+    "market",
+    "commodity",
+    "unit",
+    "currency",
+    "price_type",
+    "eligible",
+    "status",
+    "explanation",
+    "dates",
+    "history",
+    "forecast",
+    "attribution"
+  ],
+  "additionalProperties": false
+}
