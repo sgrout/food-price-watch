@@ -420,6 +420,23 @@ next month, 1.72 in 3 months; wider than x3 in 0.1 % / 0.4 % of series), but the
 the last price in 73 of 908 series (8 %). The site shows the 80 % range prominently and the 95 % range lightly or not
 at all; a fix (e.g. a floor or a different tail extrapolation) is a candidate judged on the live track record.
 
+### Export 1.1-1.2: requests from the site (2026-10-25)
+
+Answers in `docs/site-requests/`; contract `docs/export-contract.md` v1.2.
+- **Display rule shared with the site:** texts are generated from the exported values (prices 2 decimals,
+  probabilities 3) and both sides round half-even on the exact decimal value (94.55 -> 94.6; the float would give
+  94.5); prices 0 / 1 / 2 decimals for >= 100 / 10-100 / < 10. The site's build check found 1 mismatch in 4,540
+  numbers before this fix.
+- **No status without a forecast:** the 183 series without enough data have `status: null` (their seasonal fit is
+  unreliable; they held Mali's only "crisis" and 4 of 5 "alerts").
+- **French:** explanations in English and French from the same facts (WFP ALPS terms; French typography), French
+  food names, methods and about pages, attribution and disclaimer; not reviewed by a native speaker (owner decision).
+- **Conflict areas:** shown like all markets (owner decision). **Reporting regularity:** `months_reported_12`;
+  irregular = fewer than 9 of the last 12 months (fixed before the split; 123 series now). Backtest (holdout,
+  lgbm_cal, eligible): the 80 % range held 77 % (+-2.4) next month for regular markets and 81 % (+-4.5) for
+  irregular ones (159 series), in 3 months 76 % vs 77 %: no evidence that forecasts there are less honest; their
+  prices move more (typical error 10 % vs 11 % next month, 15 % vs 19 % in 3 months), so the ranges are wider.
+
 ### How to run
 
 ```bash

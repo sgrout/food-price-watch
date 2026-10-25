@@ -3,7 +3,7 @@
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
 notebook `src/08_export_public.py`). Machine-readable contract: JSON Schemas in `export/schema/` (draft 2020-12,
-strict: unknown fields fail). Real sample files to build against offline: `export/sample/` (3 series).
+strict: unknown fields fail). Real sample files to build against offline: `export/sample/` (4 series).
 
 ## 1. What the project is (context for the UI)
 

@@ -4,6 +4,11 @@ burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-
 burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-11,next_month,10994.56,13728.51,17111.16,23379.0,34888.01,18541.33,0.125,stress,2026-10,2026-08,1
 burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-12,in_2_months,11303.51,14088.91,16932.85,23870.9,34902.18,18990.2,,stress,2026-10,2026-08,1
 burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2027-01,in_3_months,10499.47,13647.87,16862.23,24830.87,38509.48,19514.95,,stress,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-09,nowcast_last_month,357.37,395.27,414.35,517.38,523.42,521.84,,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-10,nowcast_this_month,319.57,387.17,415.65,537.48,561.69,525.05,,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-11,next_month,307.45,375.82,414.23,538.91,540.0,525.1,0.0,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-12,in_2_months,299.49,366.32,411.41,578.04,721.33,525.75,,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2027-01,in_3_months,297.57,361.03,409.99,560.33,619.21,546.77,,normal,2026-10,2026-08,1
 mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2026-09,nowcast_last_month,139.4,200.6,296.06,423.13,431.7,301.53,,alert,2026-10,2026-08,1
 mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2026-10,nowcast_this_month,157.97,168.07,287.33,451.64,523.46,298.05,,alert,2026-10,2026-08,1
 mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2026-11,next_month,106.13,143.93,252.06,477.23,619.16,288.41,0.256,alert,2026-10,2026-08,1

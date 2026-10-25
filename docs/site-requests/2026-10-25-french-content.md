@@ -34,3 +34,6 @@ All four delivered in export 1.2 (contract §3):
 4. `manifest.attribution_fr` and `manifest.disclaimer_fr`; `downloads/README.txt` is bilingual. The JSON
    `attribution` fields stay English (the license attribution); show `attribution_fr` on French pages.
 The owner decided the French texts are not reviewed by a native speaker; report any wording problem as a request.
+
+**Action for the site before Monday 09:00 UTC:** copy `export/schema/` (schema_version `1.2`) and `export/sample/`
+(now 4 series, incl. an irregular market) into the site repository; the live export is already 1.2.
