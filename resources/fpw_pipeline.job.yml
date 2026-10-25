@@ -63,3 +63,10 @@ resources:
           environment_key: ml
           notebook_task:
             notebook_path: ../src/07_score_live.py
+
+        # Public export (JSON/CSV) to the volume fpw_<env>_gold.public_export, fetched by the public site
+        - task_key: export_public
+          depends_on:
+            - task_key: score_live
+          notebook_task:
+            notebook_path: ../src/08_export_public.py

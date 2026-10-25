@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "food-price-watch export: countries.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "forecast_origin": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "data_up_to": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "model_version": {
+      "type": "string"
+    },
+    "attribution": {
+      "type": "string",
+      "pattern": "World Food Programme"
+    },
+    "countries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "enum": [
+              "mali",
+              "burkina-faso",
+              "burundi"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "series": {
+            "type": "integer"
+          },
+          "series_with_forecast": {
+            "type": "integer"
+          },
+          "markets": {
+            "type": "integer"
+          },
+          "status_counts": {
+            "type": "object",
+            "properties": {
+              "normal": {
+                "type": "integer"
+              },
+              "stress": {
+                "type": "integer"
+              },
+              "alert": {
+                "type": "integer"
+              },
+              "crisis": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "normal",
+              "stress",
+              "alert",
+              "crisis"
+            ],
+            "additionalProperties": false
+          },
+          "last_observed_month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "currency",
+          "series",
+          "series_with_forecast",
+          "markets",
+          "status_counts",
+          "last_observed_month"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "forecast_origin",
+    "data_up_to",
+    "model_version",
+    "attribution",
+    "countries"
+  ],
+  "additionalProperties": false
+}
