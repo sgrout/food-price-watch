@@ -92,9 +92,12 @@ def test_series_with_forecast(files):
     assert s["market"]["admin1"] == "Bamako" and s["market"]["latitude"] == 12.65
 
 
-def test_series_without_enough_data_has_history_but_no_forecast(files):
+def test_series_without_enough_data_has_history_but_no_forecast_and_no_status(files):
     s = load(files, "series/mali-300-51-retail-kg.json")
     assert not s["eligible"] and s["forecast"] == [] and s["explanation"] == {} and len(s["history"]) > 0
+    assert s["status"] is None  # the usual level of a series without enough data is not reliable
+    row = next(r for r in load(files, "index.json")["series"] if r["id"] == "mali-300-51-retail-kg")
+    assert row["status"] is None
 
 
 def test_index_countries_and_track_record(files):

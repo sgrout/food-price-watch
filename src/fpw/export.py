@@ -16,8 +16,9 @@ import numpy as np
 import pandas as pd
 
 from fpw.countries import COUNTRIES
+from fpw.explain import export_price, export_prob
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"  # 1.1: status is null for series without a forecast
 ATTRIBUTION = "Source: World Food Programme (WFP), food prices via the Humanitarian Data Exchange (HDX), CC BY-IGO."
 LICENSE = {"data": "CC BY-IGO 3.0 (WFP)", "url": "https://creativecommons.org/licenses/by/3.0/igo/"}
 SOURCES = ["https://data.humdata.org/organization/wfp"]
@@ -50,7 +51,7 @@ def skill_verdict(score: float, base_rate_score: float, margin: float = 0.03) ->
 
 
 def _price(x) -> float | None:
-    return None if x is None or pd.isna(x) else round(float(x), 2)
+    return None if x is None or pd.isna(x) else export_price(x)
 
 
 def _pct(log_err) -> int | None:
@@ -115,7 +116,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
                     "p025": _price(np.exp(f.q025)), "p10": _price(np.exp(f.q10)), "p50": _price(np.exp(f.q50)),
                     "p90": _price(np.exp(f.q90)), "p975": _price(np.exp(f.q975)),
                     "usual_level": _price(np.exp(f.expected)), "spike_threshold": _price(np.exp(f.expected + f.sigma)),
-                    "spike_probability": _round(f.spike_prob) if show else None, "show_spike_probability": show,
+                    "spike_probability": export_prob(f.spike_prob) if show else None, "show_spike_probability": show,
                 })
                 csv_rows.append({
                     "series_id": sid, "country": s.country, "admin1": place["admin1"] if place is not None else "",
@@ -124,7 +125,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
                     "p025": _price(np.exp(f.q025)), "p10": _price(np.exp(f.q10)), "p50": _price(np.exp(f.q50)),
                     "p90": _price(np.exp(f.q90)), "p975": _price(np.exp(f.q975)),
                     "usual_level": _price(np.exp(f.expected)),
-                    "spike_probability": _round(f.spike_prob) if show else "", "status_now": s.status, **common,
+                    "spike_probability": export_prob(f.spike_prob) if show else "", "status_now": s.status, **common,
                 })
         next_fc = next((f for f in forecast if f["step"] == SPIKE_STEP), None)
         doc = {
@@ -138,7 +139,9 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "commodity": {"id": int(s.series_commodity_id), "name": s.commodity, "group": s.commodity_group},
             "unit": s.unit, "currency": s.currency, "price_type": "retail",
             "eligible": bool(s.eligible_at_origin),
-            "status": {"code": s.status, "level_vs_usual_pct": int(s.level_pct), "month": month_str(s.last_obs_month)},
+            # No status without enough data: the usual level then comes from an unreliable seasonal fit.
+            "status": ({"code": s.status, "level_vs_usual_pct": int(s.level_pct), "month": month_str(s.last_obs_month)}
+                       if s.eligible_at_origin else None),
             "explanation": {"en": s.explanation} if s.eligible_at_origin else {},
             "dates": {**common, "last_observed_month": month_str(s.last_obs_month), "run_at": run_at},
             "history": history, "forecast": forecast,
@@ -148,7 +151,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
         index.append({
             "id": sid, "country": s.country, "market": s.market, "admin1": doc["market"]["admin1"],
             "commodity": s.commodity, "commodity_group": s.commodity_group, "unit": s.unit, "currency": s.currency,
-            "eligible": bool(s.eligible_at_origin), "status": s.status,
+            "eligible": bool(s.eligible_at_origin), "status": s.status if s.eligible_at_origin else None,
             "last_observed_month": month_str(s.last_obs_month),
             "next_month": next_fc["month"] if next_fc else None, "next_p10": next_fc["p10"] if next_fc else None,
             "next_p50": next_fc["p50"] if next_fc else None, "next_p90": next_fc["p90"] if next_fc else None,

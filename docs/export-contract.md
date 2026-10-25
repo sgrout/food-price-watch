@@ -1,4 +1,4 @@
-# Public export contract (v1.0): food-price-watch → public site
+# Public export contract (v1.1): food-price-watch → public site
 
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
@@ -47,12 +47,24 @@ used only in CI, never in the browser or in the built site.
 
 All JSON is UTF-8, compact. Months are `"YYYY-MM"`. Prices are **nominal, in local currency per `unit`** (XOF for
 Mali and Burkina Faso, BIF for Burundi; units such as `KG`, `L`, `100 KG`), already converted from the model's log
-scale. Every JSON file has `schema_version` (`"1.0"`) and `attribution`.
+scale. Every JSON file has `schema_version` (`"1.1"`) and `attribution`.
+
+Changes in 1.1 (2026-10-25): `status` is `null` for series without a forecast (`eligible: false`), in
+`series/<id>.json` and the indexes; the display and rounding rule below is part of the contract.
+
+### Display and rounding (shared by the texts and the site)
+Exported precision: prices 2 decimals, probabilities 3 decimals. The `explanation` texts are generated from exactly
+these exported values. Display both with **round-half-even** on the exported value (Python `round`/`format`;
+JavaScript `Intl.NumberFormat` with `roundingMode: 'halfEven'`):
+- prices: 0 decimals from 100, 1 decimal from 10 to 100, 2 decimals below 10 (thousands separator per locale);
+- percentages: a whole number of 100 x the exported probability (0.125 -> 12 %, 0.135 -> 14 %);
+- integer fields (`level_vs_usual_pct`, counts) as they are.
+Then a page and its explanation never show two different numbers for the same value.
 
 | File | Use |
 |---|---|
 | `manifest.json` | `status` (`preview` / `published`), `generated_at`, `forecast_origin`, `data_up_to`, `model_version`, counts, license, sources, disclaimer, list of all files with `bytes` and `sha256` |
-| `countries.json` | one entry per country: name, currency, number of series and markets, `status_counts`, latest month |
+| `countries.json` | one entry per country: name, currency, number of series and markets, `status_counts` (**series with a forecast only**, i.e. `eligible: true`; the same as counting `index/<country>.json` rows with `eligible: true`), latest month |
 | `index/<country>.json` | the series of one country (for country pages; 120-160 KB, compresses to ~20-30 KB) |
 | `index.json` | all series (~410 KB): use for search or build time only, not on phone pages |
 | `series/<id>.json` | one market × food: identity, location, status, explanation, `history`, `forecast` |
@@ -70,6 +82,8 @@ change; ids do not). Suitable for URLs: `/mali/mali-1816-73-retail-kg`.
   is `{}`; show the history with the text "Not enough data for a forecast".
 - `status {code, level_vs_usual_pct, month}`: the latest observed price vs the usual level for that time of year.
   `code`: `normal` < `stress` < `alert` < `crisis` (ALPS-style thresholds). `level_vs_usual_pct` may be negative.
+  **`null` when `eligible` is false**: without enough data the usual level is unreliable, so such a series gets no
+  status badge, is not listed among warnings and is not counted; show "Not enough data for a forecast".
 - `explanation.en`: ready-made plain text, generated from the numbers (no LLM). Show as is. More languages will be
   added as more keys (`fr`), so choose the key by the page language and fall back to `en`.
 - `dates {forecast_origin, data_up_to, last_observed_month, run_at, model_version}`: a forecast made in

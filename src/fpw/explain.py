@@ -1,6 +1,11 @@
 """Plain-language explanation of a live forecast, produced by code from the model inputs (no LLM).
 
 `facts()` computes every number that may appear; `describe()` only formats those facts with fpw.texts templates.
+
+Display rule (shared with the public site, docs/export-contract.md section 3): numbers are first rounded to the
+precision the export publishes (prices 2 decimals, probabilities 3 decimals), then displayed with round-half-even:
+prices with 0 decimals from 100, 1 decimal from 10 to 100, 2 decimals below 10; percentages as whole numbers of
+100 x the exported probability. So a text and a page formatted from the same export always show the same number.
 """
 
 import numpy as np
@@ -32,15 +37,31 @@ def facts(rows: pd.DataFrame, currency: str) -> dict:
         "trend_pct": _pct(float(first["ret3"])) if pd.notna(first["ret3"]) else None,
         "market_pct": _pct(float(first["grp_ret3"])) if pd.notna(first["grp_ret3"]) else None,
         "market_n": int(first["grp_n"]), "group": first["commodity_group"], "country": first["country"],
-        "next_month": int(nxt["target"]), "next_lo": float(np.exp(nxt["q10"])), "next_hi": float(np.exp(nxt["q90"])),
-        "next_spike": float(nxt["spike_prob"]),
-        "last_month": int(last["target"]), "last_lo": float(np.exp(last["q10"])), "last_hi": float(np.exp(last["q90"])),
-        "last_spike": float(last["spike_prob"]), "currency": currency, "unit": first["unit"],
+        # exported precision (fpw.export): prices 2 decimals, probabilities 3 decimals
+        "next_month": int(nxt["target"]), "next_lo": export_price(np.exp(nxt["q10"])),
+        "next_hi": export_price(np.exp(nxt["q90"])), "next_spike": export_prob(nxt["spike_prob"]),
+        "last_month": int(last["target"]), "last_lo": export_price(np.exp(last["q10"])),
+        "last_hi": export_price(np.exp(last["q90"])), "last_spike": export_prob(last["spike_prob"]),
+        "currency": currency, "unit": first["unit"],
     }
 
 
-def _price(x: float) -> str:
-    return f"{x:,.0f}" if x >= 100 else f"{x:,.2f}"
+def export_price(x) -> float:
+    return round(float(x), 2)
+
+
+def export_prob(x) -> float:
+    return round(float(x), 3)
+
+
+def display_price(x: float) -> str:
+    """Round-half-even (Python's format): 0 decimals from 100, 1 decimal from 10 to 100, 2 below 10."""
+    return f"{x:,.0f}" if x >= 100 else f"{x:,.1f}" if x >= 10 else f"{x:,.2f}"
+
+
+def display_pct(p: float) -> str:
+    """A probability as a whole percentage, round-half-even (Python's round)."""
+    return str(int(round(100 * p)))
 
 
 def _signed(t: dict, key: str, pct: int | None, **kw) -> str | None:
@@ -65,11 +86,11 @@ def describe(f: dict, lang: str = "en") -> str:
         _signed(t, "trend", f["trend_pct"]),
         _signed(t, "market", f["market_pct"], n=f["market_n"], group=f["group"], country=f["country"].replace("-", " ").title())
         if f["market_n"] > 1 else None,
-        t["forecast"].format(month=month(f["next_month"]), lo=_price(f["next_lo"]), hi=_price(f["next_hi"]),
+        t["forecast"].format(month=month(f["next_month"]), lo=display_price(f["next_lo"]), hi=display_price(f["next_hi"]),
                              currency=f["currency"], unit=f["unit"]),
-        t["forecast"].format(month=month(f["last_month"]), lo=_price(f["last_lo"]), hi=_price(f["last_hi"]),
+        t["forecast"].format(month=month(f["last_month"]), lo=display_price(f["last_lo"]), hi=display_price(f["last_hi"]),
                              currency=f["currency"], unit=f["unit"]),
-        t["spike"].format(month=month(f["next_month"]), p=int(round(100 * f["next_spike"]))),
+        t["spike"].format(month=month(f["next_month"]), p=display_pct(f["next_spike"])),
         t["caveat"],
     ]
     return " ".join(p for p in parts if p)

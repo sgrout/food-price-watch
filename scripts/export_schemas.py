@@ -13,7 +13,7 @@ price = {"type": "number", "exclusiveMinimum": 0}
 nprice = {"type": ["number", "null"], "exclusiveMinimum": 0}
 prob = {"type": ["number", "null"], "minimum": 0, "maximum": 1}
 status = {"enum": ["normal", "stress", "alert", "crisis"]}
-version = {"const": "1.0"}
+version = {"const": "1.1"}
 common = {"forecast_origin": month, "data_up_to": month, "model_version": {"type": "string"}}
 attribution = {"type": "string", "pattern": "World Food Programme"}
 country_id = {"enum": ["mali", "burkina-faso", "burundi"]}
@@ -49,7 +49,8 @@ SCHEMAS = {
             "id": {"type": "string"}, "country": country_id, "market": {"type": "string"},
             "admin1": {"type": ["string", "null"]}, "commodity": {"type": "string"},
             "commodity_group": {"type": "string"}, "unit": {"type": "string"}, "currency": {"type": "string"},
-            "eligible": {"type": "boolean"}, "status": status, "last_observed_month": month,
+            "eligible": {"type": "boolean"}, "status": {"enum": [*status["enum"], None]},  # null if not eligible
+            "last_observed_month": month,
             "next_month": nmonth, "next_p10": nprice, "next_p50": nprice, "next_p90": nprice,
             "next_spike_probability": prob,
             "latitude": {"type": ["number", "null"]}, "longitude": {"type": ["number", "null"]}})},
@@ -72,7 +73,8 @@ SCHEMAS = {
         "commodity": obj({"id": {"type": "integer"}, "name": {"type": "string"}, "group": {"type": "string"}}),
         "unit": {"type": "string"}, "currency": {"type": "string"}, "price_type": {"const": "retail"},
         "eligible": {"type": "boolean"},
-        "status": obj({"code": status, "level_vs_usual_pct": {"type": "integer"}, "month": month}),
+        "status": {"anyOf": [obj({"code": status, "level_vs_usual_pct": {"type": "integer"}, "month": month}),
+                             {"type": "null"}]},  # null if not eligible
         "explanation": obj({"en": {"type": "string"}}, required=[]),  # empty when there is no forecast
         "dates": obj({**common, "last_observed_month": month, "run_at": {"type": "string"}}),
         "history": {"type": "array", "items": obj({
