@@ -41,3 +41,8 @@ them through `config/hidden.json` as soon as the owner decides.
    false alarm (the only Mali `crisis` and 4 of the 5 `alert` were such series). Show them with "Not enough data for
    a forecast", outside the warnings and the counts. So the interim labels can go: home and country page now agree.
 Kidal and Adjelhoc: noted for the conflict-area policy; that remains an owner decision.
+
+**Action for the site before Monday 09:00 UTC:** copy the updated `export/schema/` (schema_version `1.1`) and
+`export/sample/` into the site repository. The live export is already 1.1; with the 1.0 schemas the weekly data
+workflow will (correctly) reject it and keep the last good data. Handle `status: null` in the series page, the
+country lists and the index.

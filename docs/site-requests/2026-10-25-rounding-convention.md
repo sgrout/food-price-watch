@@ -30,3 +30,8 @@ the rule is part of the contract (`export-contract.md` §3, "Display and roundin
    there and now use 1.
 Tests on the data side: `tests/test_explain.py::test_display_rule_is_half_even_with_price_bands` and
 `::test_text_uses_the_exported_precision`. The new export and sample are generated.
+
+**Action for the site before Monday 09:00 UTC:** copy the updated `export/schema/` (schema_version `1.1`) and
+`export/sample/` into the site repository. The live export is already 1.1; with the 1.0 schemas the weekly data
+workflow will (correctly) reject it and keep the last good data. Handle `status: null` in the series page, the
+country lists and the index.
