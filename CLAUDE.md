@@ -195,8 +195,12 @@ Whichever is chosen, keep the medallion layers, the logic/IO split and the tests
    merge `--no-ff`, tag `phase-N`. Small fixes on their own short branch.
 3. **Probe each source before building on it** (reachability from where the pipeline will run, license, a sample of
    the real format). Never work around an access control or rate limit; back off politely.
-4. **Ask before irreversible or outward-facing actions** (deleting data, creating a public repository, publishing the
+4. **Ask before irreversible or outward-facing actions** (deleting data, publishing the
    site, enabling emails).
+   **The GitHub repository `sgrout/food-price-watch` is public** (since 2026-10-25): everything committed, including
+   `docs/`, reviews and the git history, is public. Never commit secrets, tokens, signed URLs or personal data;
+   redact real payloads before they become fixtures. Code is MIT (`LICENSE`); WFP data stays CC BY-IGO and is
+   attributed wherever it is stored (`tests/data/README.md`, `export/sample/README.md`, every export file).
 5. **Report honestly:** what was verified, what was not, and negative results with numbers.
 6. **Docs every phase:** README with a plain-English section first (what it does, how sure it is, what it is not), then
    technical documentation with results and gotchas; update this file when a convention changes.

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]  # PEP 639 license field
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,8 @@ name = "food-price-watch"
 version = "0.1.0"
 description = "Open, probabilistic early warning for staple food price spikes (WFP prices on HDX), on Databricks"
 requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
 # On Databricks serverless, requests and pandas come with the runtime.
 dependencies = ["requests", "pandas>=2.2,<3"]  # pandas 3 not yet supported by PySpark
 
