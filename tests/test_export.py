@@ -57,6 +57,7 @@ def load(files, path):
 
 
 @pytest.mark.parametrize("name, path", [("manifest", "manifest.json"), ("index", "index.json"),
+                                        ("index", "index/mali.json"),
                                         ("countries", "countries.json"), ("track_record", "track_record.json"),
                                         ("series", "series/mali-247-51-retail-kg.json"),
                                         ("series", "series/mali-300-51-retail-kg.json")])
@@ -145,3 +146,17 @@ def test_committed_schemas_are_up_to_date_with_the_generator():
     spec.loader.exec_module(gen)
     for name, schema in gen.SCHEMAS.items():
         assert json.loads((SCHEMAS / f"{name}.schema.json").read_text()) == schema, name
+
+
+SAMPLE = SCHEMAS.parent / "sample"
+
+
+@pytest.mark.parametrize("path", sorted(p.relative_to(SAMPLE).as_posix() for p in SAMPLE.rglob("*.json")))
+def test_committed_sample_matches_the_schemas_and_its_manifest(path):
+    """The sample the site is built against must follow the same contract as the real export."""
+    name = "series" if path.startswith("series/") else "index" if path.startswith("index") else path[:-5]
+    doc = json.loads((SAMPLE / path).read_text())
+    jsonschema.validate(doc, json.loads((SCHEMAS / f"{name}.schema.json").read_text()))
+    if path == "manifest.json":
+        for f in doc["files"]:
+            assert hashlib.sha256((SAMPLE / f["path"]).read_bytes()).hexdigest() == f["sha256"], f["path"]

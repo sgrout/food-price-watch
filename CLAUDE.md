@@ -211,6 +211,9 @@ Whichever is chosen, keep the medallion layers, the logic/IO split and the tests
    pass a point-in-time check and improve the backtest.
 4. **Private Streamlit app** (Databricks App): country and market pages with fan charts, warnings, methods,
    attribution. Later, once the user chooses an export target: the public static website with downloads.
+5a. **Public export** (done 2026-10-25): weekly JSON/CSV export to a UC volume for the public static site on Vercel
+   (built by a separate agent from `docs/export-contract.md`; no database). Changing an exported field means updating
+   `fpw/export.py`, `scripts/export_schemas.py` (regenerate `export/schema/`), the contract and the sample together.
 5. **Schedule + monitoring:** monthly (or weekly) runs, freshness checks, live track record, failure notifications.
 6. **Scale and reach:** all WFP countries with enough data, French pages, RSS/email alerts; ask NGOs for feedback.
 

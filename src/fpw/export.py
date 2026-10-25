@@ -158,6 +158,9 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
 
     files["index.json"] = _json({"schema_version": SCHEMA_VERSION, **common, "series": index,
                                  "attribution": ATTRIBUTION})
+    for c in sorted({r["country"] for r in index}):  # small per-country lists for phone pages
+        files[f"index/{c}.json"] = _json({"schema_version": SCHEMA_VERSION, **common,
+                                          "series": [r for r in index if r["country"] == c], "attribution": ATTRIBUTION})
 
     countries = []
     idx = pd.DataFrame(index)
