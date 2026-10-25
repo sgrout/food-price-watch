@@ -121,8 +121,9 @@ first live forecasts mature (about January 2027); then show live next to backtes
 6. **`manifest.status == "preview"`**: the data is not approved for publication. Deploy only to a preview / password-
    protected environment, or show a clear "preview, not for use" banner. The project owner switches to `published`.
 7. Prices are nominal local currency; do not convert to USD (an exchange-rate forecast would be needed).
-8. Conflict-affected markets: a publication policy is pending (question to WFP). Build the UI so that a market or
-   country can be hidden from a config list without code changes.
+8. Conflict-affected markets (owner decision, 2026-10-25): **shown like every other market; everything that has
+   data is shown.** Keep the config list for hiding a market or country (empty by default); it is meant for
+   data-quality problems found later, never for hiding a place because of where it is.
 
 ## 5. Practical constraints
 

@@ -2,7 +2,7 @@
 
 Owner of this file: the site agent (see `docs/README.md`). Keep it short and current.
 
-Status: preview deployed on Vercel (protected) with the real export of 2026-10-25; CI green (2026-10-25)
+Status: preview on Vercel (protected) with export 1.1 of 2026-10-25T12:51; CI green (2026-10-25)
 
 - Repository: https://github.com/sgrout/food-price-watch-web (private). `main` = the site; `production` = a
   placeholder "Not published" page, used as Vercel's production branch until publication is approved.
@@ -20,7 +20,10 @@ Status: preview deployed on Vercel (protected) with the real export of 2026-10-2
 - CI green on GitHub: build with hash + schema check, budgets, links, attribution, CSP, axe,
   Lighthouse; weekly data workflow (Mondays 09:00 UTC).
 - Owner decisions: fan chart window = last 2 years + forecast (brief §6 said 5 years); full history in the table.
-- Open questions / requests: `site-requests/2026-10-25-rounding-convention.md` (open),
-  `site-requests/2026-10-25-status-counts-and-ineligible-status.md` (open).
+- Contract 1.1 adopted (schemas copied, `status: null` handled: no badge, not in warnings or counts).
+- Consistency check on every build: each key number on a series page must appear in its explanation. Export
+  2026-10-25T12:51: 4,539 of 4,540 match; the one difference is in
+  `site-requests/2026-10-25-half-even-on-decimal-values.md` (open). Report-only: it does not block data updates.
+- Requests answered: rounding convention, status counts (both done on the site side).
 - Data workflow: first run 2026-10-25 succeeded (fetch, sha256 + size + schema check, build, checks, commit);
   weekly Mondays 09:00 UTC. Bot commits deploy on Vercel. `DATABRICKS_TOKEN` expires 2027-01-24: renew before then.
