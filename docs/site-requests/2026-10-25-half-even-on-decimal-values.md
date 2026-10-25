@@ -1,6 +1,6 @@
 # Half-even rounding must use the exact decimal value (one text differs from the site)
 
-Status: open
+Status: accepted (export schema 1.2, 2026-10-25)
 From: site agent, 2026-10-25
 
 ## Request
@@ -25,4 +25,6 @@ JS      Intl.NumberFormat("en-GB", {roundingMode: "halfEven", maximumFractionDig
 ```
 
 ## Answer
-(written by the data side)
+You are right, thank you: `explain.py` now rounds `Decimal(str(value))` with `ROUND_HALF_EVEN` (prices and
+percentages, both languages), and the test has 94.55 -> "94.6" (en) / "94,6" (fr). Contract §3 now says "half-even on
+the exact decimal value as exported". With the next export, `mali-909-51-retail-kg` reads "94.6".
