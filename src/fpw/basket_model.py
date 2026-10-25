@@ -59,11 +59,12 @@ def joint_errors(items: pd.DataFrame) -> pd.DataFrame:
 
 
 def basket_walk_forward(items: pd.DataFrame, history: pd.DataFrame, method: str = "copula", lag: int = LAG,
-                        window: int = WINDOW_MONTHS, seed: int = 0) -> pd.DataFrame:
+                        window: int = WINDOW_MONTHS, seed: int = 0, only_origins=None) -> pd.DataFrame:
     """Basket forecast rows for every (basket, origin, step) where every component has a calibrated item forecast.
 
     items: item forecast rows (fpw.backtest columns incl. grid and pit) of the component series, joined with the
     basket components (basket_series_id, component, quantity_in_series_unit). history: fpw.basket.basket_cost_history.
+    only_origins: forecast only these origins (live); the other rows only serve as past errors for the copula.
     """
     if method not in ("copula", "independence", "comonotone"):
         raise ValueError(method)
@@ -71,8 +72,9 @@ def basket_walk_forward(items: pd.DataFrame, history: pd.DataFrame, method: str 
     actual = history.set_index(["basket_series_id", "m"])["cost"]
     need = items.groupby("basket_series_id")["component"].nunique()
     out = []
+    wanted = None if only_origins is None else set(int(o) for o in only_origins)
     for (bid, origin, step), g in items.groupby(["basket_series_id", "origin", "step"], sort=False):
-        if len(g) != need[bid]:
+        if len(g) != need[bid] or (wanted is not None and int(origin) not in wanted):
             continue
         g = g.sort_values("component")
         k = len(g)
@@ -155,6 +157,6 @@ def basket_items(item_forecasts: pd.DataFrame, components: pd.DataFrame, model: 
     comps = components.assign(basket_series_id=[basket_id_of(c, m, b) for c, m, b in
                                                  zip(components["country"], components["market_id"],
                                                      components["basket_id"])])
-    keep = comps[["series_id", "basket_series_id", "component", "quantity_in_series_unit"]]
-    rows = item_forecasts[item_forecasts["model"] == model]
-    return rows.merge(keep, on="series_id", how="inner")
+    keep = comps[["series_id", "basket_series_id", "component", "quantity_in_series_unit", "market"]]
+    rows = item_forecasts[item_forecasts["model"] == model].drop(columns=["market"], errors="ignore")
+    return rows.merge(keep, on="series_id", how="inner")  # market name from the basket definition

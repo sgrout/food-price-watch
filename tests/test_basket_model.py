@@ -97,3 +97,14 @@ def test_direct_benchmark_runs_on_the_basket_series():
     fc = direct_walk_forward(hist, range(m[0] + 48, m[-1] + LAG))
     assert set(fc["model"]) == {"basket_direct"} and len(fc) and fc["series_id"].eq("x-basket").all()
     assert summarize(score(fc), by=("model",))["coverage80"].iloc[0] > 0.6
+
+
+def test_only_origins_gives_the_same_forecast_as_the_full_run(sim):
+    items, hist, out = sim
+    origin = 1000 + 120
+    live = basket_walk_forward(items, hist, "copula", only_origins=[origin])
+    full = basket_walk_forward(items, hist, "copula")
+    assert set(live["origin"]) == {origin}
+    cols = ["series_id", "step", "q10", "q50", "q90"]
+    pd.testing.assert_frame_equal(live[cols].reset_index(drop=True),
+                                  full.loc[full["origin"] == origin, cols].reset_index(drop=True))
