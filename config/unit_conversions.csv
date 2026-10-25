@@ -1,0 +1,6 @@
+from_unit,to_unit,component,factor,source
+KG,KG,*,1,identity
+L,L,*,1,identity
+KG,100 KG,*,0.01,definition
+L,KG,oil,0.92,"density of vegetable and palm oil, about 0.91-0.92 kg/L"
+KG,L,oil,1.0869565,"inverse of 0.92 kg/L"

@@ -1,0 +1,7 @@
+country,basket_id,valid_from,component,commodity,quantity,unit,source,note
+burundi,ration_v1,2026-10,cereal,Cassava flour,12,KG,WFP general food ration (cereals 400 g/person/day),Full ration: every item is monitored by WFP in Burundi (65 markets).
+burundi,ration_v1,2026-10,pulses,"Beans (haricot, yellow)",1.8,KG,WFP general food ration (pulses 60 g/person/day),"Linked series: 'Beans' until 2025-11, 'Beans (haricot, yellow)' from 2025-12."
+burundi,ration_v1,2026-10,oil,Oil (palm),0.75,L,WFP general food ration (oil 25 g/person/day),Priced per KG by WFP: converted with config/unit_conversions.csv.
+burkina-faso,ration_v1,2026-10,cereal,Millet,12,KG,WFP general food ration (cereals 400 g/person/day),Cereals and pulses (60 markets); WFP publishes no cooking-oil prices for Burkina Faso.
+burkina-faso,ration_v1,2026-10,pulses,Beans (niebe),1.8,KG,WFP general food ration (pulses 60 g/person/day),
+mali,ration_v1,2026-10,cereal,Millet,12,KG,WFP general food ration (cereals 400 g/person/day),Cereal part only (56 markets): pulse and oil series in Mali are too short or too irregular for a forecast.
