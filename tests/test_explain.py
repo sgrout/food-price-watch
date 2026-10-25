@@ -3,7 +3,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from fpw.explain import describe, facts, status
+from fpw.explain import describe, display_pct, display_price, facts, status
 from fpw.texts import MONTHS, TEXTS
 
 
@@ -55,3 +55,17 @@ def test_every_language_has_every_key():
     keys = set(TEXTS["en"])
     for lang, t in TEXTS.items():
         assert set(t) == keys and len(MONTHS[lang]) == 12
+
+
+def test_display_rule_is_half_even_with_price_bands():
+    """Shared with the site (docs/export-contract.md section 3): same exported number -> same text."""
+    assert [display_price(x) for x in [1250.0, 452.5, 453.5, 45.25, 45.35, 7.125]] == \
+        ["1,250", "452", "454", "45.2", "45.4", "7.12"]
+    assert [display_pct(p) for p in [0.125, 0.135, 0.42, 0.005]] == ["12", "14", "42", "0"]
+
+
+def test_text_uses_the_exported_precision():
+    # 0.12541 is published as 0.125, which the site shows as 12 %: the text must say 12 %, not 13 %.
+    f = facts(rows(spike=0.12541), currency="XOF")
+    assert f["next_spike"] == 0.125 and ": 12%." in describe(f)
+    assert f["next_lo"] == round(f["next_lo"], 2)

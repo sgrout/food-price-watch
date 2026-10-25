@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "const": "1.1"
     },
     "forecast_origin": {
       "type": "string",
@@ -65,7 +65,8 @@
               "normal",
               "stress",
               "alert",
-              "crisis"
+              "crisis",
+              null
             ]
           },
           "last_observed_month": {

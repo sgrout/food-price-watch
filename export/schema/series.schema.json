@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "const": "1.1"
     },
     "id": {
       "type": "string"
@@ -106,30 +106,37 @@
       "type": "boolean"
     },
     "status": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "enum": [
-            "normal",
-            "stress",
-            "alert",
-            "crisis"
-          ]
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "code": {
+              "enum": [
+                "normal",
+                "stress",
+                "alert",
+                "crisis"
+              ]
+            },
+            "level_vs_usual_pct": {
+              "type": "integer"
+            },
+            "month": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            }
+          },
+          "required": [
+            "code",
+            "level_vs_usual_pct",
+            "month"
+          ],
+          "additionalProperties": false
         },
-        "level_vs_usual_pct": {
-          "type": "integer"
-        },
-        "month": {
-          "type": "string",
-          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        {
+          "type": "null"
         }
-      },
-      "required": [
-        "code",
-        "level_vs_usual_pct",
-        "month"
-      ],
-      "additionalProperties": false
+      ]
     },
     "explanation": {
       "type": "object",

@@ -30,7 +30,7 @@ expensive mobile data, sometimes with old devices**. English first; French follo
 | URL | Page | Content |
 |---|---|---|
 | `/` | Home | What the site is (2-3 sentences), the countries with status counts and data date, link to methods and track record |
-| `/<country>/` | Country | Warnings first (series in `alert`/`crisis`, then `stress`), then all series grouped by food; each row: market, region (`admin1`), status (icon + label), next-month 80 % range, spike chance where shown. Plain HTML table/list; filtering by food and region may use a few lines of JS but must work without it |
+| `/<country>/` | Country | Warnings first (series in `alert`/`crisis`, then `stress`; only series with a forecast: `status` is `null` otherwise), then all series grouped by food; each row: market, region (`admin1`), status (icon + label), next-month 80 % range, spike chance where shown. Plain HTML table/list; filtering by food and region may use a few lines of JS but must work without it |
 | `/<country>/<series-id>/` | Market × food | Title (food, market, region, unit and currency), status badge, data date (`data_up_to` and forecast month), the `explanation`, the next-month and 3-month 80 % ranges, spike chance (if `show_spike_probability`), the fan chart, a table view of forecast and recent history, the country's track record for these horizons, flags legend, attribution. For `eligible: false`: history only and "Not enough data for a forecast" |
 | `/track-record/` | Track record | Per horizon: how often the 80 % / 95 % range held, typical error, new-spike verdict (`better`/`no_better`/`worse` than the base rate) in words; per country; live results once present. Bad results are shown as clearly as good ones |
 | `/methods/` | Methods | Render `site-content/methods.en.md` (do not rewrite its claims) |
@@ -77,7 +77,8 @@ Same design as the project's private app, which has been checked in light and da
 - "Usual level for the season" (`usual_level`) as a dashed neutral grey line over the forecast months.
 - `data_error` points as a neutral × marker, not on the line; `break` and `unconfirmed_jump` explained in the legend.
 - Y axis from 0, labelled `<currency> per <unit>`; x axis months. A legend (several series); no dual axis.
-- Default window: the last 5 years of history plus the forecast; the full history is in the table view / CSV.
+- Default window: the last 2 years of history plus the forecast (owner decision, 2026-10-25); the full history is
+  in the table view / CSV.
 - Hover/tap tooltips are an optional enhancement (tiny JS); the chart must be readable without them.
 
 ## 7. Data flow and resilience
