@@ -21,6 +21,12 @@ them, makes forecasts for the next months and stores them before anyone knows th
 honestly later. The site says "beta" on every page until the live track record shows, after at least six months,
 that the ranges hold about as often as they claim. A private page for the project owner shows the same data.
 
+**New: a food basket.** For cash programmes the cost of a basket matters more than one food. Staple Signals now
+also forecasts the monthly cost of a simple staple basket for one person (from a typical WFP food ration), per
+market, with only the foods WFP monitors long enough: the full basket in Burundi, cereal and beans in Burkina Faso,
+and only the cereal part in Mali. It is our own basket, not an official one. In the past test its "80 % range"
+held about 3 times in 4 (77 % next month), and its typical error was 10 % next month and 16 % in three months.
+
 **What the checks found.** Food price data has mistakes, and we mark them rather than quietly correcting them:
 - In August 2017, the maize price in most Malian markets tripled for exactly one month and then went back to normal.
   A real price spike does not vanish that fast, so these values are marked "suspect" and will not be used to train
@@ -436,6 +442,31 @@ Answers in `docs/site-requests/`; contract `docs/export-contract.md` v1.2.
   lgbm_cal, eligible): the 80 % range held 77 % (+-2.4) next month for regular markets and 81 % (+-4.5) for
   irregular ones (159 series), in 3 months 76 % vs 77 %: no evidence that forecasts there are less honest; their
   prices move more (typical error 10 % vs 11 % next month, 15 % vs 19 % in 3 months), so the ranges are wider.
+
+### Phase 6a: food-basket cost forecasts (next to the item pipeline)
+
+Separate jobs and tables; the item pipeline, model and export are unchanged (verified: item export still 1.3, same
+files). Definition as data: `config/baskets.csv` (`ration_v1`, WFP general ration per person-month), unit
+conversions in `config/unit_conversions.csv` (oil 0.92 kg/L).
+- **Coverage (owner decision: per country what WFP monitors):** Burundi cassava flour 12 kg + beans 1.8 kg + palm
+  oil 0.75 L (65 markets with all items eligible); Burkina Faso millet + niébé (60; WFP has no oil prices there);
+  Mali millet only (56; pulse/oil series too short). Costs only in months where every item was observed.
+- **Methods (fixed up front):** `basket_copula` (item `lgbm_cal` grids joined by the correlation of past published
+  item errors, market and step, 60 months, 50 % shrunk to the country pool, 2,000 draws), `basket_independence` and
+  `basket_comonotone` (references), `basket_direct` (seasonal_rw + recalibration on the basket series). Simulated
+  items with errors correlated 0.8: 80 % coverage copula 0.792, independence 0.659, comonotone 0.813.
+- **Backtest (Databricks; 231 baskets):** validation 2020-22: copula 80 % cover 0.725, pinball 0.0259; direct 0.742 /
+  0.0300 -> **copula chosen** (rule: coverage 0.70-0.90 and pinball not worse than direct). Holdout 2023+ (once):
+  copula 0.768 / 0.0273 (next month 0.77, in 3 months 0.76; typical error 10 % / 16 %), comonotone 0.829 / 0.0272,
+  direct 0.794 / 0.0301, independence 0.741 / 0.0275. **Honest note:** the simple comonotone sum was as accurate and
+  better on coverage; estimating the correlation adds little here. Not switched (that would tune on the holdout):
+  comonotone runs live as a hidden shadow, the live track record decides.
+- **Live (job `fpw_basket`, Mondays 08:30):** 211 baskets forecast for October 2026 (180 with all items eligible);
+  `gold.live_basket_forecasts` append-only; scoring as for items.
+- **Export (optional, `public_export/baskets/`, schema `basket-1.0`):** 267 baskets (180 with a forecast), 212 KB
+  compressed; hashes and schemas verified. Contract §4b; sample `export/sample-baskets/`.
+- Gotcha: the basket job first failed (`No module named 'lightgbm'`): `fpw.live` imports the ML module, so the job
+  needs the `ml` environment. The item pipeline was not affected.
 
 ### How to run
 

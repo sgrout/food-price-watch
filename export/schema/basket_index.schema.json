@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "food-price-watch basket export: index/<country>.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "basket-1.0"
+    },
+    "forecast_origin": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "data_up_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "attribution": {
+      "type": "string",
+      "pattern": "World Food Programme"
+    },
+    "baskets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "market": {
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "cereal",
+                "pulses",
+                "oil"
+              ]
+            }
+          },
+          "last_observed_month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "last_cost": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "next_month": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "next_p10": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "next_p50": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "next_p90": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "market",
+          "eligible",
+          "currency",
+          "components",
+          "last_observed_month",
+          "last_cost",
+          "next_month",
+          "next_p10",
+          "next_p50",
+          "next_p90"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "forecast_origin",
+    "data_up_to",
+    "attribution",
+    "baskets"
+  ],
+  "additionalProperties": false
+}

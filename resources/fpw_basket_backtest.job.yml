@@ -1,0 +1,20 @@
+resources:
+  jobs:
+    fpw_basket_backtest:
+      name: fpw_basket_backtest_${var.env}
+      description: Basket backtest from the item backtest (manual; reads gold.backtest_forecasts, writes basket_* tables)
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: env
+          default: ${var.env}
+
+      tasks:
+        - task_key: backtest_basket
+          notebook_task:
+            notebook_path: ../src/10_backtest_basket.py

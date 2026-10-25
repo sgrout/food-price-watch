@@ -1,0 +1,43 @@
+resources:
+  jobs:
+    fpw_basket:
+      name: fpw_basket_${var.env}
+      description: Weekly food-basket forecasts and their optional export, next to (and independent of) fpw_pipeline
+
+      # Monday 08:30 Amsterdam: after fpw_pipeline (07:00) has made this week's item forecasts. If this job fails,
+      # the item pipeline and the item export are not affected.
+      schedule:
+        quartz_cron_expression: "0 30 8 ? * MON"
+        timezone_id: Europe/Amsterdam
+        pause_status: UNPAUSED
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: env
+          default: ${var.env}
+        - name: export_status
+          default: beta
+
+      # live_basket reuses fpw.live (calibration pool, scoring), which imports the LightGBM module.
+      environments:
+        - environment_key: ml
+          spec:
+            client: "4"
+            dependencies:
+              - lightgbm==4.7.0
+
+      tasks:
+        - task_key: live_basket
+          environment_key: ml
+          notebook_task:
+            notebook_path: ../src/11_live_basket.py
+        - task_key: export_basket
+          depends_on:
+            - task_key: live_basket
+          notebook_task:
+            notebook_path: ../src/12_export_basket.py

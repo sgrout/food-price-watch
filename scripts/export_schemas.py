@@ -107,6 +107,62 @@ SCHEMAS = {
     }, title="food-price-watch export: track_record.json"),
 }
 
+# --- basket export (separate, optional; public_export/baskets/) ---
+bversion = {"const": "basket-1.0"}
+nmonth_ = {"type": ["string", "null"], "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"}
+bcommon = {"forecast_origin": nmonth_, "data_up_to": nmonth_}
+component = {"enum": ["cereal", "pulses", "oil"]}
+btrack_row = obj({"step": {"type": "integer", "minimum": 1, "maximum": 5}, "horizon": horizon,
+                  "n": {"type": "integer", "minimum": 0}, "coverage80": prob, "coverage95": prob,
+                  "typical_error_pct": {"type": ["integer", "null"]}})
+SCHEMAS.update({
+    "basket_manifest": obj({
+        "schema_version": bversion, "status": {"enum": ["preview", "beta", "published"]},
+        "generated_at": {"type": "string"}, **bcommon, "run_at": {"type": ["string", "null"]}, "model": {"type": "string"},
+        "countries": {"type": "array", "items": country_id},
+        "counts": obj({"baskets": {"type": "integer"}, "baskets_with_forecast": {"type": "integer"}}),
+        "attribution": attribution, "attribution_fr": {"type": "string", "pattern": "Programme alimentaire mondial"},
+        "license": obj({"data": {"type": "string"}, "url": {"type": "string"}}),
+        "sources": {"type": "array", "items": {"type": "string"}}, "disclaimer": {"type": "string"},
+        "disclaimer_fr": {"type": "string"},
+        "files": {"type": "array", "items": obj({"path": {"type": "string"}, "bytes": {"type": "integer"},
+                                                 "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}})},
+    }, title="food-price-watch basket export: manifest.json"),
+    "basket_index": obj({
+        "schema_version": bversion, **bcommon, "attribution": attribution,
+        "baskets": {"type": "array", "items": obj({
+            "id": {"type": "string"}, "market": {"type": "string"}, "eligible": {"type": "boolean"},
+            "currency": {"type": "string"}, "components": {"type": "array", "items": component},
+            "last_observed_month": month, "last_cost": price, "next_month": nmonth, "next_p10": nprice,
+            "next_p50": nprice, "next_p90": nprice})},
+    }, title="food-price-watch basket export: index/<country>.json"),
+    "basket": obj({
+        "schema_version": bversion, "id": {"type": "string"},
+        "country": obj({"id": country_id, "name": {"type": "string"}}),
+        "market": obj({"id": {"type": "integer"}, "name": {"type": "string"}}),
+        "basket": obj({"basket_id": {"type": "string"}, "per": {"const": "person-month"},
+                       "components": {"type": "array", "minItems": 1, "items": obj({
+                           "component": component, "commodity": {"type": "string"}, "commodity_fr": {"type": "string"},
+                           "quantity": {"type": "number", "exclusiveMinimum": 0}, "unit": {"type": "string"}})},
+                       "missing": {"type": "array", "items": component}, "definition": {"type": "string"}}),
+        "currency": {"type": "string"}, "eligible": {"type": "boolean"},
+        "dates": obj({**bcommon, "last_observed_month": month, "run_at": {"type": ["string", "null"]}}),
+        "history": {"type": "array", "items": obj({"month": month, "cost": price})},
+        "forecast": {"type": "array", "maxItems": 5, "items": obj({
+            "month": month, "step": {"type": "integer", "minimum": 1, "maximum": 5}, "horizon": horizon,
+            "p025": price, "p10": price, "p50": price, "p90": price, "p975": price})},
+        "explanation": obj({"en": {"type": "string"}, "fr": {"type": "string"}}),
+        "attribution": attribution,
+    }, title="food-price-watch basket export: basket/<id>.json"),
+    "basket_track_record": obj({
+        "schema_version": bversion, "model": {"type": "string"}, **bcommon, "attribution": attribution,
+        "backtest": obj({"period": {"type": "string"}, "population": {"type": "string"},
+                         "by_horizon": {"type": "array", "items": btrack_row},
+                         "by_country": {"type": "object", "additionalProperties": {"type": "array", "items": btrack_row}}}),
+        "live": obj({"by_horizon": {"type": "array", "items": btrack_row}}),
+    }, title="food-price-watch basket export: track_record.json"),
+})
+
 if __name__ == "__main__":
     D.mkdir(parents=True, exist_ok=True)
     for name, schema in SCHEMAS.items():
