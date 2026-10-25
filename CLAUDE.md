@@ -71,6 +71,12 @@ This file is the brief for coding agents. Read it fully before the first change,
   - User text only from `fpw.explain` facts + `fpw.texts` templates (no hand-written or LLM numbers); a test enforces it.
   - App (`app/`) is self-contained (no `fpw` import); mirrored helpers are tested against `fpw` (`month_date`).
     Spike chance is shown for next month only, because new-spike warnings are worse than the base rate further out.
+  - **Public beta (owner's go, 2026-10-25):** the export status is `beta` (job parameter `export_status`); the site
+    is public at staplesignals.org with a beta banner. **Exit criterion, fixed before any live result** (owner may
+    change it until the first live scores, ~Dec 2026): beta ends when the live 80 % coverage of `lgbm_cal` (eligible
+    series) lies between 70 % and 90 % after at least 6 matured forecast months, and the owner agrees.
+    Defaults for the launch (owner may change): no search indexing at first (soft launch), French with a
+    'translation not reviewed' note, feedback via GitHub Issues.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by

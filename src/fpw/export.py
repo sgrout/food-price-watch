@@ -22,7 +22,8 @@ from fpw.texts import ATTRIBUTION as ATTRIBUTION_I18N
 from fpw.texts import COMMODITY_FR
 from fpw.texts import DISCLAIMER as DISCLAIMER_I18N
 
-SCHEMA_VERSION = "1.2"  # 1.1: status null without a forecast; 1.2: French texts and names, reporting regularity
+SCHEMA_VERSION = "1.3"  # 1.1: status null without a forecast; 1.2: French, reporting regularity; 1.3: status "beta"
+STATUSES = ("preview", "beta", "published")  # preview: not public; beta: public with a beta banner; published
 ATTRIBUTION = ATTRIBUTION_I18N["en"]
 LICENSE = {"data": "CC BY-IGO 3.0 (WFP)", "url": "https://creativecommons.org/licenses/by/3.0/igo/"}
 SOURCES = ["https://data.humdata.org/organization/wfp"]
@@ -91,6 +92,8 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
     retail prices of the summary series (with admin1, admin2, latitude, longitude); metrics / metrics_country:
     gold.backtest_metrics(_country) population 'eligible'; live_metrics: gold.live_metrics (may be empty).
     """
+    if status not in STATUSES:
+        raise ValueError(f"status must be one of {STATUSES}, got {status!r}")
     files: dict[str, bytes] = {}
     origin = int(summary["origin"].iloc[0])
     data_up_to = int(summary["data_month"].iloc[0])

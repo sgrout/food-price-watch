@@ -22,6 +22,9 @@ resources:
           default: ${var.env}
         - name: countries
           default: ${var.countries}
+        # Public status of the export: preview (not public) | beta (public, beta banner) | published
+        - name: export_status
+          default: beta
 
       # No cluster defined = serverless compute (the only option on Free Edition). The live tasks load the
       # registered LightGBM model, so they need lightgbm.

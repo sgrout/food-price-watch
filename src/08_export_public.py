@@ -6,7 +6,8 @@
 # MAGIC - `runs/<YYYY-MM-DD>/...` (all files, kept: versioned history) and `runs/<YYYY-MM-DD>.tar.gz`
 # MAGIC - `latest.tar.gz` and `latest/manifest.json` (what the public site fetches)
 # MAGIC
-# MAGIC `status` stays `preview` until the user decides to publish. Writes nothing outside this volume.
+# MAGIC `export_status` (job parameter): `preview` (not public), `beta` (public with a beta banner; owner's go 2026-10-25)
+# MAGIC or `published`. Writes nothing outside this volume.
 
 # COMMAND ----------
 
@@ -20,10 +21,10 @@ from fpw.export import build_export, to_tarball
 
 dbutils.widgets.text("catalog", "workspace")
 dbutils.widgets.text("env", "dev")
-dbutils.widgets.text("status", "preview")
+dbutils.widgets.text("export_status", "beta")
 catalog = dbutils.widgets.get("catalog")
 env = dbutils.widgets.get("env")
-status = dbutils.widgets.get("status")
+status = dbutils.widgets.get("export_status")
 
 spark.conf.set("spark.sql.session.timeZone", "UTC")
 silver, gold = f"{catalog}.fpw_{env}_silver", f"{catalog}.fpw_{env}_gold"

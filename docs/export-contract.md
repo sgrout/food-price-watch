@@ -1,4 +1,4 @@
-# Public export contract (v1.2): food-price-watch → public site
+# Public export contract (v1.3): food-price-watch → public site
 
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
@@ -47,7 +47,9 @@ used only in CI, never in the browser or in the built site.
 
 All JSON is UTF-8, compact. Months are `"YYYY-MM"`. Prices are **nominal, in local currency per `unit`** (XOF for
 Mali and Burkina Faso, BIF for Burundi; units such as `KG`, `L`, `100 KG`), already converted from the model's log
-scale. Every JSON file has `schema_version` (`"1.2"`) and `attribution`.
+scale. Every JSON file has `schema_version` (`"1.3"`) and `attribution`.
+
+Changes in 1.3 (2026-10-25): `manifest.status` can be `beta` (public, with a beta banner; see §4.6).
 
 Changes in 1.2 (2026-10-25): French (`explanation.fr`, `commodity.name_fr` / `commodity_fr`, `attribution_fr` and
 `disclaimer_fr` in the manifest, bilingual `downloads/README.txt`, `docs/site-content/*.fr.md`); reporting regularity
@@ -134,8 +136,14 @@ the forecast date (`irregular_definition` says the rule), so a note on irregular
 4. **Status** always as icon + label, never colour alone.
 5. **Attribution on every page and in every download**: the `attribution` string (WFP via HDX, CC BY-IGO), plus the
    `disclaimer` (not an official assessment; links to WFP HungerMap and FEWS NET).
-6. **`manifest.status == "preview"`**: the data is not approved for publication. Deploy only to a preview / password-
-   protected environment, or show a clear "preview, not for use" banner. The project owner switches to `published`.
+6. **`manifest.status`** decides what may be public (the export sets it; the site follows it):
+   - `preview`: not approved for publication; protected preview deployments only, "Preview: not for use" banner.
+   - `beta` (owner's go, 2026-10-25): public at staplesignals.org with a **beta banner on every page**, linked to the
+     track record: "Beta: experimental forecasts. The live track record has only just started; use them alongside
+     the official assessments of WFP and FEWS NET." / "Bêta : prévisions expérimentales. Le suivi en conditions
+     réelles vient tout juste de commencer ; utilisez-les avec les évaluations officielles du PAM et de FEWS NET."
+   - `published`: no banner. Only the owner moves the export from `beta` to `published`.
+   If the site receives a status it does not know, it must treat it as `preview`.
 7. Prices are nominal local currency; do not convert to USD (an exchange-rate forecast would be needed).
 8. Conflict-affected markets (owner decision, 2026-10-25): **shown like every other market; everything that has
    data is shown.** Keep the config list for hiding a market or country (empty by default); it is meant for

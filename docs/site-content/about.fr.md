@@ -14,6 +14,6 @@ d'un mois paraissent un à deux mois et demi plus tard.
 
 **Aucune donnée personnelle.** Le site n'utilise ni cookies, ni comptes, ni suivi.
 
-**Statut.** Ceci est une version de prévisualisation. Les prévisions couvrent le Mali, le Burkina Faso et le Burundi.
+**Statut.** Ceci est une version bêta : le suivi en conditions réelles vient tout juste de commencer. Les prévisions couvrent le Mali, le Burkina Faso et le Burundi.
 
 Le code est ouvert (licence MIT) : https://github.com/sgrout/food-price-watch.
