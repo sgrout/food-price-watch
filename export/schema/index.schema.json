@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.1"
+      "const": "1.2"
     },
     "forecast_origin": {
       "type": "string",
@@ -48,6 +48,9 @@
           "commodity": {
             "type": "string"
           },
+          "commodity_fr": {
+            "type": "string"
+          },
           "commodity_group": {
             "type": "string"
           },
@@ -56,6 +59,14 @@
           },
           "currency": {
             "type": "string"
+          },
+          "months_reported_12": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 12
+          },
+          "irregular_reporting": {
+            "type": "boolean"
           },
           "eligible": {
             "type": "boolean"
@@ -128,9 +139,12 @@
           "market",
           "admin1",
           "commodity",
+          "commodity_fr",
           "commodity_group",
           "unit",
           "currency",
+          "months_reported_12",
+          "irregular_reporting",
           "eligible",
           "status",
           "last_observed_month",

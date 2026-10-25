@@ -44,7 +44,7 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
             hist = history_at(m, lp, sus, m0, full, m_data, min_history, max_staleness)
             if hist is None:
                 continue
-            mh, lph, arr, eligible = hist
+            mh, lph, arr, eligible, reported12 = hist
             n_hist, m_last = len(mh), int(mh[-1])
             fit = fit_seasonal_trend(mh, lph)
             if fit is None:
@@ -65,10 +65,11 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
                             fit.resid_last / fit.sigma, n_hist, t % 12, seas_change[i],
                             lp_last - back[1], lp_last - back[3], lp_last - back[6], lp_last - back[12], vol12,
                             srw[i, _Q50] - lp_last if srw is not None else np.nan,
-                            srw[i, _Q90] - srw[i, _Q10] if srw is not None else np.nan, eligible))
+                            srw[i, _Q90] - srw[i, _Q10] if srw is not None else np.nan, eligible, reported12))
     cols = ["series_id", "country", "commodity", *SERIES_INFO, "commodity_group", "origin", "step", "target", "k", "m_last",
             "lp_last", "actual", "expected", "sigma", "phi", "resid_last", "z_now", "n_hist", "target_month",
-            "seas_change", "ret1", "ret3", "ret6", "ret12", "vol12", "srw_change", "srw_width80", "eligible_at_origin"]
+            "seas_change", "ret1", "ret3", "ret6", "ret12", "vol12", "srw_change", "srw_width80", "eligible_at_origin",
+            "months_reported_12"]
     cases = pd.DataFrame(out, columns=cols)
     return add_group_features(cases)
 

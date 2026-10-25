@@ -23,7 +23,8 @@ import time
 import mlflow
 import pandas as pd
 
-from fpw.backtest import CANDIDATES, LAG, calibration, choose_model, common_rows, score, summarize, walk_forward
+from fpw.backtest import (CANDIDATES, IRREGULAR_BELOW, LAG, calibration, choose_model, common_rows, score, summarize,
+                          walk_forward)
 from fpw.baselines import MODELS
 from fpw.calibrate import MIN_PITS, WINDOW_MONTHS, recalibrate
 from fpw.features import FEATURES, build_cases
@@ -70,7 +71,10 @@ log(f"recalibrated: {len(calibrated):,} forecasts ({int(calibrated['calibrated']
 scored = score(common_rows(pd.concat([raw, calibrated], ignore_index=True)))
 # Two populations: all scored cases (model choice) and the series eligible for publication at the origin
 # (the track record shown next to a published forecast).
-populations = {"all": scored, "eligible": scored[scored["eligible_at_origin"]]}
+eligible = scored[scored["eligible_at_origin"]]
+irregular = eligible["months_reported_12"] < IRREGULAR_BELOW  # fixed before looking at the split
+populations = {"all": scored, "eligible": eligible, "eligible_regular": eligible[~irregular],
+               "eligible_irregular": eligible[irregular]}
 metrics = pd.concat([summarize(s).assign(population=k) for k, s in populations.items()], ignore_index=True)
 metrics_country = pd.concat([summarize(s, by=("model", "split", "country", "step")).assign(population=k)
                              for k, s in populations.items()], ignore_index=True)

@@ -58,8 +58,9 @@ fc = live_forecasts(cases, model, pool).assign(model_version=str(champion.versio
 cal = fc[fc["model"] == "lgbm_cal"]
 print(f"pool {len(pool):,} past PITs; {len(fc):,} rows; calibrated {int(cal['calibrated'].sum()):,} of {len(cal):,}")
 
-spark.createDataFrame(to_rows(fc, LIVE_FORECASTS), LIVE_FORECASTS).write.mode("append").saveAsTable(
-    f"{gold}.live_forecasts")
+# mergeSchema: new columns (e.g. months_reported_12) are added to the append-only table, old rows keep NULL there
+spark.createDataFrame(to_rows(fc, LIVE_FORECASTS), LIVE_FORECASTS).write.mode("append") \
+    .option("mergeSchema", "true").saveAsTable(f"{gold}.live_forecasts")
 
 summary = summarize_live(cases, cal, {c: COUNTRIES[c].currencies[0] for c in COUNTRIES}).assign(
     model_version=str(champion.version), run_at=run_at, data_month=origin - LAG)

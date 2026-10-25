@@ -20,6 +20,9 @@ LAG = 2
 STEPS = np.array([1, 2, 3, 4, 5])
 MIN_HISTORY = 36  # observations up to the last usable month
 MAX_STALENESS = 2  # the last observation may be at most this many months before the last usable month
+# A market "reports irregularly" if it published a price in fewer than this many of the last 12 months (the same
+# 75 % bar as the eligibility rule's completeness, applied to the last year). Fixed before looking at the results.
+IRREGULAR_BELOW = 9
 VALIDATION_START, HOLDOUT_START = 2020, 2023
 _REPORT_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in REPORT_LEVELS]
 _GRID_IDX = [int(np.argmin(np.abs(LEVELS - q))) for q in GRID_LEVELS]
@@ -51,10 +54,13 @@ def series_arrays(g: pd.DataFrame):
 def history_at(m, lp, sus, m0, full, m_data, min_history=MIN_HISTORY, max_staleness=MAX_STALENESS):
     """The history usable when the last published month is m_data: observations up to m_data minus those already
     known to be data errors (sus <= m_data). A suspect value whose confirming month comes later is still used, as a
-    live run would. Returns (months, log prices, dense array up to the last observation, eligible) or None.
+    live run would. Returns (months, log prices, dense array up to the last observation, eligible, months reported in
+    the last 12) or None.
 
     `eligible` applies the publication rule (fpw.coverage) to this history, so the track record can be shown for
-    the series that would have been published at that origin.
+    the series that would have been published at that origin. `months_reported_12` counts the months in
+    [m_data - 11, m_data] with a published price (data errors included: they were published), for the
+    reporting-regularity note (IRREGULAR_BELOW).
     """
     upto = int(np.searchsorted(m, m_data, side="right"))
     known_bad = sus[:upto] <= m_data
@@ -66,7 +72,8 @@ def history_at(m, lp, sus, m0, full, m_data, min_history=MIN_HISTORY, max_stalen
     bad = m[:upto][known_bad]
     arr[bad[bad <= m_last] - m0] = np.nan
     eligible = len(mh) >= MIN_MONTHS and len(mh) / (m_last - int(mh[0]) + 1) >= MIN_COMPLETENESS
-    return mh, lph, arr, eligible
+    months_reported_12 = int(np.sum(m[:upto] > m_data - 12))
+    return mh, lph, arr, eligible, months_reported_12
 
 
 def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, steps=STEPS,
@@ -83,7 +90,7 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
             hist = history_at(m, lp, sus, m0, full, m_data, min_history, max_staleness)
             if hist is None:
                 continue
-            mh, lph, arr, eligible = hist
+            mh, lph, arr, eligible, reported12 = hist
             targets = m_data + steps
             actual = np.array([clean[t - m0] if t <= m[-1] else np.nan for t in targets])
             if np.isnan(actual).all():
@@ -104,12 +111,13 @@ def walk_forward(panel: pd.DataFrame, origins, models=MODELS, lag: int = LAG, st
                         continue
                     out.append((sid, country, commodity, *info, origin, int(step), int(targets[i]), int(ks[i]), name,
                                 *q[i, _REPORT_IDX], prob_above(q[i], threshold[i]), actual[i], expected[i],
-                                fit.sigma, z_now, eligible, *q[i, _GRID_IDX]))
+                                fit.sigma, z_now, eligible, reported12, *q[i, _GRID_IDX]))
     return with_pit(pd.DataFrame(out, columns=FORECAST_COLUMNS))
 
 
 FORECAST_COLUMNS = ["series_id", "country", "commodity", *SERIES_INFO, "origin", "step", "target", "k", "model", *Q_COLUMNS,
-                    "spike_prob", "actual", "expected", "sigma", "z_now", "eligible_at_origin", *GRID_COLUMNS]
+                    "spike_prob", "actual", "expected", "sigma", "z_now", "eligible_at_origin", "months_reported_12",
+                    *GRID_COLUMNS]
 
 
 def with_pit(fc: pd.DataFrame) -> pd.DataFrame:

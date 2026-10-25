@@ -1,8 +1,8 @@
 """Make a small, real sample of the public export for building the site offline (export/sample/).
 
 Usage: .venv/bin/python scripts/make_export_sample.py <extracted export dir>
-Picks three real series (with a forecast and a data-error flag; in alert or crisis; without enough data), filters the
-indexes to them and rebuilds the manifest with the hashes of the sample files.
+Picks four real series (with a forecast and a data-error flag; in alert or crisis; reporting irregularly; without
+enough data), filters the indexes to them and rebuilds the manifest with the hashes of the sample files.
 """
 
 import hashlib
@@ -23,8 +23,9 @@ rows = index["series"]
 flagged = next(r["id"] for r in rows if r["eligible"] and r["status"] == "stress"
                and any(h["flag"] == "data_error" for h in series(r["id"])["history"]))
 severe = next(r["id"] for r in rows if r["eligible"] and r["status"] in ("alert", "crisis"))
+irregular = next(r["id"] for r in rows if r["eligible"] and r.get("irregular_reporting") and r["id"] not in (flagged, severe))
 too_short = next(r["id"] for r in rows if not r["eligible"])
-picked = [flagged, severe, too_short]
+picked = [flagged, severe, irregular, too_short]
 
 if dst.exists():
     shutil.rmtree(dst)
@@ -46,10 +47,17 @@ lines = csv_path.read_text().splitlines()
 files[f"downloads/{csv_path.name}"] = ("\n".join([lines[0]] + [l for l in lines[1:] if l.split(",")[0] in picked])
                                        + "\n").encode()
 manifest = json.loads((src / "manifest.json").read_text())
-manifest["counts"] = {"series": len(picked), "series_with_forecast": 2}
+manifest["counts"] = {"series": len(picked),
+                      "series_with_forecast": sum(r["eligible"] for r in rows if r["id"] in picked)}
 manifest["files"] = [{"path": p, "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
                      for p, b in sorted(files.items())]
 files["manifest.json"] = dump(manifest)
 for path, data in files.items():
     (dst / path).write_bytes(data)
+(dst / "README.md").write_text(
+    "# Export sample\n\n"
+    f"A small, real sample of the public export ({len(picked)} series), for building the public site offline. Contract:\n"
+    "`docs/export-contract.md`; schemas: `export/schema/`. Regenerate with `scripts/make_export_sample.py`.\n\n"
+    "Source: World Food Programme (WFP), food prices via the Humanitarian Data Exchange (HDX), licensed CC BY-IGO 3.0.\n"
+    "Forecasts: food-price-watch (not an official WFP or FEWS NET assessment).\n")
 print("sample:", picked, "->", dst)

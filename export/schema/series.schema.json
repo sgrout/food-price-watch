@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.1"
+      "const": "1.2"
     },
     "id": {
       "type": "string"
@@ -82,6 +82,9 @@
         "name": {
           "type": "string"
         },
+        "name_fr": {
+          "type": "string"
+        },
         "group": {
           "type": "string"
         }
@@ -89,6 +92,7 @@
       "required": [
         "id",
         "name",
+        "name_fr",
         "group"
       ],
       "additionalProperties": false
@@ -143,9 +147,30 @@
       "properties": {
         "en": {
           "type": "string"
+        },
+        "fr": {
+          "type": "string"
         }
       },
       "required": [],
+      "additionalProperties": false
+    },
+    "reporting": {
+      "type": "object",
+      "properties": {
+        "months_reported_12": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "irregular": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "months_reported_12",
+        "irregular"
+      ],
       "additionalProperties": false
     },
     "dates": {
@@ -307,6 +332,7 @@
     "eligible",
     "status",
     "explanation",
+    "reporting",
     "dates",
     "history",
     "forecast",

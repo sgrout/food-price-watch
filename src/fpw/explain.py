@@ -5,13 +5,16 @@
 Display rule (shared with the public site, docs/export-contract.md section 3): numbers are first rounded to the
 precision the export publishes (prices 2 decimals, probabilities 3 decimals), then displayed with round-half-even:
 prices with 0 decimals from 100, 1 decimal from 10 to 100, 2 decimals below 10; percentages as whole numbers of
-100 x the exported probability. So a text and a page formatted from the same export always show the same number.
+100 x the exported probability. Half-even is applied to the exact decimal value (94.55 -> 94.6), not to the binary
+float (which is 94.5499...). So a text and a page formatted from the same export always show the same number.
 """
 
 import numpy as np
 import pandas as pd
 
-from fpw.texts import MONTHS, TEXTS
+from decimal import ROUND_HALF_EVEN, Decimal
+
+from fpw.texts import GROUPS, IN_COUNTRY, MONTHS, NUMBER_FORMAT, TEXTS
 
 FLAT_PCT = 2  # changes below this (in %) are described as "about stable"
 STATUS_THRESHOLDS = [(2.0, "crisis"), (1.0, "alert"), (0.25, "stress")]  # ALPS-style, on z
@@ -54,14 +57,29 @@ def export_prob(x) -> float:
     return round(float(x), 3)
 
 
-def display_price(x: float) -> str:
-    """Round-half-even (Python's format): 0 decimals from 100, 1 decimal from 10 to 100, 2 below 10."""
-    return f"{x:,.0f}" if x >= 100 else f"{x:,.1f}" if x >= 10 else f"{x:,.2f}"
+def _decimal_half_even(x: float, decimals: int) -> Decimal:
+    """Half-even on the exact decimal value as exported (str(94.55) = '94.55'), not on the binary float."""
+    return Decimal(str(x)).quantize(Decimal(1).scaleb(-decimals), rounding=ROUND_HALF_EVEN)
+
+
+def _group_thousands(digits: str, sep: str) -> str:
+    out = ""
+    while len(digits) > 3:
+        digits, out = digits[:-3], sep + digits[-3:] + out
+    return digits + out
+
+
+def display_price(x: float, lang: str = "en") -> str:
+    """0 decimals from 100, 1 decimal from 10 to 100, 2 below 10; half-even; locale separators."""
+    decimals = 0 if x >= 100 else 1 if x >= 10 else 2
+    sep, mark = NUMBER_FORMAT[lang]
+    whole, _, frac = f"{_decimal_half_even(x, decimals):f}".partition(".")
+    return _group_thousands(whole, sep) + (mark + frac if frac else "")
 
 
 def display_pct(p: float) -> str:
-    """A probability as a whole percentage, round-half-even (Python's round)."""
-    return str(int(round(100 * p)))
+    """A probability as a whole percentage of the exported value, half-even (0.125 -> 12, 0.135 -> 14)."""
+    return str(int(_decimal_half_even(Decimal(str(p)) * 100, 0)))
 
 
 def _signed(t: dict, key: str, pct: int | None, **kw) -> str | None:
@@ -75,6 +93,8 @@ def _signed(t: dict, key: str, pct: int | None, **kw) -> str | None:
 def describe(f: dict, lang: str = "en") -> str:
     t, months = TEXTS[lang], MONTHS[lang]
     month = lambda m: f"{months[m % 12]} {m // 12}"
+    cap = lambda s: s[:1].upper() + s[1:]  # sentence start ("Novembre 2026 :")
+    price = lambda x: display_price(x, lang)
     st = t[f"status_{f['status']}"]
     if abs(f["level_pct"]) < FLAT_PCT:
         level = t["level_at"].format(month=month(f["data_month"]), status=st)
@@ -84,11 +104,12 @@ def describe(f: dict, lang: str = "en") -> str:
     parts = [
         level,
         _signed(t, "trend", f["trend_pct"]),
-        _signed(t, "market", f["market_pct"], n=f["market_n"], group=f["group"], country=f["country"].replace("-", " ").title())
+        _signed(t, "market", f["market_pct"], n=f["market_n"], group=GROUPS[lang].get(f["group"], GROUPS[lang]["other"]),
+                in_country=IN_COUNTRY[lang][f["country"]])
         if f["market_n"] > 1 else None,
-        t["forecast"].format(month=month(f["next_month"]), lo=display_price(f["next_lo"]), hi=display_price(f["next_hi"]),
+        t["forecast"].format(Month=cap(month(f["next_month"])), lo=price(f["next_lo"]), hi=price(f["next_hi"]),
                              currency=f["currency"], unit=f["unit"]),
-        t["forecast"].format(month=month(f["last_month"]), lo=display_price(f["last_lo"]), hi=display_price(f["last_hi"]),
+        t["forecast"].format(Month=cap(month(f["last_month"])), lo=price(f["last_lo"]), hi=price(f["last_hi"]),
                              currency=f["currency"], unit=f["unit"]),
         t["spike"].format(month=month(f["next_month"]), p=display_pct(f["next_spike"])),
         t["caveat"],

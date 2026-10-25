@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.1"
+      "const": "1.2"
     },
     "status": {
       "enum": [
@@ -59,6 +59,10 @@
       "type": "string",
       "pattern": "World Food Programme"
     },
+    "attribution_fr": {
+      "type": "string",
+      "pattern": "Programme alimentaire mondial"
+    },
     "license": {
       "type": "object",
       "properties": {
@@ -83,6 +87,15 @@
     },
     "disclaimer": {
       "type": "string"
+    },
+    "disclaimer_fr": {
+      "type": "string"
+    },
+    "missing_translations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "files": {
       "type": "array",
@@ -120,9 +133,12 @@
     "countries",
     "counts",
     "attribution",
+    "attribution_fr",
     "license",
     "sources",
     "disclaimer",
+    "disclaimer_fr",
+    "missing_translations",
     "files"
   ],
   "additionalProperties": false
