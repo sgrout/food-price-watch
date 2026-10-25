@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "food-price-watch basket export: track_record.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "basket-1.0"
+    },
+    "model": {
+      "type": "string"
+    },
+    "forecast_origin": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "data_up_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "attribution": {
+      "type": "string",
+      "pattern": "World Food Programme"
+    },
+    "backtest": {
+      "type": "object",
+      "properties": {
+        "period": {
+          "type": "string"
+        },
+        "population": {
+          "type": "string"
+        },
+        "by_horizon": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "horizon": {
+                "enum": [
+                  "nowcast_last_month",
+                  "nowcast_this_month",
+                  "next_month",
+                  "in_2_months",
+                  "in_3_months"
+                ]
+              },
+              "n": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "coverage80": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "coverage95": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "typical_error_pct": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "step",
+              "horizon",
+              "n",
+              "coverage80",
+              "coverage95",
+              "typical_error_pct"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "by_country": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "step": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "horizon": {
+                  "enum": [
+                    "nowcast_last_month",
+                    "nowcast_this_month",
+                    "next_month",
+                    "in_2_months",
+                    "in_3_months"
+                  ]
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "coverage80": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "coverage95": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "typical_error_pct": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "step",
+                "horizon",
+                "n",
+                "coverage80",
+                "coverage95",
+                "typical_error_pct"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "required": [
+        "period",
+        "population",
+        "by_horizon",
+        "by_country"
+      ],
+      "additionalProperties": false
+    },
+    "live": {
+      "type": "object",
+      "properties": {
+        "by_horizon": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "horizon": {
+                "enum": [
+                  "nowcast_last_month",
+                  "nowcast_this_month",
+                  "next_month",
+                  "in_2_months",
+                  "in_3_months"
+                ]
+              },
+              "n": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "coverage80": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "coverage95": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "typical_error_pct": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "step",
+              "horizon",
+              "n",
+              "coverage80",
+              "coverage95",
+              "typical_error_pct"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "by_horizon"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "model",
+    "forecast_origin",
+    "data_up_to",
+    "attribution",
+    "backtest",
+    "live"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "food-price-watch basket export: manifest.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "basket-1.0"
+    },
+    "status": {
+      "enum": [
+        "preview",
+        "beta",
+        "published"
+      ]
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "forecast_origin": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "data_up_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "run_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "model": {
+      "type": "string"
+    },
+    "countries": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "mali",
+          "burkina-faso",
+          "burundi"
+        ]
+      }
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "baskets": {
+          "type": "integer"
+        },
+        "baskets_with_forecast": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "baskets",
+        "baskets_with_forecast"
+      ],
+      "additionalProperties": false
+    },
+    "attribution": {
+      "type": "string",
+      "pattern": "World Food Programme"
+    },
+    "attribution_fr": {
+      "type": "string",
+      "pattern": "Programme alimentaire mondial"
+    },
+    "license": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "url"
+      ],
+      "additionalProperties": false
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disclaimer": {
+      "type": "string"
+    },
+    "disclaimer_fr": {
+      "type": "string"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "path",
+          "bytes",
+          "sha256"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "generated_at",
+    "forecast_origin",
+    "data_up_to",
+    "run_at",
+    "model",
+    "countries",
+    "counts",
+    "attribution",
+    "attribution_fr",
+    "license",
+    "sources",
+    "disclaimer",
+    "disclaimer_fr",
+    "files"
+  ],
+  "additionalProperties": false
+}
