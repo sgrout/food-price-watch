@@ -23,8 +23,17 @@ resources:
         - name: export_status
           default: beta
 
+      # live_basket reuses fpw.live (calibration pool, scoring), which imports the LightGBM module.
+      environments:
+        - environment_key: ml
+          spec:
+            client: "4"
+            dependencies:
+              - lightgbm==4.7.0
+
       tasks:
         - task_key: live_basket
+          environment_key: ml
           notebook_task:
             notebook_path: ../src/11_live_basket.py
         - task_key: export_basket

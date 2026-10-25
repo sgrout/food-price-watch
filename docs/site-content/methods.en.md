@@ -24,6 +24,12 @@ for Price Spikes (ALPS). Our version differs from WFP's in three ways: it uses r
 window, and only data that was available at the time (WFP fits the whole series). Past spikes shown here will
 therefore not always match WFP's charts.
 
+**Food basket.** For some markets the site also shows the cost of a simple staple basket for one person for one
+month, based on a typical WFP food ration (12 kg cereal, 1.8 kg pulses, 0.75 L oil), with only the foods that WFP
+monitors long enough in that country. It is made by Staple Signals and is **not an official minimum expenditure
+basket**. Its range combines the forecasts of the foods in it, taking into account how their past errors moved
+together, so it is wider when the foods tend to rise and fall together.
+
 **Data checks.** A value that jumps and fully reverses the next month is marked as a data error and not used, once the
 next month is published. A big jump in the latest month is marked as not yet confirmed. Foods that WFP renamed are
 linked only when the price level matches. Nothing is silently corrected.

@@ -77,6 +77,10 @@ This file is the brief for coding agents. Read it fully before the first change,
     series) lies between 70 % and 90 % after at least 6 matured forecast months, and the owner agrees.
     Defaults for the launch (owner may change): no search indexing at first (soft launch), French with a
     'translation not reviewed' note, feedback via GitHub Issues.
+  - **Food basket (phase 6a, 2026-10-25):** separate jobs `fpw_basket` (weekly) and `fpw_basket_backtest`, tables
+    `gold.basket_*` / `live_basket_*`, export `public_export/baskets/` (schema `basket-1.0`); never change the item
+    pipeline or export for it. Basket = `config/baskets.csv` (ration-based, not an official MEB; per country what
+    WFP monitors). Product `basket_copula`; `basket_comonotone` is a live shadow (holdout tie), decide on live data.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by

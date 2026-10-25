@@ -3,7 +3,7 @@
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
 notebook `src/08_export_public.py`). Machine-readable contract: JSON Schemas in `export/schema/` (draft 2020-12,
-strict: unknown fields fail). Real sample files to build against offline: `export/sample/` (4 series).
+strict: unknown fields fail). Real sample files to build against offline: `export/sample/` (4 series); basket schemas: `export/schema/basket_*.schema.json`.
 
 ## 1. What the project is (context for the UI)
 
@@ -148,6 +148,31 @@ the forecast date (`irregular_definition` says the rule), so a note on irregular
 8. Conflict-affected markets (owner decision, 2026-10-25): **shown like every other market; everything that has
    data is shown.** Keep the config list for hiding a market or country (empty by default); it is meant for
    data-quality problems found later, never for hiding a place because of where it is.
+
+## 4b. Basket export (optional, separate; schema `basket-1.0`)
+
+Next to the item export, a weekly job (`fpw_basket`, Mondays 08:30 Europe/Amsterdam, after the item pipeline) writes
+food-basket cost forecasts to `/Volumes/workspace/fpw_dev_gold/public_export/baskets/` (`latest.tar.gz`,
+`latest/manifest.json`, `runs/<date>...`). It is optional: if it fails or is late, the item export is unaffected;
+fetch, verify (hashes, schemas `export/schema/basket_*.schema.json`) and deploy it separately. Recommended fetch:
+Mondays 09:30 UTC.
+
+**What a basket is.** Ours: a simple ration-based basket for one person for one month (WFP general ration:
+12 kg cereal, 1.8 kg pulses, 0.75 L oil), **not an official minimum expenditure basket** (MEB). Per country only
+what WFP monitors long enough: Burundi full ration (cassava flour, beans, palm oil); Burkina Faso millet + niébé
+(WFP publishes no oil prices there); Mali millet only (the cereal part). `basket.missing` lists what is not included;
+always show it. Compare baskets within a country, not across countries.
+
+Files: `manifest.json` (status, dates, counts, attribution(_fr), disclaimer(_fr), files with sha256),
+`index/<country>.json` (per basket: market, eligible, components, last cost, next-month range),
+`basket/<id>.json` (`basket.components[]` with `commodity_fr`, `missing[]`, `history[]` of `{month, cost}`,
+`forecast[]` with `p025 p10 p50 p90 p975` in local currency per person-month, `explanation.en/fr`),
+`track_record.json` (backtest per horizon and per country; live once matured). Ids:
+`<country>-<market_id>-basket-<basket_id>`.
+
+Rules: the same as §4 (ranges, data date, attribution, no recomputation, beta banner). No spike chance for baskets.
+`eligible: false` = some item lacks enough data at the forecast date: history only, no forecast. A
+"transfer value covers x %" calculator is **not** part of this version.
 
 ## 5. Practical constraints
 

@@ -27,6 +27,13 @@ diffère de celle du PAM sur trois points : elle utilise des prix relatifs (loga
 uniquement les données disponibles à chaque date (le PAM estime la tendance sur toute la série). Les flambées
 passées affichées ici ne correspondent donc pas toujours aux graphiques du PAM.
 
+**Panier alimentaire.** Pour certains marchés, le site montre aussi le coût d'un panier de base simple pour une
+personne pendant un mois, fondé sur une ration alimentaire type du PAM (12 kg de céréales, 1,8 kg de légumineuses,
+0,75 l d'huile), avec seulement les denrées que le PAM suit assez longtemps dans le pays. Il est établi par Staple
+Signals et **n'est pas un panier minimum de dépenses officiel**. Son intervalle combine les prévisions des denrées
+qui le composent, en tenant compte de la façon dont leurs erreurs passées ont évolué ensemble : il est plus large
+quand les denrées ont tendance à monter et baisser ensemble.
+
 **Contrôles des données.** Une valeur qui saute puis revient entièrement le mois suivant est marquée comme erreur
 de données et n'est pas utilisée, dès que le mois suivant est publié. Une forte hausse du dernier mois est marquée
 comme pas encore confirmée. Les denrées que le PAM a renommées ne sont reliées que si le niveau des prix

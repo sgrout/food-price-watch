@@ -108,3 +108,16 @@ def test_basket_text_numbers_come_from_facts():
         assert numbers <= allowed, (lang, numbers - allowed)
     assert missing_components(comps) == ["pulses"]
     assert composition_text(comps, "fr") == "12 kg Farine de manioc, 0,75 l Huile de palme"
+
+
+BSAMPLE = SCHEMAS.parent / "sample-baskets"
+
+
+@pytest.mark.parametrize("path", sorted(p.relative_to(BSAMPLE).as_posix() for p in BSAMPLE.rglob("*.json")))
+def test_committed_basket_sample_matches_schemas_and_manifest(path):
+    name = "basket" if path.startswith("basket/") else "basket_index" if path.startswith("index/") else "basket_" + path[:-5]
+    doc = json.loads((BSAMPLE / path).read_text())
+    jsonschema.validate(doc, json.loads((SCHEMAS / f"{name}.schema.json").read_text()))
+    if path == "manifest.json":
+        for f in doc["files"]:
+            assert hashlib.sha256((BSAMPLE / f["path"]).read_bytes()).hexdigest() == f["sha256"], f["path"]
