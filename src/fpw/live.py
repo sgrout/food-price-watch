@@ -96,12 +96,13 @@ def score_live(live: pd.DataFrame, panel: pd.DataFrame) -> pd.DataFrame:
     return score(with_pit(rows))
 
 
-SUMMARY_FEATURES = ["m_last", "resid_last", "ret3", "grp_ret3", "grp_n", "commodity_group"]  # z_now is in the rows
+SUMMARY_FEATURES = ["m_last", "resid_last", "ret3", "grp_ret3", "grp_n", "commodity_group"]  # z_now etc. are in the rows
 
 
-def summarize_live(cases: pd.DataFrame, fc: pd.DataFrame, currencies: dict[str, str], lang: str = "en") -> pd.DataFrame:
-    """One row per series for the app: status now, next month and three months ahead (prices), spike
-    probability, and the explanation text. `fc` = the calibrated live rows of one run."""
+def summarize_live(cases: pd.DataFrame, fc: pd.DataFrame, currencies: dict[str, str]) -> pd.DataFrame:
+    """One row per series for the app and the export: status now, next month and three months ahead (prices),
+    spike probability, reporting regularity and the explanation text in English and French. `fc` = the
+    calibrated live rows of one run."""
     from fpw.explain import LAST_STEP, NEXT_STEP, describe, facts
 
     feats = cases.drop_duplicates(["series_id"])[["series_id", *SUMMARY_FEATURES]]
@@ -123,6 +124,7 @@ def summarize_live(cases: pd.DataFrame, fc: pd.DataFrame, currencies: dict[str, 
             "next_q90": f["next_hi"], "next_spike": f["next_spike"],
             "last_month": f["last_month"], "last_q10": f["last_lo"], "last_q50": float(np.exp(by_step.loc[LAST_STEP, "q50"])),
             "last_q90": f["last_hi"], "last_spike": f["last_spike"],
-            "explanation": describe(f, lang),
+            "months_reported_12": int(first["months_reported_12"]),
+            "explanation": describe(f, "en"), "explanation_fr": describe(f, "fr"),
         })
     return pd.DataFrame(out)

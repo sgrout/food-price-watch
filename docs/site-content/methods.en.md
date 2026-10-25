@@ -35,7 +35,8 @@ linked only when the price level matches. Nothing is silently corrected.
 - WFP may revise old months; that history cannot be reconstructed, so the past test uses today's values.
 - Some markets report identical prices for many months; they may be real or carried forward, and such series look
   calmer than they are.
-- Markets in conflict areas report less often, especially during crises.
+- Markets in conflict areas report less often, especially during crises. Markets that published a price in fewer
+  than 9 of the last 12 months are marked.
 - Prices are in local currency, not adjusted for inflation.
 
 **Source and license.** World Food Programme, food prices on HDX, CC BY-IGO.

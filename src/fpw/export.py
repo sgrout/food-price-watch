@@ -15,15 +15,18 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+from fpw.backtest import IRREGULAR_BELOW
 from fpw.countries import COUNTRIES
 from fpw.explain import export_price, export_prob
+from fpw.texts import ATTRIBUTION as ATTRIBUTION_I18N
+from fpw.texts import COMMODITY_FR
+from fpw.texts import DISCLAIMER as DISCLAIMER_I18N
 
-SCHEMA_VERSION = "1.1"  # 1.1: status is null for series without a forecast
-ATTRIBUTION = "Source: World Food Programme (WFP), food prices via the Humanitarian Data Exchange (HDX), CC BY-IGO."
+SCHEMA_VERSION = "1.2"  # 1.1: status null without a forecast; 1.2: French texts and names, reporting regularity
+ATTRIBUTION = ATTRIBUTION_I18N["en"]
 LICENSE = {"data": "CC BY-IGO 3.0 (WFP)", "url": "https://creativecommons.org/licenses/by/3.0/igo/"}
 SOURCES = ["https://data.humdata.org/organization/wfp"]
-DISCLAIMER = ("Forecasts by food-price-watch, not an official WFP or FEWS NET assessment. "
-              "Official assessments: https://hungermap.wfp.org and https://fews.net")
+DISCLAIMER = DISCLAIMER_I18N["en"]
 HORIZONS = {1: "nowcast_last_month", 2: "nowcast_this_month", 3: "next_month", 4: "in_2_months", 5: "in_3_months"}
 SPIKE_STEP = 3  # spike chance is shown for next month only: further out, new-spike warnings are worse than the base rate
 HISTORY_FLAGS = {"spike_revert": "data_error", "invalid_price": "data_error", "level_shift": "break",
@@ -136,13 +139,16 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
                        "admin2": place["admin2"] if place is not None else None,
                        "latitude": _round(place["latitude"], 4) if place is not None else None,
                        "longitude": _round(place["longitude"], 4) if place is not None else None},
-            "commodity": {"id": int(s.series_commodity_id), "name": s.commodity, "group": s.commodity_group},
+            "commodity": {"id": int(s.series_commodity_id), "name": s.commodity,
+                          "name_fr": COMMODITY_FR.get(s.commodity, s.commodity), "group": s.commodity_group},
             "unit": s.unit, "currency": s.currency, "price_type": "retail",
             "eligible": bool(s.eligible_at_origin),
             # No status without enough data: the usual level then comes from an unreliable seasonal fit.
             "status": ({"code": s.status, "level_vs_usual_pct": int(s.level_pct), "month": month_str(s.last_obs_month)}
                        if s.eligible_at_origin else None),
-            "explanation": {"en": s.explanation} if s.eligible_at_origin else {},
+            "explanation": {"en": s.explanation, "fr": s.explanation_fr} if s.eligible_at_origin else {},
+            "reporting": {"months_reported_12": int(s.months_reported_12),
+                          "irregular": int(s.months_reported_12) < IRREGULAR_BELOW},
             "dates": {**common, "last_observed_month": month_str(s.last_obs_month), "run_at": run_at},
             "history": history, "forecast": forecast,
             "attribution": ATTRIBUTION,
@@ -150,7 +156,10 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
         files[f"series/{sid}.json"] = _json(doc)
         index.append({
             "id": sid, "country": s.country, "market": s.market, "admin1": doc["market"]["admin1"],
-            "commodity": s.commodity, "commodity_group": s.commodity_group, "unit": s.unit, "currency": s.currency,
+            "commodity": s.commodity, "commodity_fr": doc["commodity"]["name_fr"], "commodity_group": s.commodity_group,
+            "unit": s.unit, "currency": s.currency,
+            "months_reported_12": doc["reporting"]["months_reported_12"],
+            "irregular_reporting": doc["reporting"]["irregular"],
             "eligible": bool(s.eligible_at_origin), "status": s.status if s.eligible_at_origin else None,
             "last_observed_month": month_str(s.last_obs_month),
             "next_month": next_fc["month"] if next_fc else None, "next_p10": next_fc["p10"] if next_fc else None,
@@ -184,6 +193,11 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
                          & (metrics_country["split"] == "holdout")]
     lv = live_metrics[(live_metrics["population"] == "eligible") & (live_metrics["model"] == "lgbm_cal")] \
         if len(live_metrics) else live_metrics
+    by_reporting = {}
+    for name in ("regular", "irregular"):
+        part = metrics[(metrics["population"] == f"eligible_{name}") & (metrics["model"] == "lgbm_cal")
+                       & (metrics["split"] == "holdout")]
+        by_reporting[name] = _track_rows(part)
     files["track_record.json"] = _json({
         "schema_version": SCHEMA_VERSION, "model": "lgbm_cal", **common,
         "backtest": {
@@ -191,6 +205,8 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "method": "walk-forward: each forecast made with only the data published by then",
             "by_horizon": _track_rows(bt),
             "by_country": {c: _track_rows(g) for c, g in bc.groupby("country")},
+            "by_reporting": by_reporting,
+            "irregular_definition": f"a price published in fewer than {IRREGULAR_BELOW} of the last 12 months",
         },
         "live": {"by_horizon": _track_rows(lv) if len(lv) else [],
                  "note": "Live forecasts are scored once the target month and the month after it are published."},
@@ -209,13 +225,18 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
     files["downloads/README.txt"] = (
         f"food-price-watch forecasts, generated {stamp}.\n{ATTRIBUTION}\n{DISCLAIMER}\n"
         "Prices are in local currency per unit (nominal). p10-p90 = 80 % range, p025-p975 = 95 % range.\n"
-        "spike_probability is given for next month only. Columns: see docs/export-contract.md.\n").encode("utf-8")
+        "spike_probability is given for next month only. Columns: see docs/export-contract.md.\n\n"
+        f"Prévisions food-price-watch, générées le {stamp}.\n{ATTRIBUTION_I18N['fr']}\n{DISCLAIMER_I18N['fr']}\n"
+        "Prix en monnaie locale par unité (nominaux). p10-p90 = intervalle à 80 %, p025-p975 = intervalle à 95 %.\n"
+        "spike_probability (probabilité de flambée) est donnée pour le mois prochain seulement.\n").encode("utf-8")
 
     files["manifest.json"] = _json({
         "schema_version": SCHEMA_VERSION, "status": status, "generated_at": pd.Timestamp(generated_at).isoformat(),
         **common, "run_at": run_at, "countries": sorted(idx["country"].unique().tolist()),
         "counts": {"series": len(index), "series_with_forecast": int(idx["eligible"].sum())},
-        "attribution": ATTRIBUTION, "license": LICENSE, "sources": SOURCES, "disclaimer": DISCLAIMER,
+        "attribution": ATTRIBUTION, "attribution_fr": ATTRIBUTION_I18N["fr"], "license": LICENSE, "sources": SOURCES,
+        "disclaimer": DISCLAIMER, "disclaimer_fr": DISCLAIMER_I18N["fr"],
+        "missing_translations": sorted({r["commodity"] for r in index if r["commodity"] not in COMMODITY_FR}),
         "files": [{"path": p, "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
                   for p, b in sorted(files.items())],
     })

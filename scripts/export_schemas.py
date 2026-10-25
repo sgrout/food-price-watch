@@ -13,7 +13,7 @@ price = {"type": "number", "exclusiveMinimum": 0}
 nprice = {"type": ["number", "null"], "exclusiveMinimum": 0}
 prob = {"type": ["number", "null"], "minimum": 0, "maximum": 1}
 status = {"enum": ["normal", "stress", "alert", "crisis"]}
-version = {"const": "1.1"}
+version = {"const": "1.2"}
 common = {"forecast_origin": month, "data_up_to": month, "model_version": {"type": "string"}}
 attribution = {"type": "string", "pattern": "World Food Programme"}
 country_id = {"enum": ["mali", "burkina-faso", "burundi"]}
@@ -38,8 +38,11 @@ SCHEMAS = {
         "generated_at": {"type": "string"}, **common, "run_at": {"type": "string"},
         "countries": {"type": "array", "items": country_id},
         "counts": obj({"series": {"type": "integer"}, "series_with_forecast": {"type": "integer"}}),
-        "attribution": attribution, "license": obj({"data": {"type": "string"}, "url": {"type": "string"}}),
+        "attribution": attribution, "attribution_fr": {"type": "string", "pattern": "Programme alimentaire mondial"},
+        "license": obj({"data": {"type": "string"}, "url": {"type": "string"}}),
         "sources": {"type": "array", "items": {"type": "string"}}, "disclaimer": {"type": "string"},
+        "disclaimer_fr": {"type": "string"},
+        "missing_translations": {"type": "array", "items": {"type": "string"}},
         "files": {"type": "array", "items": obj({"path": {"type": "string"}, "bytes": {"type": "integer"},
                                                  "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}})},
     }, title="food-price-watch export: manifest.json"),
@@ -47,8 +50,10 @@ SCHEMAS = {
         "schema_version": version, **common, "attribution": attribution,
         "series": {"type": "array", "items": obj({
             "id": {"type": "string"}, "country": country_id, "market": {"type": "string"},
-            "admin1": {"type": ["string", "null"]}, "commodity": {"type": "string"},
+            "admin1": {"type": ["string", "null"]}, "commodity": {"type": "string"}, "commodity_fr": {"type": "string"},
             "commodity_group": {"type": "string"}, "unit": {"type": "string"}, "currency": {"type": "string"},
+            "months_reported_12": {"type": "integer", "minimum": 0, "maximum": 12},
+            "irregular_reporting": {"type": "boolean"},
             "eligible": {"type": "boolean"}, "status": {"enum": [*status["enum"], None]},  # null if not eligible
             "last_observed_month": month,
             "next_month": nmonth, "next_p10": nprice, "next_p50": nprice, "next_p90": nprice,
@@ -70,12 +75,15 @@ SCHEMAS = {
         "market": obj({"id": {"type": "integer"}, "name": {"type": "string"}, "admin1": {"type": ["string", "null"]},
                        "admin2": {"type": ["string", "null"]}, "latitude": {"type": ["number", "null"]},
                        "longitude": {"type": ["number", "null"]}}),
-        "commodity": obj({"id": {"type": "integer"}, "name": {"type": "string"}, "group": {"type": "string"}}),
+        "commodity": obj({"id": {"type": "integer"}, "name": {"type": "string"}, "name_fr": {"type": "string"},
+                          "group": {"type": "string"}}),
         "unit": {"type": "string"}, "currency": {"type": "string"}, "price_type": {"const": "retail"},
         "eligible": {"type": "boolean"},
         "status": {"anyOf": [obj({"code": status, "level_vs_usual_pct": {"type": "integer"}, "month": month}),
                              {"type": "null"}]},  # null if not eligible
-        "explanation": obj({"en": {"type": "string"}}, required=[]),  # empty when there is no forecast
+        "explanation": obj({"en": {"type": "string"}, "fr": {"type": "string"}}, required=[]),  # {} without forecast
+        "reporting": obj({"months_reported_12": {"type": "integer", "minimum": 0, "maximum": 12},
+                          "irregular": {"type": "boolean"}}),
         "dates": obj({**common, "last_observed_month": month, "run_at": {"type": "string"}}),
         "history": {"type": "array", "items": obj({
             "month": month, "price": price, "flag": {"enum": [None, "data_error", "break", "unconfirmed_jump"]}})},
@@ -91,7 +99,10 @@ SCHEMAS = {
         "backtest": obj({"period": {"type": "string"}, "population": {"type": "string"}, "method": {"type": "string"},
                          "by_horizon": {"type": "array", "items": track_row},
                          "by_country": {"type": "object",
-                                        "additionalProperties": {"type": "array", "items": track_row}}}),
+                                        "additionalProperties": {"type": "array", "items": track_row}},
+                         "by_reporting": obj({"regular": {"type": "array", "items": track_row},
+                                              "irregular": {"type": "array", "items": track_row}}),
+                         "irregular_definition": {"type": "string"}}),
         "live": obj({"by_horizon": {"type": "array", "items": track_row}, "note": {"type": "string"}}),
     }, title="food-price-watch export: track_record.json"),
 }

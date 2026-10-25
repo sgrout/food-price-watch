@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.1"
+      "const": "1.2"
     },
     "model": {
       "type": "string"
@@ -196,6 +196,177 @@
               "additionalProperties": false
             }
           }
+        },
+        "by_reporting": {
+          "type": "object",
+          "properties": {
+            "regular": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "step": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "horizon": {
+                    "enum": [
+                      "nowcast_last_month",
+                      "nowcast_this_month",
+                      "next_month",
+                      "in_2_months",
+                      "in_3_months"
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "coverage80": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "coverage95": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "typical_error_pct": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "new_spike_score": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "base_rate_score": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "new_spike_verdict": {
+                    "enum": [
+                      "better",
+                      "no_better",
+                      "worse"
+                    ]
+                  }
+                },
+                "required": [
+                  "step",
+                  "horizon",
+                  "n",
+                  "coverage80",
+                  "coverage95",
+                  "typical_error_pct",
+                  "new_spike_score",
+                  "base_rate_score",
+                  "new_spike_verdict"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "irregular": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "step": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "horizon": {
+                    "enum": [
+                      "nowcast_last_month",
+                      "nowcast_this_month",
+                      "next_month",
+                      "in_2_months",
+                      "in_3_months"
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "coverage80": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "coverage95": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "typical_error_pct": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "new_spike_score": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "base_rate_score": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "new_spike_verdict": {
+                    "enum": [
+                      "better",
+                      "no_better",
+                      "worse"
+                    ]
+                  }
+                },
+                "required": [
+                  "step",
+                  "horizon",
+                  "n",
+                  "coverage80",
+                  "coverage95",
+                  "typical_error_pct",
+                  "new_spike_score",
+                  "base_rate_score",
+                  "new_spike_verdict"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "regular",
+            "irregular"
+          ],
+          "additionalProperties": false
+        },
+        "irregular_definition": {
+          "type": "string"
         }
       },
       "required": [
@@ -203,7 +374,9 @@
         "population",
         "method",
         "by_horizon",
-        "by_country"
+        "by_country",
+        "by_reporting",
+        "irregular_definition"
       ],
       "additionalProperties": false
     },

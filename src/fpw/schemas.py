@@ -39,7 +39,7 @@ BACKTEST_FORECASTS = """series_id STRING, country STRING, commodity STRING, mark
     market STRING, series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT,
     k BIGINT, model STRING, q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE,
     actual DOUBLE, expected DOUBLE, sigma DOUBLE, z_now DOUBLE, split STRING, in80 BOOLEAN, in95 BOOLEAN,
-    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, eligible_at_origin BOOLEAN, """ + \
+    pinball DOUBLE, abs_err DOUBLE, z_actual DOUBLE, is_spike BOOLEAN, spike_now BOOLEAN, pit DOUBLE, calibrated BOOLEAN, eligible_at_origin BOOLEAN, months_reported_12 BIGINT, """ + \
     ", ".join(f"{c} DOUBLE" for c in GRID_COLUMNS)
 
 _METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, coverage80_se DOUBLE, coverage95 DOUBLE,
@@ -56,7 +56,7 @@ SPIKE_CALIBRATION = "population STRING, model STRING, split STRING, bin BIGINT, 
 _FORECAST = """series_id STRING, country STRING, commodity STRING, market_id BIGINT, market STRING,
     series_commodity_id BIGINT, unit STRING, origin BIGINT, step BIGINT, target BIGINT, k BIGINT, model STRING,
     q025 DOUBLE, q10 DOUBLE, q50 DOUBLE, q90 DOUBLE, q975 DOUBLE, spike_prob DOUBLE, actual DOUBLE, expected DOUBLE,
-    sigma DOUBLE, z_now DOUBLE, eligible_at_origin BOOLEAN, calibrated BOOLEAN, """ + \
+    sigma DOUBLE, z_now DOUBLE, eligible_at_origin BOOLEAN, months_reported_12 BIGINT, calibrated BOOLEAN, """ + \
     ", ".join(f"{c} DOUBLE" for c in GRID_COLUMNS)
 _RUN = ", model_version STRING, run_at TIMESTAMP, data_month BIGINT"
 
@@ -68,7 +68,8 @@ LIVE_SUMMARY = """series_id STRING, country STRING, market_id BIGINT, series_com
     market STRING, commodity STRING, commodity_group STRING, origin BIGINT, eligible_at_origin BOOLEAN,
     currency STRING, last_obs_month BIGINT, status STRING, level_pct BIGINT, trend_pct BIGINT, market_pct BIGINT,
     next_month BIGINT, next_q10 DOUBLE, next_q50 DOUBLE, next_q90 DOUBLE, next_spike DOUBLE, last_month BIGINT,
-    last_q10 DOUBLE, last_q50 DOUBLE, last_q90 DOUBLE, last_spike DOUBLE, explanation STRING""" + _RUN
+    last_q10 DOUBLE, last_q50 DOUBLE, last_q90 DOUBLE, last_spike DOUBLE, months_reported_12 BIGINT,
+    explanation STRING, explanation_fr STRING""" + _RUN
 
 def columns(ddl: str) -> list[str]:
     return [part.split()[0] for part in ddl.split(",")]

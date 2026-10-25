@@ -21,11 +21,12 @@ RUN = pd.Timestamp("2026-10-26 06:00")
 def inputs():
     base = dict(country="mali", series_commodity_id=51, unit="KG", commodity="Maize", commodity_group="maize",
                 currency="XOF", origin=ORIGIN, data_month=ORIGIN - 2, last_obs_month=ORIGIN - 2, model_version="1",
-                run_at=RUN, level_pct=21, status="stress", explanation="In August 2026 the price was 21% above ...")
+                run_at=RUN, level_pct=21, status="stress", explanation="In August 2026 the price was 21% above ...",
+                explanation_fr="En août 2026, le prix était 21\u202f% au-dessus ...", months_reported_12=12)
     summary = pd.DataFrame([
         {**base, "series_id": "mali|247|51|Retail|KG", "market_id": 247, "market": "Bamako", "eligible_at_origin": True},
         {**base, "series_id": "mali|300|51|Retail|KG", "market_id": 300, "market": "Kita", "eligible_at_origin": False,
-         "status": "normal", "level_pct": -3},
+         "status": "normal", "level_pct": -3, "months_reported_12": 5, "commodity": "Sesame"},
     ])
     lp = np.log(200.0)
     forecasts = pd.DataFrame([{
@@ -42,7 +43,10 @@ def inputs():
     metric_row = dict(population="eligible", model="lgbm_cal", split="holdout", n=100, coverage80=0.77,
                       coverage95=0.94, median_abs_err=0.095, onset_brier=0.109, onset_brier_climatology=0.114)
     metrics = pd.DataFrame([{**metric_row, "step": s} for s in range(1, 6)]
-                           + [{**metric_row, "step": 1, "model": "naive"}])
+                           + [{**metric_row, "step": 1, "model": "naive"}]
+                           + [{**metric_row, "step": s, "population": "eligible_irregular", "coverage80": 0.68}
+                              for s in range(1, 6)]
+                           + [{**metric_row, "step": s, "population": "eligible_regular"} for s in range(1, 6)])
     metrics_country = pd.DataFrame([{**metric_row, "step": s, "country": "mali"} for s in range(1, 6)])
     return summary, forecasts, prices, metrics, metrics_country, pd.DataFrame()
 
@@ -163,3 +167,27 @@ def test_committed_sample_matches_the_schemas_and_its_manifest(path):
     if path == "manifest.json":
         for f in doc["files"]:
             assert hashlib.sha256((SAMPLE / f["path"]).read_bytes()).hexdigest() == f["sha256"], f["path"]
+
+
+def test_french_names_texts_and_reporting(files):
+    s = load(files, "series/mali-247-51-retail-kg.json")
+    assert s["commodity"]["name_fr"] == "Maïs" and s["explanation"]["fr"].startswith("En août 2026")
+    assert s["reporting"] == {"months_reported_12": 12, "irregular": False}
+    k = load(files, "series/mali-300-51-retail-kg.json")
+    assert k["reporting"] == {"months_reported_12": 5, "irregular": True}  # fewer than 9 of 12
+    assert k["commodity"]["name_fr"] == "Sesame"  # no translation: falls back to English ...
+    m = load(files, "manifest.json")
+    assert m["missing_translations"] == ["Sesame"]  # ... and is listed, so it gets added
+    assert "Programme alimentaire mondial" in m["attribution_fr"]
+    idx = {r["id"]: r for r in load(files, "index.json")["series"]}
+    assert idx["mali-300-51-retail-kg"]["irregular_reporting"] and idx["mali-247-51-retail-kg"]["commodity_fr"] == "Maïs"
+    t = load(files, "track_record.json")["backtest"]
+    assert t["by_reporting"]["irregular"][2]["coverage80"] == 0.68 and len(t["by_reporting"]["regular"]) == 5
+    assert "fewer than 9 of the last 12 months" in t["irregular_definition"]
+    assert "Prévisions food-price-watch" in files["downloads/README.txt"].decode()
+
+
+def test_every_wfp_commodity_in_the_sample_has_a_french_name():
+    from fpw.texts import COMMODITY_FR
+    names = {r["commodity"] for r in json.loads((SAMPLE / "index.json").read_text())["series"]}
+    assert names <= set(COMMODITY_FR)
