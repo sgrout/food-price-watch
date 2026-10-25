@@ -67,6 +67,7 @@ checked once on 2023-2026:
 - *Bronze / silver / gold:* raw downloads → cleaned data → forecasts and warnings.
 
 Data: World Food Programme, via the Humanitarian Data Exchange (HDX), license CC BY-IGO.
+Code: MIT license (see `LICENSE`); the data keeps its own CC BY-IGO license and needs WFP attribution.
 
 ---
 
