@@ -1,6 +1,6 @@
-# Site brief: the public food-price-watch site
+# Site brief: the public site, Staple Signals (staplesignals.org)
 
-Audience: the agent building the public site (separate repository, hosted on Vercel). Read this first, then
+Audience: the agent building the public site (separate repository, hosted on Vercel). **Name: Staple Signals; domain: staplesignals.org** (owner decisions, 2026-10-25; the domain is registered by the owner). The data project and its repositories keep the name food-price-watch. Read this first, then
 `export-contract.md` (the data), then `docs/README.md` (how we communicate). Owner and decision-maker: Sander.
 
 ## 1. What the site is for

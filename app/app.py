@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="food-price-watch", page_icon="🌾", layout="wide")  # must be the first st call
+st.set_page_config(page_title="Staple Signals (private)", page_icon="🌾", layout="wide")  # must be the first st call
 
 import views  # noqa: E402
 from strings import ATTRIBUTION  # noqa: E402

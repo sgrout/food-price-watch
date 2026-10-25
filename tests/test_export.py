@@ -184,7 +184,7 @@ def test_french_names_texts_and_reporting(files):
     t = load(files, "track_record.json")["backtest"]
     assert t["by_reporting"]["irregular"][2]["coverage80"] == 0.68 and len(t["by_reporting"]["regular"]) == 5
     assert "fewer than 9 of the last 12 months" in t["irregular_definition"]
-    assert "Prévisions food-price-watch" in files["downloads/README.txt"].decode()
+    assert "Prévisions Staple Signals" in files["downloads/README.txt"].decode()
 
 
 def test_every_wfp_commodity_in_the_sample_has_a_french_name():
