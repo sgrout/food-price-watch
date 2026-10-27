@@ -69,6 +69,24 @@ Signals et **n'est pas un panier minimum de dépenses officiel**. Son intervalle
 qui le composent, en tenant compte de la façon dont leurs erreurs passées ont évolué ensemble : il est plus large
 quand les denrées ont tendance à monter et baisser ensemble.
 
+## Écart avec le prix national
+
+Pour chaque denrée, la page compare le prix du marché avec le prix médian de la même denrée sur les autres marchés
+du pays ce mois-là (au moins cinq marchés), et avec l'écart habituel de ce marché au cours des trois années
+précédentes. Les marchés éloignés sont souvent plus chers en permanence : ce qui compte, c'est un écart qui grandit.
+Dans les zones sous blocus ou coupées du reste, les prix peuvent s'écarter de ceux du reste du pays, et une moyenne
+nationale cache justement ces endroits. Un marché est signalé quand son prix est au moins 25 % au-dessus de la
+médiane nationale et nettement au-dessus de son écart habituel. C'est une description des données, pas une
+prévision ni une alerte éprouvée : une erreur de données peut avoir le même aspect.
+
+## Marchés qui ont cessé de publier
+
+Un marché qui n'a publié aucun prix, pour aucune denrée, depuis deux mois ou plus est affiché comme tel, avec ses
+derniers prix, au lieu de disparaître. Les mois sont comptés à partir du dernier mois publié par la plupart des
+marchés du pays, pour que le délai de publication habituel du PAM ne compte pas comme un silence. Dans les zones de
+conflit, l'absence de données peut être un premier signe de difficultés, mais elle peut aussi avoir d'autres causes,
+comme une pause du suivi ou un changement de la liste des marchés suivis par le PAM.
+
 ## Contrôles des données
 
 Une valeur qui saute puis revient entièrement le mois suivant est marquée comme erreur

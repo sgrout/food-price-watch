@@ -18,18 +18,22 @@ from datetime import datetime, timezone
 import pandas as pd
 
 from fpw.export import build_export, to_tarball
+from fpw.panel import monthly_panel
+from fpw.signals import compute_signals, silent_series
 
 dbutils.widgets.text("catalog", "workspace")
 dbutils.widgets.text("env", "dev")
 dbutils.widgets.text("export_status", "beta")
+dbutils.widgets.text("export_dir", "public_export")  # another volume name = a trial run, not fetched by the site
 catalog = dbutils.widgets.get("catalog")
 env = dbutils.widgets.get("env")
 status = dbutils.widgets.get("export_status")
+export_dir = dbutils.widgets.get("export_dir")
 
 spark.conf.set("spark.sql.session.timeZone", "UTC")
 silver, gold = f"{catalog}.fpw_{env}_silver", f"{catalog}.fpw_{env}_gold"
-spark.sql(f"CREATE VOLUME IF NOT EXISTS {gold}.public_export COMMENT 'Public export for the static site'")
-root = f"/Volumes/{catalog}/fpw_{env}_gold/public_export"
+spark.sql(f"CREATE VOLUME IF NOT EXISTS {gold}.{export_dir} COMMENT 'Public export for the static site'")
+root = f"/Volumes/{catalog}/fpw_{env}_gold/{export_dir}"
 
 # COMMAND ----------
 
@@ -37,19 +41,22 @@ summary = spark.table(f"{gold}.live_summary").toPandas()
 forecasts = spark.sql(f"""
     SELECT * FROM {gold}.live_forecasts
     WHERE model = 'lgbm_cal' AND run_at = (SELECT MAX(run_at) FROM {gold}.live_forecasts)""").toPandas()
+# All retail prices: the history of the exported series, and the national medians and silence of every market
 prices = spark.sql(f"""
-    SELECT p.country, p.market_id, p.series_commodity_id, p.unit, p.date, p.price, p.is_suspect, p.quality_flag,
-           p.admin1, p.admin2, p.latitude, p.longitude
-    FROM {silver}.wfp_prices p
-    JOIN (SELECT DISTINCT country, market_id, series_commodity_id, unit FROM {gold}.live_summary) s
-      USING (country, market_id, series_commodity_id, unit)
-    WHERE p.pricetype = 'Retail' AND p.price > 0""").toPandas()
+    SELECT country, market_id, market, commodity, series_commodity_id, unit, pricetype, date, price, is_suspect,
+           confirmed_date, quality_flag, admin1, admin2, latitude, longitude
+    FROM {silver}.wfp_prices
+    WHERE pricetype = 'Retail' AND price > 0""").toPandas()
+panel = monthly_panel(prices)
+signals = compute_signals(panel, int(summary["data_month"].iloc[0]))
+silent = silent_series(panel, signals, set(summary["series_id"]))
 metrics = spark.table(f"{gold}.backtest_metrics").toPandas()
 metrics_country = spark.table(f"{gold}.backtest_metrics_country").toPandas()
 live_metrics = spark.table(f"{gold}.live_metrics").toPandas()
 
 generated_at = datetime.now(timezone.utc).replace(tzinfo=None)
-files = build_export(summary, forecasts, prices, metrics, metrics_country, live_metrics, generated_at, status=status)
+files = build_export(summary, forecasts, prices, metrics, metrics_country, live_metrics, generated_at, status=status,
+                     signals=signals, silent=silent)
 tar = to_tarball(files)
 print(f"{len(files):,} files, {sum(map(len, files.values())) / 1e6:.1f} MB; tar.gz {len(tar) / 1e6:.2f} MB")
 

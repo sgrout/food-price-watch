@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.3"
+      "const": "1.4"
     },
     "id": {
       "type": "string"
@@ -173,6 +173,110 @@
       ],
       "additionalProperties": false
     },
+    "signals": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "national_gap": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "month": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+                    },
+                    "pct": {
+                      "type": "integer"
+                    },
+                    "usual_pct": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "n_markets": {
+                      "type": "integer",
+                      "minimum": 5
+                    },
+                    "far_above_usual": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "month",
+                    "pct",
+                    "usual_pct",
+                    "n_markets",
+                    "far_above_usual"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "silence": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "months": {
+                      "type": "integer",
+                      "minimum": 2
+                    },
+                    "last_reported_month": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+                    },
+                    "reference_month": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+                    }
+                  },
+                  "required": [
+                    "months",
+                    "last_reported_month",
+                    "reference_month"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "text": {
+              "type": "object",
+              "properties": {
+                "en": {
+                  "type": "string"
+                },
+                "fr": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "en",
+                "fr"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "national_gap",
+            "silence",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "dates": {
       "type": "object",
       "properties": {
@@ -230,6 +334,27 @@
           "month",
           "price",
           "flag"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "national_median": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "month",
+          "price"
         ],
         "additionalProperties": false
       }
@@ -333,8 +458,10 @@
     "status",
     "explanation",
     "reporting",
+    "signals",
     "dates",
     "history",
+    "national_median",
     "forecast",
     "attribution"
   ],

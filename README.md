@@ -27,6 +27,14 @@ market, with only the foods WFP monitors long enough: the full basket in Burundi
 and only the cereal part in Mali. It is our own basket, not an official one. In the past test its "80 % range"
 held about 3 times in 4 (77 % next month), and its typical error was 10 % next month and 16 % in three months.
 
+**New: two market signals.** A national average hides exactly the places in trouble. So each market now also
+shows (1) how far its price is from the national median for the same food, compared with its usual distance, and
+(2) whether it has stopped reporting prices. Markets that went quiet used to disappear from the site; now they stay,
+with "no price since...". In October 2026 this shows, for example, millet in Gayéri (Burkina Faso, Est) at 92 %
+above the national median (usually 12 %), and 15 Malian markets (Mopti, Tombouctou, Kidal) without prices for 2 to
+19 months. These are descriptions of the data, not proven warnings: a data error can look the same, and missing
+data can have harmless causes.
+
 **What the checks found.** Food price data has mistakes, and we mark them rather than quietly correcting them:
 - In August 2017, the maize price in most Malian markets tripled for exactly one month and then went back to normal.
   A real price spike does not vanish that fast, so these values are marked "suspect" and will not be used to train
@@ -480,6 +488,29 @@ conversions in `config/unit_conversions.csv` (oil 0.92 kg/L).
   (a model candidate, to be fixed up front and judged on the live record).
 - Gotcha: the basket job first failed (`No module named 'lightgbm'`): `fpw.live` imports the ML module, so the job
   needs the `ml` environment. The item pipeline was not affected.
+
+### Phase 6b: market signals (export 1.4)
+Owner's ideas: the distance of a market's price from the national median, and markets that stop reporting. Facts at
+`data_up_to` (`fpw/signals.py`, pure, `tests/test_signals.py`), computed in the export step from silver prices; no
+model, forecast or backtest change. Rules fixed before looking at results:
+- national median per country × food × unit × month over markets with a price (>= 5); usual gap = median log gap over
+  the 36 months before (>= 12); `far_above_usual` = gap >= +25 % and >= 0.20 (log) above the usual gap; the gap is
+  shown only for a current price (<= 1 month before the reference month) and not for silent markets;
+- reference month per country = latest month <= `data_up_to` in which half of the markets active in the 12 months
+  before reported (so WFP's lag and early-published months do not look like silence); a market is silent after 2+
+  months without any price, listed for 2-24 months with >= 12 months of data; its series stay in the export with
+  history only (before: a series 3+ months behind dropped out of `build_cases`, so its page disappeared).
+- Trial export (2026-10-27, volume `public_export_next`): 1,182 series (1,090 + 94 of 16 silent markets), all 1,090
+  existing series identical in forecast, history, explanation and status; 29 series far above (Burkina Faso 15, Mali 7,
+  Burundi 7: Est region of Burkina Faso, Gao, Kidal); 1.5 MB compressed (was 1.2 MB; the national median is exported
+  for 36 months only, a full history nearly doubled the size).
+- Gotchas found on the way: an early-published month made 62 Burundi markets look silent against the newest single
+  month (hence the reference month); single foods that WFP stopped collecting in active markets are not "silent
+  markets" (386 extra pages, dropped); an old, unconfirmed jump (Macina imported rice 2,000 XOF/kg in March 2026, ~5x
+  other markets) showed as +344 % until old gaps were excluded.
+- Rollout: the site accepts 1.4 first (`docs/site-requests/2026-10-27-market-signals.md`); the bundle is deployed
+  (switching the weekly export to 1.4) only after that. `08_export_public.py` has an `export_dir` widget for trial
+  runs into another volume.
 
 ### How to run
 

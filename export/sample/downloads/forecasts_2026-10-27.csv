@@ -4,6 +4,11 @@ burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-
 burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-11,next_month,10994.56,13728.51,17111.16,23379.0,34888.01,18541.33,0.125,stress,2026-10,2026-08,1
 burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-12,in_2_months,11303.51,14088.91,16932.85,23870.9,34902.18,18990.2,,stress,2026-10,2026-08,1
 burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2027-01,in_3_months,10499.47,13647.87,16862.23,24830.87,38509.48,19514.95,,stress,2026-10,2026-08,1
+burundi-1827-74-retail-kg,burundi,Bubanza,Musenyi,Cassava flour,KG,BIF,2026-09,nowcast_last_month,1500.76,1559.35,1903.89,2184.43,2271.39,1725.75,,stress,2026-10,2026-08,1
+burundi-1827-74-retail-kg,burundi,Bubanza,Musenyi,Cassava flour,KG,BIF,2026-10,nowcast_this_month,1303.06,1490.44,1850.36,2297.97,2761.59,1659.99,,stress,2026-10,2026-08,1
+burundi-1827-74-retail-kg,burundi,Bubanza,Musenyi,Cassava flour,KG,BIF,2026-11,next_month,1414.77,1481.71,1852.93,2465.88,2792.59,1938.28,0.031,stress,2026-10,2026-08,1
+burundi-1827-74-retail-kg,burundi,Bubanza,Musenyi,Cassava flour,KG,BIF,2026-12,in_2_months,1357.43,1434.2,1831.29,2653.14,3597.51,1902.63,,stress,2026-10,2026-08,1
+burundi-1827-74-retail-kg,burundi,Bubanza,Musenyi,Cassava flour,KG,BIF,2027-01,in_3_months,1354.3,1503.24,1877.64,2845.1,4051.41,1915.89,,stress,2026-10,2026-08,1
 mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-09,nowcast_last_month,357.37,395.27,414.35,517.38,523.42,521.84,,normal,2026-10,2026-08,1
 mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-10,nowcast_this_month,319.57,387.17,415.65,537.48,561.69,525.05,,normal,2026-10,2026-08,1
 mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-11,next_month,307.45,375.82,414.23,538.91,540.0,525.1,0.0,normal,2026-10,2026-08,1

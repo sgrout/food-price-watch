@@ -1,4 +1,4 @@
-# Public export contract (v1.3): food-price-watch → public site
+# Public export contract (v1.4): food-price-watch → public site
 
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
@@ -47,7 +47,14 @@ used only in CI, never in the browser or in the built site.
 
 All JSON is UTF-8, compact. Months are `"YYYY-MM"`. Prices are **nominal, in local currency per `unit`** (XOF for
 Mali and Burkina Faso, BIF for Burundi; units such as `KG`, `L`, `100 KG`), already converted from the model's log
-scale. Every JSON file has `schema_version` (`"1.3"`) and `attribution`.
+scale. Every JSON file has `schema_version` (`"1.4"`) and `attribution`.
+
+Changes in 1.4 (2026-10-27, additive): market signals (owner's idea). Series files gain `signals` and
+`national_median[]`; index rows gain `gap_pct`, `far_above_usual`, `silent_months`; `countries.json` entries gain
+`reference_month`, `far_above_usual` (count) and `silent_markets[]`. **Series of markets that stopped reporting stay
+in the export** (`eligible: false`, `status: null`, history only) instead of disappearing (94 series in 16
+markets in 2026-10). Nothing else changes: the forecasts, explanations and statuses of the other series are the same
+as in 1.3. Rollout: the site accepts 1.4 first; the data side switches only after that.
 
 Changes in 1.3 (2026-10-25): `manifest.status` can be `beta` (public, with a beta banner; see §4.6).
 
@@ -73,7 +80,7 @@ Then a page and its explanation never show two different numbers for the same va
 | File | Use |
 |---|---|
 | `manifest.json` | `status` (`preview` / `published`), `generated_at`, `forecast_origin`, `data_up_to`, `model_version`, counts, license, sources, `attribution(_fr)`, `disclaimer(_fr)`, `missing_translations`, list of all files with `bytes` and `sha256` |
-| `countries.json` | one entry per country: name, currency, number of series and markets, `status_counts` (**series with a forecast only**, i.e. `eligible: true`; the same as counting `index/<country>.json` rows with `eligible: true`), latest month |
+| `countries.json` | one entry per country: name, currency, number of series and markets, `status_counts` (**series with a forecast only**, i.e. `eligible: true`; the same as counting `index/<country>.json` rows with `eligible: true`), latest month; 1.4: `reference_month`, `far_above_usual` (number of series), `silent_markets[] {market_id, market, admin1, months, last_reported_month}` (longest silence first) |
 | `index/<country>.json` | the series of one country (for country pages; 120-160 KB, compresses to ~20-30 KB) |
 | `index.json` | all series (~410 KB): use for search or build time only, not on phone pages |
 | `series/<id>.json` | one market × food: identity, location, status, explanation, `history`, `forecast` |
@@ -110,6 +117,19 @@ change; ids do not). Suitable for URLs: `/mali/mali-1816-73-retail-kg`.
   (2026-10: September prices in most Burkina Faso and some Burundi series). Such a month is a real observation the
   forecast did not use yet: draw it as an observed point; the fan still starts at `last_observed_month`, and the
   `nowcast_last_month` estimate for that month stays visible (it is the estimate made without that price).
+- `signals` (1.4; facts at `data_up_to`, **not forecasts**: no proven skill, never call them warnings):
+  - `national_gap {month, pct, usual_pct, n_markets, far_above_usual}` or `null`: the price vs the national median
+    of the same food and unit (median over the markets with a price that month, `n_markets` >= 5), in %; `usual_pct`
+    = the market's usual gap (median over the 36 months before; `null` with fewer than 12). `far_above_usual` = at
+    least 25 % above the national median **and** clearly above its own usual gap (rule fixed before looking at
+    results). `null` for a silent market and for an old price (more than one month before the reference month).
+  - `silence {months, last_reported_month, reference_month}` or `null`: the market has published **no price for any
+    food** for `months` (>= 2) months, counted from the country's `reference_month` (the latest month most of its
+    markets reported, so WFP's late publication does not look like silence). Listed for 2-24 months.
+  - `text.en` / `text.fr`: ready-made text from these facts (empty string when there is nothing to say). Show as is,
+    near the status; it already names the caveats (data error, other reasons for missing data).
+- `national_median[]`: `{month, price}` for the last 36 months up to `data_up_to` (months with >= 5 markets), for a
+  second, neutral line on the chart (same unit and currency; never a second axis).
 - `history[]` entries: `{month, price, flag}`; `flag` is `null`, `data_error` (a value that jumped and reversed; the model
   does not use it: draw it as a separate marker, not on the line), `break` (a lasting jump, e.g. a unit change), or
   `unconfirmed_jump` (a big move in the latest month: may be a real spike, judged next month).
@@ -153,6 +173,10 @@ the forecast date (`irregular_definition` says the rule), so a note on irregular
 8. Conflict-affected markets (owner decision, 2026-10-25): **shown like every other market; everything that has
    data is shown.** Keep the config list for hiding a market or country (empty by default); it is meant for
    data-quality problems found later, never for hiding a place because of where it is.
+9. **Market signals (1.4) are descriptions, not warnings.** Show them with icon + text, never colour alone, and
+   without the alert/crisis colours of the status. Always show `n_markets` and the usual gap with a gap, and the
+   `text` (it names the caveats). A market that stopped reporting is shown with its last prices and "No price since
+   <month>", never hidden.
 
 ## 4b. Basket export (optional, separate; schema `basket-1.0`)
 

@@ -81,6 +81,9 @@ This file is the brief for coding agents. Read it fully before the first change,
     `gold.basket_*` / `live_basket_*`, export `public_export/baskets/` (schema `basket-1.0`); never change the item
     pipeline or export for it. Basket = `config/baskets.csv` (ration-based, not an official MEB; per country what
     WFP monitors). Product `basket_copula`; `basket_comonotone` is a live shadow (holdout tie), decide on live data.
+  - **Market signals (phase 6b, 2026-10-27, export 1.4):** distance from the national median and markets that stopped
+    reporting (`fpw/signals.py`), descriptions not warnings; silent markets' series stay in the export (history only).
+    Deploy 1.4 only after the site accepts it; trial runs with the `export_dir` widget.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by

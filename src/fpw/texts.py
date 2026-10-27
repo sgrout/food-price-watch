@@ -100,6 +100,33 @@ TEXTS = {
     },
 }
 
+SIGNAL_TEXTS = {  # fpw.signals.describe_signals; numbers only from facts
+    "en": {
+        "gap_above": "In {month} the price here was {pct}% above the national median of {n} markets",
+        "gap_below": "In {month} the price here was {pct}% below the national median of {n} markets",
+        "gap_at": "In {month} the price here was about the same as the national median of {n} markets",
+        "usual_above": " (usually {pct}% above)", "usual_below": " (usually {pct}% below)",
+        "usual_at": " (usually about the same)",
+        "far": "That is far above its usual distance: prices that separate from the rest of the country can point to "
+               "a cut-off area, but also to a data error.",
+        "silent": "No price has been published for this market since {month}, while most markets {in_country} "
+                  "reported up to {ref}. Missing data can be an early sign of trouble, or have other causes, such as "
+                  "a pause in monitoring.",
+    },
+    "fr": {
+        "gap_above": "En {month}, le prix ici était {pct} % au-dessus de la médiane nationale de {n} marchés",
+        "gap_below": "En {month}, le prix ici était {pct} % en dessous de la médiane nationale de {n} marchés",
+        "gap_at": "En {month}, le prix ici était à peu près égal à la médiane nationale de {n} marchés",
+        "usual_above": " (d'habitude {pct} % au-dessus)", "usual_below": " (d'habitude {pct} % en dessous)",
+        "usual_at": " (d'habitude à peu près égal)",
+        "far": "C'est bien au-dessus de son écart habituel : des prix qui s'écartent du reste du pays peuvent "
+               "signaler une zone coupée du reste, mais aussi une erreur de données.",
+        "silent": "Aucun prix n'a été publié pour ce marché depuis {month}, alors que la plupart des marchés "
+                  "{in_country} ont publié jusqu'en {ref}. L'absence de données peut être un premier signe de "
+                  "difficultés, ou avoir d'autres causes, comme une pause du suivi.",
+    },
+}
+
 ATTRIBUTION = {
     "en": "Source: World Food Programme (WFP), food prices via the Humanitarian Data Exchange (HDX), CC BY-IGO.",
     "fr": "Source : Programme alimentaire mondial (PAM), prix des denrées alimentaires via le Humanitarian Data "

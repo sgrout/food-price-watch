@@ -13,7 +13,7 @@ price = {"type": "number", "exclusiveMinimum": 0}
 nprice = {"type": ["number", "null"], "exclusiveMinimum": 0}
 prob = {"type": ["number", "null"], "minimum": 0, "maximum": 1}
 status = {"enum": ["normal", "stress", "alert", "crisis"]}
-version = {"const": "1.3"}
+version = {"const": "1.4"}
 common = {"forecast_origin": month, "data_up_to": month, "model_version": {"type": "string"}}
 attribution = {"type": "string", "pattern": "World Food Programme"}
 country_id = {"enum": ["mali", "burkina-faso", "burundi"]}
@@ -31,6 +31,15 @@ track_row = obj({"step": {"type": "integer", "minimum": 1, "maximum": 5}, "horiz
                  "typical_error_pct": {"type": ["integer", "null"]}, "new_spike_score": {"type": ["number", "null"]},
                  "base_rate_score": {"type": ["number", "null"]},
                  "new_spike_verdict": {"enum": ["better", "no_better", "worse"]}})
+
+signals = obj({
+    "national_gap": {"anyOf": [obj({"month": month, "pct": {"type": "integer"}, "usual_pct": {"type": ["integer", "null"]},
+                                    "n_markets": {"type": "integer", "minimum": 5},
+                                    "far_above_usual": {"type": "boolean"}}), {"type": "null"}]},
+    "silence": {"anyOf": [obj({"months": {"type": "integer", "minimum": 2}, "last_reported_month": month,
+                               "reference_month": month}), {"type": "null"}]},
+    "text": obj({"en": {"type": "string"}, "fr": {"type": "string"}}),
+})
 
 SCHEMAS = {
     "manifest": obj({
@@ -58,6 +67,8 @@ SCHEMAS = {
             "last_observed_month": month,
             "next_month": nmonth, "next_p10": nprice, "next_p50": nprice, "next_p90": nprice,
             "next_spike_probability": prob,
+            "gap_pct": {"type": ["integer", "null"]}, "far_above_usual": {"type": "boolean"},
+            "silent_months": {"type": ["integer", "null"], "minimum": 2},
             "latitude": {"type": ["number", "null"]}, "longitude": {"type": ["number", "null"]}})},
     }, title="food-price-watch export: index.json"),
     "countries": obj({
@@ -67,7 +78,11 @@ SCHEMAS = {
             "series": {"type": "integer"}, "series_with_forecast": {"type": "integer"},
             "markets": {"type": "integer"},
             "status_counts": obj({k: {"type": "integer"} for k in ["normal", "stress", "alert", "crisis"]}),
-            "last_observed_month": month})},
+            "last_observed_month": month, "reference_month": nmonth,
+            "far_above_usual": {"type": "integer", "minimum": 0},
+            "silent_markets": {"type": "array", "items": obj({
+                "market_id": {"type": "integer"}, "market": {"type": "string"}, "admin1": {"type": ["string", "null"]},
+                "months": {"type": "integer", "minimum": 2}, "last_reported_month": month})}})},
     }, title="food-price-watch export: countries.json"),
     "series": obj({
         "schema_version": version, "id": {"type": "string"},
@@ -84,9 +99,11 @@ SCHEMAS = {
         "explanation": obj({"en": {"type": "string"}, "fr": {"type": "string"}}, required=[]),  # {} without forecast
         "reporting": obj({"months_reported_12": {"type": "integer", "minimum": 0, "maximum": 12},
                           "irregular": {"type": "boolean"}}),
+        "signals": {"anyOf": [signals, {"type": "null"}]},
         "dates": obj({**common, "last_observed_month": month, "run_at": {"type": "string"}}),
         "history": {"type": "array", "items": obj({
             "month": month, "price": price, "flag": {"enum": [None, "data_error", "break", "unconfirmed_jump"]}})},
+        "national_median": {"type": "array", "items": obj({"month": month, "price": price})},
         "forecast": {"type": "array", "maxItems": 5, "items": obj({
             "month": month, "step": {"type": "integer", "minimum": 1, "maximum": 5}, "horizon": horizon,
             "p025": price, "p10": price, "p50": price, "p90": price, "p975": price,
