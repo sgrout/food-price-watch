@@ -28,10 +28,13 @@ def _track(m: pd.DataFrame) -> list[dict]:
 
 def build_basket_export(components: pd.DataFrame, history: pd.DataFrame, forecasts: pd.DataFrame,
                         metrics: pd.DataFrame, metrics_country: pd.DataFrame, live_metrics: pd.DataFrame,
-                        generated_at: datetime, status: str = "beta", model: str = "basket_copula") -> dict[str, bytes]:
+                        generated_at: datetime, status: str = "beta", model: str = "basket_copula",
+                        item_series=None) -> dict[str, bytes]:
     """components: fpw.basket.basket_components (+ basket_series_id); history: basket_cost_history; forecasts: the
     latest live basket rows (log cost, steps 1-5); metrics / metrics_country: basket backtest metrics (population,
-    model, split, step[, country]); live_metrics may be empty."""
+    model, split, step[, country]); live_metrics may be empty. item_series: the series ids in the item export; a
+    basket is exported only if all its foods are (None = no filter). As in the item export, `last_observed_month`
+    and the text use the last month up to `data_up_to`; `history` keeps every published month."""
     if status not in STATUSES:
         raise ValueError(f"status must be one of {STATUSES}, got {status!r}")
     files: dict[str, bytes] = {}
@@ -44,6 +47,8 @@ def build_basket_export(components: pd.DataFrame, history: pd.DataFrame, forecas
     fc_by = {k: g.sort_values("step") for k, g in fc.groupby("series_id")}
     index = {}
     for bid, comps in components.groupby("basket_series_id", sort=True):
+        if item_series is not None and not set(comps["series_id"]) <= set(item_series):
+            continue
         first = comps.iloc[0]
         country = first["country"]
         currency = COUNTRIES[country].currencies[0]
@@ -62,7 +67,8 @@ def build_basket_export(components: pd.DataFrame, history: pd.DataFrame, forecas
                                  **{k: export_price(np.exp(getattr(r, q))) for k, q in
                                     [("p025", "q025"), ("p10", "q10"), ("p50", "q50"), ("p90", "q90"),
                                      ("p975", "q975")]}})
-        last = h.iloc[-1]
+        used = h[h["m"] <= data_up_to] if data_up_to is not None else h
+        last = used.iloc[-1] if len(used) else h.iloc[-1]
         by_step = {f["step"]: f for f in forecast}
         facts = {"components": comp_list, "currency": currency, "last_month": int(last["m"]),
                  "cost": export_price(last["cost"])}

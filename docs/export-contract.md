@@ -104,8 +104,13 @@ change; ids do not). Suitable for URLs: `/mali/mali-1816-73-retail-kg`.
   for irregular markets; wording per `track_record.backtest.by_reporting` (below).
 - `dates {forecast_origin, data_up_to, last_observed_month, run_at, model_version}`: a forecast made in
   `forecast_origin` uses only prices published by then, i.e. up to `data_up_to` (two months earlier: WFP publishes
-  with a lag).
-- `history[]`: `{month, price, flag}`; `flag` is `null`, `data_error` (a value that jumped and reversed; the model
+  with a lag). `last_observed_month` is the last month with a price up to `data_up_to` (what the forecast and the
+  explanation use).
+- `history[]` contains every published month, so it can go **beyond `data_up_to`** where WFP published faster
+  (2026-10: September prices in most Burkina Faso and some Burundi series). Such a month is a real observation the
+  forecast did not use yet: draw it as an observed point; the fan still starts at `last_observed_month`, and the
+  `nowcast_last_month` estimate for that month stays visible (it is the estimate made without that price).
+- `history[]` entries: `{month, price, flag}`; `flag` is `null`, `data_error` (a value that jumped and reversed; the model
   does not use it: draw it as a separate marker, not on the line), `break` (a lasting jump, e.g. a unit change), or
   `unconfirmed_jump` (a big move in the latest month: may be a real spike, judged next month).
 - `forecast[]` (5 entries, `step` 1-5): `month`, `horizon`, the quantiles `p025 p10 p50 p90 p975`, `usual_level`,
@@ -168,7 +173,9 @@ Files: `manifest.json` (status, dates, counts, attribution(_fr), disclaimer(_fr)
 `basket/<id>.json` (`basket.components[]` with `commodity_fr`, `missing[]`, `history[]` of `{month, cost}`,
 `forecast[]` with `p025 p10 p50 p90 p975` in local currency per person-month, `explanation.en/fr`),
 `track_record.json` (backtest per horizon and per country; live once matured). Ids:
-`<country>-<market_id>-basket-<basket_id>`.
+`<country>-<market_id>-basket-<basket_id>`. A basket is exported only if all its foods are series in the item
+export, so every basket market has item pages (region from them). `last_observed_month` and the explanation use the
+last month up to `data_up_to`; `history[]` keeps later published months, as for items (§4).
 
 Rules: the same as §4 (ranges, data date, attribution, no recomputation, beta banner). No spike chance for baskets.
 `eligible: false` = some item lacks enough data at the forecast date: history only, no forecast. A
