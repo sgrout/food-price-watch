@@ -100,12 +100,15 @@ def test_basket_text_numbers_come_from_facts():
              {"component": "oil", "commodity": "Oil (palm)", "quantity": 0.75, "unit": "L"}]
     f = {"components": comps, "currency": "BIF", "last_month": ORIGIN - 2, "cost": 30104.96, "next_month": ORIGIN + 1,
          "next_lo": 27650.5, "next_hi": 33120.25, "last_fc_month": ORIGIN + 3, "last_lo": 26000.0, "last_hi": 36500.75}
+    old = {**f, "last_month": ORIGIN - 4, "data_up_to": ORIGIN - 2}  # with the note: 5 months from June to November
     for lang in ("en", "fr"):
-        text = describe_basket(f, lang)
-        allowed = {display_price(f[k], lang) for k in ["cost", "next_lo", "next_hi", "last_lo", "last_hi"]}
-        allowed |= {"12", "0.75", "0,75", "8", "10", "2026", "2027"}
-        numbers = set(re.findall(r"\d(?:[\d,. ]*\d)?", text))
-        assert numbers <= allowed, (lang, numbers - allowed)
+        for g, extra in [(f, set()), (old, {str(old["next_month"] - old["last_month"])})]:
+            text = describe_basket(g, lang)
+            allowed = {display_price(g[k], lang) for k in ["cost", "next_lo", "next_hi", "last_lo", "last_hi"]}
+            allowed |= {"12", "0.75", "0,75", "8", "10", "2026", "2027"} | extra
+            numbers = set(re.findall(r"\d(?:[\d,. ]*\d)?", text))
+            assert numbers <= allowed, (lang, numbers - allowed)
+        assert "5 mo" in describe_basket(old, lang)
     assert missing_components(comps) == ["pulses"]
     assert composition_text(comps, "fr") == "12 kg Farine de manioc, 0,75 l Huile de palme"
 
@@ -136,3 +139,16 @@ def test_months_after_data_up_to_are_history_only_and_baskets_follow_the_item_ex
     assert b["dates"]["last_observed_month"] == b["dates"]["data_up_to"] == "2026-08"
     assert "in August 2026" in b["explanation"]["en"] and "9,999" not in b["explanation"]["en"]
     assert load(files, "index/burkina-faso.json")["baskets"][0]["last_observed_month"] == "2026-08"
+
+
+def test_old_last_basket_cost_gets_a_note():
+    comps, hist, fc, metrics, metrics_country, live = inputs()
+    hist = hist[~((hist["market_id"] == 1) & (hist["m"] >= ORIGIN - 3))]  # market 1: last complete cost in June
+    files = build_basket_export(comps, hist, fc, metrics, metrics_country, live, generated_at=datetime(2026, 10, 26))
+    b = load(files, "basket/burkina-faso-1-basket-ration_v1.json")
+    assert b["dates"]["last_observed_month"] == "2026-06"
+    assert ("No complete basket cost has been published for this market since June 2026: November 2026 is 5 months "
+            "after it, so the range is wider than usual. November 2026: most likely") in b["explanation"]["en"]
+    assert "depuis juin 2026 : novembre 2026 se situe 5 mois plus tard" in b["explanation"]["fr"]
+    other = load(files, "basket/burkina-faso-2-basket-ration_v1.json")["explanation"]["en"]
+    assert "No complete basket cost" not in other  # no forecast there, and its last cost is August anyway

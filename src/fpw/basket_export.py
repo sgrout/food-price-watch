@@ -71,7 +71,7 @@ def build_basket_export(components: pd.DataFrame, history: pd.DataFrame, forecas
         last = used.iloc[-1] if len(used) else h.iloc[-1]
         by_step = {f["step"]: f for f in forecast}
         facts = {"components": comp_list, "currency": currency, "last_month": int(last["m"]),
-                 "cost": export_price(last["cost"])}
+                 "cost": export_price(last["cost"]), "data_up_to": data_up_to}
         if NEXT_STEP in by_step and LAST_STEP in by_step:
             facts.update(next_month=int(rows.loc[rows["step"] == NEXT_STEP, "target"].iloc[0]),
                          next_lo=by_step[NEXT_STEP]["p10"], next_hi=by_step[NEXT_STEP]["p90"],

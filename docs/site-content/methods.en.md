@@ -27,6 +27,25 @@ corrected with the model's own past mistakes, using only mistakes that were alre
 The 80 % range means: if the track record holds, the real price will fall inside it about
 8 times in 10. The track record page shows how often that really happened.
 
+How to use it: the most likely value shows the direction (for example a fall after the harvest); the upper end
+shows how high the price could plausibly go, for example as a margin when planning a budget. Within a country, a
+wider range means less certainty in that market.
+
+## Why the ranges are wide
+
+The ranges are wide because food prices really move this much, and we would rather show that than look more
+precise than we are. A narrower range would look better but be wrong more often. Three things make them wider:
+
+- **Prices move a lot.** Around the harvest and the lean season, staple prices can rise or fall sharply within a
+  few months, and the timing differs from year to year.
+- **The newest price is already old.** WFP publishes prices about two months late, so "next month" is about three
+  months after the last known price.
+- **Some markets report irregularly.** If a market has not reported a price for a while, the forecast starts from
+  an older price and its range is wider still; the text then says so.
+
+In tests on 2023 onwards, the typical miss (half of the errors were smaller) was about 5 % for the month just past,
+about 10 % for next month and about 15 % three months ahead, for single foods and for the basket alike.
+
 ## What a spike is
 
 A price well above the usual level for that time of year: at least one standard deviation above

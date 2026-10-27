@@ -14,6 +14,7 @@ import pandas as pd
 
 from decimal import ROUND_HALF_EVEN, Decimal
 
+from fpw.backtest import LAG
 from fpw.texts import GROUPS, IN_COUNTRY, MONTHS, NUMBER_FORMAT, TEXTS
 
 FLAT_PCT = 2  # changes below this (in %) are described as "about stable"
@@ -35,7 +36,8 @@ def facts(rows: pd.DataFrame, currency: str) -> dict:
     first = rows.iloc[0]
     nxt, last = by_step.loc[NEXT_STEP], by_step.loc[LAST_STEP]
     return {
-        "data_month": int(first["m_last"]), "status": status(float(first["z_now"])),
+        "data_month": int(first["m_last"]), "data_up_to": int(first["origin"]) - LAG,
+        "months_ahead": int(nxt["target"]) - int(first["m_last"]), "status": status(float(first["z_now"])),
         "level_pct": _pct(float(first["resid_last"])),
         "trend_pct": _pct(float(first["ret3"])) if pd.notna(first["ret3"]) else None,
         "market_pct": _pct(float(first["grp_ret3"])) if pd.notna(first["grp_ret3"]) else None,
@@ -107,6 +109,8 @@ def describe(f: dict, lang: str = "en") -> str:
         _signed(t, "market", f["market_pct"], n=f["market_n"], group=GROUPS[lang].get(f["group"], GROUPS[lang]["other"]),
                 in_country=IN_COUNTRY[lang][f["country"]])
         if f["market_n"] > 1 else None,
+        t["stale"].format(month=month(f["data_month"]), next=month(f["next_month"]), k=f["months_ahead"])
+        if f["data_month"] < f.get("data_up_to", f["data_month"]) else None,
         t["forecast"].format(Month=cap(month(f["next_month"])), lo=price(f["next_lo"]), hi=price(f["next_hi"]),
                              currency=f["currency"], unit=f["unit"]),
         t["forecast"].format(Month=cap(month(f["last_month"])), lo=price(f["last_lo"]), hi=price(f["last_hi"]),

@@ -467,8 +467,17 @@ conversions in `config/unit_conversions.csv` (oil 0.92 kg/L).
   compressed; hashes and schemas verified. Contract §4b; sample `export/sample-baskets/`.
 - Fix (2026-10-27, questions from the site side): the first export had 267 baskets; 56 used a food series that is
   not in the item export (47 of them in markets with no item pages at all, mostly stopped: last price 2012-2025).
-  A basket is now exported only if all its foods are item-export series. Its `last_observed_month` and text now use the last month up to `data_up_to`, as for
-  items; `history[]` keeps months WFP published early (September 2026 in 66 baskets), as the item files already do.
+  A basket is now exported only if all its foods are item-export series. Its `last_observed_month` and text now use
+  the last month up to `data_up_to`, as for items; `history[]` keeps months WFP published early (September 2026 in
+  66 baskets), as the item files already do.
+- Wide ranges explained (2026-10-27, owner found them unclear; e.g. Diapaga basket November 2026: 3,747-8,115 XOF).
+  They are honest, not careless: the 80 % range held 77 % in the 2023+ test; the typical miss is about 5 / 10 / 15 %
+  for last month / next month / 3 months ahead (items 4.6 / 9.4 / 14.3 %, baskets 4.4 / 9.8 / 15.1 %). Typical
+  width (p90 / p10, next month): Burundi 1.45, Burkina Faso 1.55, Mali 1.75. Diapaga is the extreme: its last price
+  is June, so November is 5 months ahead, in harvest time. Added: a note in item and basket texts when a market's
+  last price is older than `data_up_to` (11 food series, 6 baskets today), `site-content/range-note.*.md` under every
+  range, and a methods section "Why the ranges are wide". Biggest honest lever left: use months WFP published early
+  (a model candidate, to be fixed up front and judged on the live record).
 - Gotcha: the basket job first failed (`No module named 'lightgbm'`): `fpw.live` imports the ML module, so the job
   needs the `ml` environment. The item pipeline was not affected.
 

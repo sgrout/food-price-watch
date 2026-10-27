@@ -7,12 +7,13 @@ from fpw.explain import describe, display_pct, display_price, facts, status
 from fpw.texts import MONTHS, TEXTS
 
 
-def rows(resid=0.3, ret3=0.25, grp=-0.1, n=12, spike=0.42):
+def rows(resid=0.3, ret3=0.25, grp=-0.1, n=12, spike=0.42, gap=0):
     steps = [1, 2, 3, 4, 5]
     lp = np.log(500.0)
     return pd.DataFrame({
-        # step s targets the last usable month + s
-        "step": steps, "target": [2026 * 12 + 7 + s for s in steps], "m_last": 2026 * 12 + 7, "z_now": resid / 0.15,
+        # origin October 2026: data up to August; step s targets August + s; gap = months without a price before August
+        "origin": 2026 * 12 + 9, "step": steps, "target": [2026 * 12 + 7 + s for s in steps],
+        "m_last": 2026 * 12 + 7 - gap, "z_now": resid / 0.15,
         "resid_last": resid, "ret3": ret3, "grp_ret3": grp, "grp_n": n, "commodity_group": "millet", "country": "burkina-faso",
         "unit": "KG", "q10": lp - 0.1, "q90": lp + 0.2, "spike_prob": spike,
     })
@@ -38,7 +39,8 @@ def test_every_number_in_the_text_comes_from_the_facts():
     """Guardrail: numbers can only come from facts (or the fixed caveat years), never be invented."""
     from fpw.explain import display_price
     for lang in ("en", "fr"):
-        for args in [dict(), dict(resid=-0.2, ret3=-0.3, grp=0.004, n=1, spike=0.07), dict(resid=0.01, ret3=np.nan)]:
+        for args in [dict(), dict(resid=-0.2, ret3=-0.3, grp=0.004, n=1, spike=0.07), dict(resid=0.01, ret3=np.nan),
+                     dict(gap=2)]:
             f = facts(rows(**args), currency="XOF")
             allowed = {str(abs(v)) for v in f.values() if isinstance(v, int)}
             allowed |= {str(m // 12) for m in (f["data_month"], f["next_month"], f["last_month"])}
@@ -47,6 +49,16 @@ def test_every_number_in_the_text_comes_from_the_facts():
             text = describe(f, lang)
             numbers = re.findall(r"\d(?:[\d,\u202f]*\d)?", text)
             assert set(numbers) <= allowed, (lang, set(numbers) - allowed)
+
+
+def test_old_last_price_gets_a_note():
+    assert "No price has been published" not in describe(facts(rows(), currency="XOF"))  # last price = data up to
+    text = describe(facts(rows(gap=2), currency="XOF"))
+    assert text.startswith("In June 2026 the price was")
+    assert ("No price has been published for this market since June 2026: November 2026 is 5 months after the last "
+            "known price, so the range is wider than usual. November 2026: most likely") in text
+    fr = describe(facts(rows(gap=2), currency="XOF"), "fr")
+    assert "depuis juin 2026 : novembre 2026 se situe 5 mois après le dernier prix connu" in fr
 
 
 def test_flat_changes_and_single_market():

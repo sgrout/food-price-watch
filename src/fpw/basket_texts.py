@@ -18,6 +18,8 @@ TEXTS = {
     "en": {
         "cost": "A staple basket for one person for one month ({composition}) cost about {cost} {currency} in {month}.",
         "forecast": "{Month}: most likely between {lo} and {hi} {currency} (8 in 10 chance).",
+        "stale": "No complete basket cost has been published for this market since {month}: {next} is {k} months "
+                 "after it, so the range is wider than usual.",
         "missing": "Not included: {missing}; WFP's price series for them here are missing or too short for a "
                    "forecast.",
         "caveat": "This is a simple ration-based basket made by Staple Signals, not an official minimum expenditure "
@@ -27,6 +29,8 @@ TEXTS = {
         "cost": "Un panier de base pour une personne pendant un mois ({composition}) coûtait environ {cost} "
                 "{currency} en {month}.",
         "forecast": "{Month} : probablement entre {lo} et {hi} {currency} (8 chances sur 10).",
+        "stale": "Aucun coût complet du panier n'a été publié pour ce marché depuis {month} : {next} se situe "
+                 "{k} mois plus tard, l'intervalle est donc plus large que d'habitude.",
         "missing": "Non inclus : {missing} ; les séries de prix du PAM sont absentes ou trop courtes ici "
                    "pour une prévision.",
         "caveat": "Il s'agit d'un panier simple fondé sur une ration, établi par Staple Signals, et non d'un panier "
@@ -56,7 +60,8 @@ def missing_components(components: list[dict]) -> list[str]:
 
 
 def describe_basket(f: dict, lang: str = "en") -> str:
-    """f: components, currency, last_month, cost, next_month, next_lo, next_hi, last_fc_month, last_lo, last_hi."""
+    """f: components, currency, last_month, cost, next_month, next_lo, next_hi, last_fc_month, last_lo, last_hi
+    [, data_up_to: adds a note when the last complete cost is older]."""
     t, months = TEXTS[lang], MONTHS[lang]
     month = lambda m: f"{months[m % 12]} {m // 12}"
     cap = lambda s: s[:1].upper() + s[1:]
@@ -64,6 +69,9 @@ def describe_basket(f: dict, lang: str = "en") -> str:
     parts = [t["cost"].format(composition=composition_text(f["components"], lang), cost=price(f["cost"]),
                               currency=f["currency"], month=month(f["last_month"]))]
     if f.get("next_month") is not None:
+        if f["last_month"] < f.get("data_up_to", f["last_month"]):
+            parts.append(t["stale"].format(month=month(f["last_month"]), next=month(f["next_month"]),
+                                           k=f["next_month"] - f["last_month"]))
         parts.append(t["forecast"].format(Month=cap(month(f["next_month"])), lo=price(f["next_lo"]),
                                           hi=price(f["next_hi"]), currency=f["currency"]))
         parts.append(t["forecast"].format(Month=cap(month(f["last_fc_month"])), lo=price(f["last_lo"]),
