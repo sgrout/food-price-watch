@@ -62,6 +62,23 @@ monitors long enough in that country. It is made by Staple Signals and is **not 
 basket**. Its range combines the forecasts of the foods in it, taking into account how their past errors moved
 together, so it is wider when the foods tend to rise and fall together.
 
+## Distance from the national price
+
+For each food, the page compares the market's price with the median price of the same food in the country's other
+markets that month (at least five markets), and with the market's own usual distance over the three years before.
+Remote markets are often dearer all the time, so what matters is a distance that grows. In blockaded or cut-off
+areas, prices can separate from the rest of the country, and a national average hides exactly those places. A
+market is marked when its price is at least 25 % above the national median and clearly above its usual distance.
+This is a description of the data, not a forecast or a proven warning: a data error can look the same.
+
+## Markets that stopped reporting
+
+A market that has published no price for any food for two months or more is shown as such, with its last prices,
+instead of disappearing. Months are counted from the latest month most markets in the country reported, so WFP's
+normal publication delay does not count as silence. In conflict areas, missing data can be an early sign of
+trouble, but it can also have other causes, such as a pause in monitoring or a change in the list of markets WFP
+follows.
+
 ## Data checks
 
 A value that jumps and fully reverses the next month is marked as a data error and not used, once the

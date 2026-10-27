@@ -200,3 +200,45 @@ def test_status_must_be_known_and_beta_is_valid():
     assert m["status"] == "beta"
     with pytest.raises(ValueError):
         build_export(*inputs(), generated_at=datetime(2026, 10, 26), status="live")
+
+
+def test_signals_and_silent_series_in_the_export():
+    from fpw.panel import monthly_panel
+    from fpw.signals import compute_signals, silent_series
+    summary, forecasts, prices, metrics, metrics_country, live = inputs()
+    months = pd.date_range("2022-01-15", "2026-08-15", freq="MS") + pd.Timedelta(days=14)
+    others = [pd.DataFrame({"country": "mali", "market_id": mid, "series_commodity_id": 51, "unit": "KG",
+                            "date": months.date, "price": 190.0 + np.arange(len(months)), "is_suspect": False,
+                            "quality_flag": None, "admin1": "Mopti", "admin2": "x", "latitude": 14.5, "longitude": -4.2})
+              for mid in (301, 302, 303, 304)]
+    quiet = others[-1].assign(market_id=400)
+    quiet = quiet[quiet["date"] < pd.Timestamp("2026-05-15").date()]  # last price April 2026
+    p = pd.concat([prices] + others + [quiet], ignore_index=True)
+    p.loc[(p["market_id"] == 247) & (p["date"] == months[-1].date()), "price"] = 400.0  # Bamako: far above now
+    p = p.assign(pricetype="Retail", commodity="Maize", market="M" + p["market_id"].astype(str),
+                 confirmed_date=p["date"])
+    p.loc[p["market_id"] == 400, "market"] = "Tenenkou"
+    panel = monthly_panel(p)
+    sig = compute_signals(panel, ORIGIN - 2)
+    extra = silent_series(panel, sig, set(summary["series_id"]))
+    assert extra["series_id"].tolist() == ["mali|400|51|Retail|KG"]
+    files = build_export(summary, forecasts, p, metrics, metrics_country, live, generated_at=datetime(2026, 10, 26),
+                         signals=sig, silent=extra)
+    for name, path in [("series", "series/mali-247-51-retail-kg.json"), ("series", "series/mali-400-51-retail-kg.json"),
+                       ("index", "index.json"), ("countries", "countries.json")]:
+        jsonschema.validate(load(files, path), json.loads((SCHEMAS / f"{name}.schema.json").read_text()))
+    bamako = load(files, "series/mali-247-51-retail-kg.json")
+    g = bamako["signals"]["national_gap"]
+    assert g["month"] == "2026-08" and g["n_markets"] == 6 and g["pct"] > 25 and g["far_above_usual"]
+    assert bamako["signals"]["text"]["en"].startswith("In August 2026 the price here was")
+    assert bamako["national_median"][-1]["month"] == "2026-08" and len(bamako["national_median"]) == 36
+    t = load(files, "series/mali-400-51-retail-kg.json")
+    assert not t["eligible"] and t["status"] is None and t["forecast"] == [] and t["history"][-1]["month"] == "2026-04"
+    assert t["signals"]["silence"] == {"months": 4, "last_reported_month": "2026-04", "reference_month": "2026-08"}
+    assert t["signals"]["national_gap"] is None and "since April 2026" in t["signals"]["text"]["en"]
+    mali = load(files, "countries.json")["countries"][0]
+    assert mali["silent_markets"] == [{"market_id": 400, "market": "Tenenkou", "admin1": "Mopti", "months": 4,
+                                       "last_reported_month": "2026-04"}]
+    assert mali["reference_month"] == "2026-08" and mali["far_above_usual"] == 1
+    row = next(r for r in load(files, "index.json")["series"] if r["id"] == "mali-400-51-retail-kg")
+    assert row["silent_months"] == 4 and row["gap_pct"] is None

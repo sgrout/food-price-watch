@@ -1,8 +1,8 @@
 """Make a small, real sample of the public export for building the site offline (export/sample/).
 
 Usage: .venv/bin/python scripts/make_export_sample.py <extracted export dir>
-Picks four real series (with a forecast and a data-error flag; in alert or crisis; reporting irregularly; without
-enough data), filters the indexes to them and rebuilds the manifest with the hashes of the sample files.
+Picks six real series (with a forecast and a data-error flag; in alert or crisis; reporting irregularly; without
+enough data; in a market that stopped reporting; far above the national price), filters the indexes to them and rebuilds the manifest with the hashes of the sample files.
 """
 
 import hashlib
@@ -24,8 +24,10 @@ flagged = next(r["id"] for r in rows if r["eligible"] and r["status"] == "stress
                and any(h["flag"] == "data_error" for h in series(r["id"])["history"]))
 severe = next(r["id"] for r in rows if r["eligible"] and r["status"] in ("alert", "crisis"))
 irregular = next(r["id"] for r in rows if r["eligible"] and r.get("irregular_reporting") and r["id"] not in (flagged, severe))
-too_short = next(r["id"] for r in rows if not r["eligible"])
-picked = [flagged, severe, irregular, too_short]
+too_short = next(r["id"] for r in rows if not r["eligible"] and not r.get("silent_months"))
+silent = next(r["id"] for r in rows if r.get("silent_months"))  # 1.4: a market that stopped reporting
+far = next(r["id"] for r in rows if r.get("far_above_usual") and r["id"] not in (flagged, severe, irregular))
+picked = [flagged, severe, irregular, too_short, silent, far]
 
 if dst.exists():
     shutil.rmtree(dst)
