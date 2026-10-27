@@ -112,8 +112,11 @@ def check_continuations(prices: pd.DataFrame, continuations: dict[tuple[str, int
 
 
 def check_freshness(fetch_log: pd.DataFrame, latest_data: dict[str, date], countries: list[str], today: date,
-                    max_check_age_days: int = 14, max_data_age_days: int = 120) -> None:
+                    max_check_age_days: int = 14, max_data_age_days: int = 120, data_age_countries=None) -> None:
     """Raise DataQualityError if a source stays stale: no successful fetch recently, or no recent data month.
+
+    The fetch check covers every ingested country; the data-month check only `data_age_countries` (default: all),
+    i.e. the forecast countries: a country kept for the record (Chad, published months late) must not stop the run.
 
     `fetch_log` has columns country, status, _ingested_at; a fetch is successful if status is new or unchanged.
     WFP publishes with a lag of weeks, so the latest data month may be 2-3 months old; 120 days is the alarm.
@@ -124,6 +127,8 @@ def check_freshness(fetch_log: pd.DataFrame, latest_data: dict[str, date], count
     for c in countries:
         if c not in last_ok or (today - last_ok[c]).days > max_check_age_days:
             problems.append(f"{c}: no successful fetch in {max_check_age_days} days (last: {last_ok.get(c)})")
+        if data_age_countries is not None and c not in data_age_countries:
+            continue
         if c not in latest_data or (today - latest_data[c]).days > max_data_age_days:
             problems.append(f"{c}: latest data month {latest_data.get(c)} is older than {max_data_age_days} days")
     if problems:

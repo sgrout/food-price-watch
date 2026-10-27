@@ -5,3 +5,4 @@ burundi,ration_v1,2026-10,oil,Oil (palm),0.75,L,WFP general food ration (oil 25 
 burkina-faso,ration_v1,2026-10,cereal,Millet,12,KG,WFP general food ration (cereals 400 g/person/day),Cereals and pulses (60 markets); WFP publishes no cooking-oil prices for Burkina Faso.
 burkina-faso,ration_v1,2026-10,pulses,Beans (niebe),1.8,KG,WFP general food ration (pulses 60 g/person/day),
 mali,ration_v1,2026-10,cereal,Millet,12,KG,WFP general food ration (cereals 400 g/person/day),Cereal part only (56 markets): pulse and oil series in Mali are too short or too irregular for a forecast.
+niger,ration_v1,2026-10,cereal,Millet,12,KG,WFP general food ration (cereals 400 g/person/day),Cereal part only (52 markets): Niger's niebe series are too irregular for a forecast and WFP publishes no cooking-oil prices there.

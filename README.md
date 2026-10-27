@@ -512,6 +512,33 @@ model, forecast or backtest change. Rules fixed before looking at results:
   (switching the weekly export to 1.4) only after that. `08_export_public.py` has an `export_dir` widget for trial
   runs into another volume.
 
+### Phase 6c: Niger (and Chad, ingest only)
+Owner's choice: Niger and Chad (HDX probe 2026-10-27; Yemen and South Sudan not now: Yemen's northern markets stopped
+in 2025 and two currency zones share one code; South Sudan has hyperinflation, x60 since 2017, and mostly aggregated
+prices). Not public until the owner's go: the exports keep `public_countries` (bundle variable, default the three
+pilots; `fpw.export.public_scope`), verified on the downloaded exports (no file or text mentions Niger or Chad).
+- **Niger:** XOF, 79 markets, 64 suspect values of 68,699; 190 eligible series (millet 52, imported rice 50, maize 46,
+  sorghum 42; median 16-17 years). Basket: millet only (52 markets).
+- **Chad: ingest only** (`Country.forecast = False`, owner decision). WFP publishes Chad 2-4 months late and
+  irregularly (HDX activity: data to 2026-02 on 2026-05-24, to 2026-05 on 2026-07-26, to 2026-06 on 2026-10-19); with
+  the origin - 2 rule its forecasts would come and go. Its first ingest stopped `gold_coverage` (freshness: data month
+  older than 120 days, which would have stopped every country's Monday run); the data-age check now covers forecast
+  countries only, the fetch check every ingested country. Kept for our own publication record.
+- **Backtest (2023+, eligible, `lgbm_cal`), Niger** (a fresh check: never seen before): 80 % range held 80 / 77 / 73 /
+  68 / 63 % (steps 1-5, i.e. last month ... 3 months ahead), 95 % range 96 ... 86 %; typical error 4.2 / 6.8 / 9.2 /
+  11.6 / 13.7 % (like the pilots); new-spike Brier 0.80-0.92 of the base rate. **Too narrow further ahead**, and the
+  misses sit in 2024-2025 (3 months ahead: 2024 65 %, 2025 29 % with a typical error of 23 %; 2019-2023 and 2026
+  74-91 %): Niger's shock years after the July 2023 coup (sanctions, border with Benin closed) and the 2024 floods.
+  Mali shows the same in its 2023 crisis (58 %). The model underestimates sudden political and economic shocks.
+- **Pilots after adding Niger** (same pooled model, holdout spent, choice not re-opened): 80 % coverage next month
+  BF 80.8 -> 79.9, Burundi 76.0 -> 75.1, Mali 74.4 -> 73.1; pooled next month 77.0 -> 75.5 %, 3 months 75.7 -> 72.2 %
+  (Niger included); typical errors within 0.4 points. A small, honest step down.
+- **Basket backtest, Niger (millet):** 80 % range held 78 % next month, 69 % in 3 months; typical error 9.4 / 13.7 %.
+- **Model:** `@champion` v2 trained on four countries (594,255 rows; sanity gate passed). LightGBM re-applies its
+  training categories by value, so adding countries does not shift a trained model's codes (test in `tests/test_ml.py`).
+- **Live (2026-10-27):** 215 Niger series (190 with a forecast) and 53 baskets in `gold.live_forecasts` /
+  `live_basket_forecasts`; the track record starts before publication.
+
 ### How to run
 
 ```bash

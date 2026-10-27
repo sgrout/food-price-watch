@@ -22,6 +22,8 @@ resources:
           default: ${var.env}
         - name: export_status
           default: beta
+        - name: public_countries
+          default: ${var.public_countries}
 
       # live_basket reuses fpw.live (calibration pool, scoring), which imports the LightGBM module.
       environments:

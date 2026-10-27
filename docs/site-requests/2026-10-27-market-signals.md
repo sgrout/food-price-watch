@@ -92,3 +92,7 @@ the national price, 16 silent markets with 94 series; hashes and 1.4 schemas ver
 unchanged in forecast, history, explanation and status. Please run the update by hand now (or let Monday's run take
 it). The longer list of silent markets is correct: the example above named only some of them. The apostrophe in the
 French data texts stays `'` for now (the same in all data texts); align on the site if you prefer.
+
+**Live (2026-10-27):** the update workflow fetched export 1.4 (generated 2026-10-27T17:23:41), all checks passed,
+and the signals are live on staplesignals.org (verified: Mali and Burkina Faso country sections, Tessalit silence
+block in French, Musenyi far-above block and the "National median (70 markets)" line).

@@ -13,6 +13,7 @@
 from datetime import date
 
 from fpw.coverage import country_coverage, series_coverage
+from fpw.countries import COUNTRIES
 from fpw.quality import check_freshness
 from fpw.schemas import COUNTRY_COVERAGE, SERIES_COVERAGE, to_rows
 
@@ -52,5 +53,6 @@ display(spark.sql(f"""
 
 fetch_log = spark.sql(f"SELECT country, status, _ingested_at FROM {bronze}.hdx_fetch_log").toPandas()
 latest_data = prices.groupby("country")["date"].max().to_dict()
-check_freshness(fetch_log, latest_data, countries, today=date.today())
+check_freshness(fetch_log, latest_data, countries, today=date.today(),
+                data_age_countries=[c for c in countries if COUNTRIES[c].forecast])
 print("Freshness OK")

@@ -34,3 +34,21 @@ def test_pooled_model_learns_the_season_and_beats_a_random_walk():
     assert 0.65 < s.loc["lgbm", "coverage80"] < 0.9
     q = ml[["g025", "g050", "g100", "g500", "g900", "g975"]].to_numpy()
     assert (np.diff(q, axis=1) >= 0).all()  # no crossing quantiles
+
+
+def test_adding_countries_does_not_change_an_existing_models_predictions(monkeypatch):
+    """fpw.ml codes countries as sorted(COUNTRIES), so a new country shifts the codes; LightGBM re-applies the
+    training categories by value at predict time, so a model trained before keeps reading Mali as Mali."""
+    import fpw.ml as ml
+    from fpw.ml import fit_quantile_models, predict_grid
+    rng = np.random.default_rng(3)
+    series = {f"s{i}": seasonal_ar1(100, 0.05, 0.5, rng) for i in range(24)}
+    p = panel(series)
+    p["country"] = np.where(p["series_id"].str[1:].astype(int) % 2 == 0, "mali", "burundi")
+    cases = build_cases(p, range(M0 + 48, M0 + 100))
+    train = cases[cases["actual"].notna()]
+    monkeypatch.setitem(ml._CATEGORIES, "country", ["burkina-faso", "burundi", "mali"])
+    models = fit_quantile_models(train, levels=[0.1, 0.5, 0.9], params=FAST)
+    before = predict_grid(models, cases)
+    monkeypatch.setitem(ml._CATEGORIES, "country", ["burkina-faso", "burundi", "chad", "mali", "niger"])
+    np.testing.assert_array_equal(predict_grid(models, cases), before)

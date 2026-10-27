@@ -9,6 +9,7 @@ class Country:
     iso3: str
     name: str
     currencies: tuple[str, ...]
+    forecast: bool = True  # False: ingested and kept (our own publication record), but not forecast or exported
 
 
 COUNTRIES = {
@@ -17,8 +18,14 @@ COUNTRIES = {
         Country("mali", "MLI", "Mali", ("XOF",)),
         Country("burkina-faso", "BFA", "Burkina Faso", ("XOF",)),
         Country("burundi", "BDI", "Burundi", ("BIF",)),
+        Country("niger", "NER", "Niger", ("XOF",)),  # phase 6c (2026-10-27): public only after the owner's go
+        # Chad: WFP publishes its prices 2-4 months late and irregularly (HDX activity: data to 2026-02 on 2026-05-24,
+        # to 2026-05 on 2026-07-26, to 2026-06 on 2026-10-19), so with the origin - 2 rule its forecasts would come and
+        # go. Owner decision 2026-10-27: ingest only; revisit with a per-country lag or when publication is regular.
+        Country("chad", "TCD", "Chad", ("XAF",), forecast=False),
     ]
 }
+FORECAST_COUNTRIES = tuple(slug for slug, c in COUNTRIES.items() if c.forecast)
 
 # Commodities that WFP re-specified under a new id, which we treat as one series: (country, old id) -> new id.
 # Each entry needs evidence; quality.check_continuations fails the run if the price level at the switch differs

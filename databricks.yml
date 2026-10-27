@@ -20,7 +20,10 @@ variables:
   env:
     default: dev
   countries:
-    description: Comma-separated HDX country slugs (pilots for Phase 1)
+    description: Comma-separated HDX country slugs that are ingested and forecast (public ones are in public_countries)
+    default: mali,burkina-faso,burundi,niger,chad
+  public_countries:
+    description: Countries in the public exports (item and basket); others are ingested and forecast but not exported until the owner's go
     default: mali,burkina-faso,burundi
   app_name:
     description: "App name: lowercase, digits, hyphens, max 30 chars (workspace-global, so per user in dev)"

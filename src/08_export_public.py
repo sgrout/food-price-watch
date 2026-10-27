@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from fpw.export import build_export, to_tarball
+from fpw.export import PUBLIC_COUNTRIES, build_export, public_scope, to_tarball
 from fpw.panel import monthly_panel
 from fpw.signals import compute_signals, silent_series
 
@@ -25,10 +25,12 @@ dbutils.widgets.text("catalog", "workspace")
 dbutils.widgets.text("env", "dev")
 dbutils.widgets.text("export_status", "beta")
 dbutils.widgets.text("export_dir", "public_export")  # another volume name = a trial run, not fetched by the site
+dbutils.widgets.text("public_countries", ",".join(PUBLIC_COUNTRIES))  # only these are exported (owner's go)
 catalog = dbutils.widgets.get("catalog")
 env = dbutils.widgets.get("env")
 status = dbutils.widgets.get("export_status")
 export_dir = dbutils.widgets.get("export_dir")
+public = [c.strip() for c in dbutils.widgets.get("public_countries").split(",") if c.strip()]
 
 spark.conf.set("spark.sql.session.timeZone", "UTC")
 silver, gold = f"{catalog}.fpw_{env}_silver", f"{catalog}.fpw_{env}_gold"
@@ -47,11 +49,16 @@ prices = spark.sql(f"""
            confirmed_date, quality_flag, admin1, admin2, latitude, longitude
     FROM {silver}.wfp_prices
     WHERE pricetype = 'Retail' AND price > 0""").toPandas()
+metrics_country = spark.table(f"{gold}.backtest_metrics_country").toPandas()
+# Every country is ingested and forecast; only the public ones are exported. National medians and silence are
+# per country, so they can be computed after the filter.
+scope = public_scope({"summary": summary, "forecasts": forecasts, "prices": prices,
+                      "metrics_country": metrics_country}, public)
+summary, forecasts, prices, metrics_country = (scope[k] for k in ["summary", "forecasts", "prices", "metrics_country"])
 panel = monthly_panel(prices)
 signals = compute_signals(panel, int(summary["data_month"].iloc[0]))
 silent = silent_series(panel, signals, set(summary["series_id"]))
-metrics = spark.table(f"{gold}.backtest_metrics").toPandas()
-metrics_country = spark.table(f"{gold}.backtest_metrics_country").toPandas()
+metrics = spark.table(f"{gold}.backtest_metrics").toPandas()  # pooled over all countries in the backtest
 live_metrics = spark.table(f"{gold}.live_metrics").toPandas()
 
 generated_at = datetime.now(timezone.utc).replace(tzinfo=None)

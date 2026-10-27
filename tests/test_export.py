@@ -242,3 +242,20 @@ def test_signals_and_silent_series_in_the_export():
     assert mali["reference_month"] == "2026-08" and mali["far_above_usual"] == 1
     row = next(r for r in load(files, "index.json")["series"] if r["id"] == "mali-400-51-retail-kg")
     assert row["silent_months"] == 4 and row["gap_pct"] is None
+
+
+def test_only_public_countries_are_exported():
+    from fpw.export import public_scope
+    summary, forecasts, prices, metrics, metrics_country, live = inputs()
+    niger = summary.iloc[:1].assign(country="niger", series_id="niger|9|73|Retail|KG", market_id=9)
+    fc_niger = forecasts.assign(series_id="niger|9|73|Retail|KG")
+    p_niger = prices.iloc[:50].assign(country="niger", market_id=9)
+    mc = pd.concat([metrics_country, metrics_country.assign(country="niger")])
+    f = public_scope({"summary": pd.concat([summary, niger]), "forecasts": pd.concat([forecasts, fc_niger]),
+                      "prices": pd.concat([prices, p_niger]), "metrics_country": mc}, ["mali"])
+    assert set(f["summary"]["country"]) == {"mali"} and set(f["prices"]["country"]) == {"mali"}
+    assert set(f["forecasts"]["series_id"]) == {"mali|247|51|Retail|KG"} and set(f["metrics_country"]["country"]) == {"mali"}
+    files = build_export(f["summary"], f["forecasts"], f["prices"], metrics, f["metrics_country"], live,
+                         generated_at=datetime(2026, 10, 26))
+    assert not [p for p in files if "niger" in p] and b"niger" not in b"".join(files.values())
+    assert load(files, "manifest.json")["countries"] == ["mali"]
