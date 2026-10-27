@@ -57,6 +57,9 @@ Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.3, s
   every basket market has item pages. Weekly item update of 2026-10-26 ran automatically.
 - Range explanations (2026-10-27, accepted): "Why so wide?" note under every 80 % range (item and basket pages,
   en/fr), methods sections re-copied; basket export 2026-10-27T15:13 live with the old-price sentence (6 baskets).
+- Market signals (2026-10-27, accepted): schema 1.4 accepted next to 1.3 (live); signal block, national median line,
+  silent series, and the two country sections built and live, shown once the export is 1.4. Tested with the trial
+  export: 2,803 pages, all checks pass, axe 0. Waiting for the data side to switch the weekly export to 1.4.
 - Analytics (owner approved 2026-10-25): Vercel Web Analytics, cookie-free, no personal data; one cached loader
   (1.4 KB gzip) plus Vercel's script. Footer states it; `about.*.md` still says "no tracking":
   `site-requests/2026-10-25-about-text-analytics.md` (open).

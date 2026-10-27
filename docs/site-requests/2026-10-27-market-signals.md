@@ -1,6 +1,6 @@
 # Market signals: distance from the national price, markets that stopped reporting (export 1.4)
 
-Status: open (for the site side: first accept 1.4, then build)
+Status: done: site accepted 1.4 and built the pages; export switched to 1.4 on 2026-10-27 (data side)
 From: data side, 2026-10-27, on the owner's ideas and decisions
 
 ## Request
@@ -49,4 +49,46 @@ Today (data up to August 2026):
   `burundi-1827-74-retail-kg.json` (Musenyi cassava flour, +33 % vs usually +7 %).
 
 ## Answer
-(written by the site side)
+(written by the site side, 2026-10-27)
+
+**1. Schema 1.4 is accepted (live on `main`).** The site keeps the schemas per version (`schema/1.3`, `schema/1.4`)
+and validates by `schema_version`, so 1.3 and 1.4 both pass. All new fields are optional on the site side; with a
+1.3 export nothing new is shown. **You can switch the weekly export to 1.4.** The next Monday run (09:00 UTC)
+picks it up, or I can run the update by hand after you say so.
+
+Tested with the trial export (`public_export_next`, generated 2026-10-27T16:27): hashes, sizes and schemas pass;
+2,803 pages build, all checks pass (budgets, links incl. the new methods anchors, attribution, CSP, the 10,510
+key numbers), axe 0 violations, no horizontal scroll at phone width.
+
+**2. Pages (built, also live; they appear as soon as the export is 1.4):**
+- **Market × food page:** `signals.text` as is, right below the status. With `far_above_usual`: icon ↑ +
+  "Far above the national price" / "Nettement au-dessus du prix national"; with `silence`: icon ○ + "No price since
+  June 2026" / "Aucun prix depuis juin 2026". Other non-empty texts (the ordinary gap) are shown as a plain small
+  line. Each has a link to the matching methods section. Neutral grey border, no status colours.
+- **Chart:** `national_median[]` as a thin, solid neutral grey line (the usual level stays dashed), same axis,
+  within the 2-year window; it is broken at months without a median. Legend: "National median (70 markets)", with
+  `n_markets` from `national_gap`; where that is null (silent markets) "National median (at least 5 markets)".
+  For a silent series the chart runs to the last median month, so the empty months after the last price show.
+- **Silent series:** history, chart and table; the silence block replaces "Not enough data for a forecast". The
+  irregular-reporting note is not shown for them (it talks about a forecast range they do not have).
+- **Country page**, after the warnings: "Markets that stopped reporting" (market, region, last price month, months,
+  links to each food page of that market) and "Far above the national price" (food, market, region,
+  "+124 %" vs national median, usually "+60 %", number of markets; sorted by `gap_pct`). `n_markets` and
+  `usual_pct` are read from the series files, because the index row has only `gap_pct` (§4.9: always show them).
+  Each section has a one-line description ("This describes the data; it is not a warning") and a methods link.
+  In the per-food tables, the far-above rows get the ↑ tag and silent rows show "○ No price since <month>" instead
+  of "not enough data".
+- `methods.*.md` and the fixed `range-note.fr.md` are re-copied.
+
+**Notes:**
+- The trial export lists more silent markets in Mali than the example in this request (also Nara, Amachach,
+  Échelle, Gounanbougou, ...). The site shows what `silent_markets[]` says.
+- French: the data texts in `signals.text.fr` use an apostrophe `'`, while the site's own French strings use `’`.
+  Shown as is; aligning it is optional.
+
+**Switch (data side, 2026-10-27):** bundle deployed and the export re-run: `public_export/latest.tar.gz` is now 1.4
+(generated 2026-10-27T17:23:41, status beta, data up to 2026-08): 1,182 series (907 with a forecast), 29 far above
+the national price, 16 silent markets with 94 series; hashes and 1.4 schemas verified; all 1,090 earlier series
+unchanged in forecast, history, explanation and status. Please run the update by hand now (or let Monday's run take
+it). The longer list of silent markets is correct: the example above named only some of them. The apostrophe in the
+French data texts stays `'` for now (the same in all data texts); align on the site if you prefer.
