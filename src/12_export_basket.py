@@ -11,13 +11,15 @@ from datetime import datetime, timezone
 
 from fpw.basket import basket_components, basket_cost_history, basket_id_of, load_baskets, load_conversions
 from fpw.basket_export import build_basket_export
-from fpw.export import to_tarball
+from fpw.export import PUBLIC_COUNTRIES, to_tarball
 from fpw.panel import monthly_panel
 
 dbutils.widgets.text("catalog", "workspace")
 dbutils.widgets.text("env", "dev")
 dbutils.widgets.text("export_status", "beta")
+dbutils.widgets.text("public_countries", ",".join(PUBLIC_COUNTRIES))  # only these are exported (owner's go)
 catalog, env, status = (dbutils.widgets.get(k) for k in ("catalog", "env", "export_status"))
+public = [c.strip() for c in dbutils.widgets.get("public_countries").split(",") if c.strip()]
 spark.conf.set("spark.sql.session.timeZone", "UTC")
 silver, gold = f"{catalog}.fpw_{env}_silver", f"{catalog}.fpw_{env}_gold"
 root = f"/Volumes/{catalog}/fpw_{env}_gold/public_export/baskets"
@@ -26,6 +28,7 @@ root = f"/Volumes/{catalog}/fpw_{env}_gold/public_export/baskets"
 
 panel = monthly_panel(spark.table(f"{silver}.wfp_prices").toPandas())
 comps = basket_components(panel, load_baskets(), load_conversions())
+comps = comps[comps["country"].isin(public)].copy()  # every country is forecast; only public ones are exported
 comps["basket_series_id"] = [basket_id_of(c, m, b) for c, m, b in zip(comps["country"], comps["market_id"], comps["basket_id"])]
 hist = basket_cost_history(panel, comps)
 item_series = set(spark.table(f"{gold}.live_summary").select("series_id").toPandas()["series_id"])  # as 08_export_public
@@ -33,6 +36,7 @@ fc = spark.sql(f"""SELECT * FROM {gold}.live_basket_forecasts WHERE model = 'bas
                    AND run_at = (SELECT MAX(run_at) FROM {gold}.live_basket_forecasts)""").toPandas()
 metrics = spark.table(f"{gold}.basket_backtest_metrics").toPandas()
 metrics_country = spark.table(f"{gold}.basket_backtest_metrics_country").toPandas()
+metrics_country = metrics_country[metrics_country["country"].isin(public)]
 live_metrics = spark.table(f"{gold}.live_basket_metrics").toPandas()
 generated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 files = build_basket_export(comps, hist, fc, metrics, metrics_country, live_metrics, generated_at, status=status,

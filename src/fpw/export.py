@@ -299,6 +299,20 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
     return files
 
 
+PUBLIC_COUNTRIES = ("mali", "burkina-faso", "burundi")  # job parameter public_countries; others need the owner's go
+
+
+def public_scope(frames: dict[str, pd.DataFrame], countries) -> dict[str, pd.DataFrame]:
+    """Keep only the rows of public countries in every frame with a `country` column; frames keyed by `series_id`
+    only (forecasts) follow the series of the kept frames. Ingest, backtest and live forecasts cover every country;
+    the public exports only the countries the owner approved."""
+    keep = set(countries)
+    out = {k: (f[f["country"].isin(keep)] if "country" in f.columns else f) for k, f in frames.items()}
+    ids = set().union(*(set(f["series_id"]) for f in out.values() if "country" in f.columns and "series_id" in f))
+    return {k: (f[f["series_id"].isin(ids)] if "country" not in f.columns and "series_id" in f.columns else f)
+            for k, f in out.items()}
+
+
 def to_tarball(files: dict[str, bytes]) -> bytes:
     """A gzipped tar of the export (fixed mtime, sorted paths: same content -> same bytes)."""
     buf = io.BytesIO()

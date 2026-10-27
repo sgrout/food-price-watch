@@ -17,6 +17,8 @@ COUNTRIES = {
         Country("mali", "MLI", "Mali", ("XOF",)),
         Country("burkina-faso", "BFA", "Burkina Faso", ("XOF",)),
         Country("burundi", "BDI", "Burundi", ("BIF",)),
+        Country("niger", "NER", "Niger", ("XOF",)),  # phase 6c (2026-10-27): public only after the owner's go
+        Country("chad", "TCD", "Chad", ("XAF",)),
     ]
 }
 

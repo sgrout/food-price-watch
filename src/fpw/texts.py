@@ -26,8 +26,10 @@ NUMBER_FORMAT = {"en": (",", "."), "fr": (NNBSP, ",")}
 
 # "in <country>" and the commodity group as used in a sentence.
 IN_COUNTRY = {
-    "en": {"mali": "in Mali", "burkina-faso": "in Burkina Faso", "burundi": "in Burundi"},
-    "fr": {"mali": "au Mali", "burkina-faso": "au Burkina Faso", "burundi": "au Burundi"},
+    "en": {"mali": "in Mali", "burkina-faso": "in Burkina Faso", "burundi": "in Burundi", "niger": "in Niger",
+           "chad": "in Chad"},
+    "fr": {"mali": "au Mali", "burkina-faso": "au Burkina Faso", "burundi": "au Burundi", "niger": "au Niger",
+           "chad": "au Tchad"},
 }
 GROUPS = {
     "en": {"beans": "beans", "cassava": "cassava", "maize": "maize", "millet": "millet", "oil": "cooking oil",
@@ -42,18 +44,24 @@ GROUPS = {
 COMMODITY_FR = {
     "Beans (haricot, yellow)": "Haricots (jaunes)",
     "Beans (niebe)": "Niébé",
+    "Beans (niebe, red)": "Niébé (rouge)",
+    "Cassava (cossette)": "Cossettes de manioc",
     "Cassava flour": "Farine de manioc",
     "Maize": "Maïs",
     "Maize (white)": "Maïs (blanc)",
     "Maize flour": "Farine de maïs",
     "Millet": "Mil",
+    "Oil (groundnut)": "Huile d'arachide",
     "Oil (palm)": "Huile de palme",
     "Oil (vegetable)": "Huile végétale",
     "Rice (imported)": "Riz (importé)",
     "Rice (local)": "Riz (local)",
     "Rice (paddy)": "Riz (paddy)",
     "Sorghum": "Sorgho",
+    "Sorghum (berbere)": "Sorgho (berbéré)",
+    "Sorghum (red)": "Sorgho (rouge)",
     "Sorghum (white)": "Sorgho (blanc)",
+    "Wheat": "Blé",
     "Wheat flour": "Farine de blé",
 }
 
