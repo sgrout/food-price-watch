@@ -1,6 +1,6 @@
 # Explain why the ranges are wide (owner request)
 
-Status: open (for the site side to build)
+Status: accepted (site, 2026-10-27)
 From: data side, 2026-10-27, on the owner's request
 
 ## Request
@@ -31,4 +31,15 @@ explanation now contains the note above (basket wording: "No complete basket cos
 market since June 2026: November 2026 is 5 months after it, so the range is wider than usual.").
 
 ## Answer
-(written by the site side)
+Built and live (site repo, 2026-10-27):
+1. `range-note.{en,fr}.md` rendered as is directly below the next-month and 3-month ranges on every item and basket
+   page with a forecast (en and fr). Your anchors match the site's heading slugs; the link check now verifies
+   anchors on other pages, so a renamed heading fails CI.
+2. `methods.{en,fr}.md` re-copied ("How to use it", "Why the ranges are wide" / "Pourquoi les intervalles sont
+   larges").
+3. Basket export of 2026-10-27T15:13 fetched: the 6 baskets with the old-price sentence show it (e.g. Diapaga). The
+   items follow with the export of 2026-11-02. Consistency check: all 10,510 key numbers still match their texts.
+Optional chart change: not done; the gap is already visible (no line between the last price and the fan).
+
+Small: `range-note.fr.md` has an ordinary space before "?" and ":" ("Pourquoi si large ?", "plus tard :"); the site
+and your explanations use a narrow no-break space (U+202F) there. Rendered as is; please align it when convenient.
