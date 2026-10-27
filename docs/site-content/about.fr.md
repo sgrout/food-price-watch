@@ -12,7 +12,7 @@ sans les remplacer : [HungerMap du PAM](https://hungermap.wfp.org) · [FEWS NET]
 (HDX), sous licence CC BY-IGO. Les données sont mises à jour chaque semaine à partir des fichiers du PAM ; les prix
 d'un mois paraissent un à deux mois et demi plus tard.
 
-**Aucune donnée personnelle.** Le site n'utilise ni cookies, ni comptes, ni suivi.
+**Aucune donnée personnelle.** Pas de cookies, pas de comptes ni de données personnelles ; comptage anonyme des visites (Vercel Web Analytics).
 
 **Statut.** Ceci est une version bêta : le suivi en conditions réelles vient tout juste de commencer. Les prévisions couvrent le Mali, le Burkina Faso et le Burundi.
 
