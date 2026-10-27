@@ -32,13 +32,14 @@ expensive mobile data, sometimes with old devices**. English first; French follo
 | `/` | Home | What the site is (2-3 sentences), the countries with status counts and data date, link to methods and track record |
 | `/<country>/` | Country | Warnings first (series in `alert`/`crisis`, then `stress`; only series with a forecast: `status` is `null` otherwise), then all series grouped by food; each row: market, region (`admin1`), status (icon + label), next-month 80 % range, spike chance where shown. Plain HTML table/list; filtering by food and region may use a few lines of JS but must work without it |
 | `/<country>/<series-id>/` | Market × food | Title (food, market, region, unit and currency), status badge, data date (`data_up_to` and forecast month), the `explanation`, the next-month and 3-month 80 % ranges, spike chance (if `show_spike_probability`), the fan chart, a table view of forecast and recent history, the country's track record for these horizons, flags legend, attribution. For `eligible: false`: history only and "Not enough data for a forecast" |
+| `/<country>/<basket-id>/` | Food basket (one per market) | Since 2026-10-27, from the basket export (contract §4b; instructions in `site-requests/2026-10-27-basket-pages.md`): title ("Food basket", market, country, currency per person per month), data date, the `explanation`, the composition with what is not included and "not an official basket", next-month and 3-month 80 % ranges, the fan chart, a table view, the basket track record, attribution. For `eligible: false`: history only. No status badge and no spike chance |
 | `/track-record/` | Track record | Per horizon: how often the 80 % / 95 % range held, typical error, new-spike verdict (`better`/`no_better`/`worse` than the base rate) in words; per country; live results once present. Bad results are shown as clearly as good ones |
 | `/methods/` | Methods | Render `site-content/methods.en.md` (do not rewrite its claims) |
 | `/downloads/` | Downloads | Latest CSV, past CSVs (versioned), the README and the license; plain links |
 | `/about/` | About | Render `site-content/about.en.md` |
 
 Not now (keep the structure ready): French pages (`/fr/...`), a map of markets, RSS/email alerts per country, a
-food-basket cost page. Do not add a heavy map library; a map, if approved later, is a small static SVG with dots.
+transfer-value calculator for baskets. Do not add a heavy map library; a map, if approved later, is a small static SVG with dots.
 
 ## 4. Speed and size budgets (mobile, enforced in CI)
 
@@ -68,7 +69,7 @@ fine too). No single-page-app shell, no React runtime on every page. Charts are 
   Format numbers and month names per locale (English `1,250`; French `1 250`, decimal comma).
 - Light and dark mode via `prefers-color-scheme`, both with sufficient contrast.
 
-## 6. The fan chart (market × food page)
+## 6. The fan chart (market × food page, and basket page)
 
 Same design as the project's private app, which has been checked in light and dark mode:
 - One hue (blue `#2a78d6`; dark mode `#3987e5`): the observed price line and the forecast median (dotted, with
@@ -79,6 +80,8 @@ Same design as the project's private app, which has been checked in light and da
 - Y axis from 0, labelled `<currency> per <unit>`; x axis months. A legend (several series); no dual axis.
 - Default window: the last 2 years of history plus the forecast (owner decision, 2026-10-25); the full history is
   in the table view / CSV.
+- Basket page: the same chart on the basket `history[].cost` and `forecast[]`, y axis `<currency> per person per
+  month`; no `usual_level` line and no flag markers (baskets have neither).
 - Hover/tap tooltips are an optional enhancement (tiny JS); the chart must be readable without them.
 
 ## 7. Data flow and resilience
