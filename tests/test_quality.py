@@ -133,3 +133,12 @@ def test_check_continuations_rejects_a_level_jump():
     # e.g. the new commodity is quoted per 50 KG bag, or the link is simply wrong
     with pytest.raises(DataQualityError, match=r"burundi 50->829: median price changes \+400%"):
         check_continuations(renamed(500.0), {("burundi", 50): 829})
+
+
+def test_a_record_only_country_with_old_data_does_not_stop_the_run_but_a_failed_fetch_does():
+    fetches = log(("mali", "unchanged", pd.Timestamp("2026-10-20")), ("chad", "new", pd.Timestamp("2026-10-20")))
+    latest = {"mali": date(2026, 8, 15), "chad": date(2026, 6, 15)}  # Chad: published months late
+    check_freshness(fetches, latest, ["mali", "chad"], today=date(2026, 10, 27), data_age_countries=["mali"])
+    with pytest.raises(DataQualityError, match="chad: no successful fetch"):
+        check_freshness(log(("mali", "unchanged", pd.Timestamp("2026-10-20"))), latest, ["mali", "chad"],
+                        today=date(2026, 10, 27), data_age_countries=["mali"])

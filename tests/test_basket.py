@@ -4,7 +4,7 @@ import pytest
 
 from fpw.basket import (basket_components, basket_cost_history, basket_id_of, load_baskets, load_conversions,
                         quantity_in)
-from fpw.countries import COUNTRIES
+from fpw.countries import FORECAST_COUNTRIES
 from fpw.texts import COMMODITY_FR
 
 CONV = load_conversions()
@@ -12,7 +12,7 @@ CONV = load_conversions()
 
 def test_config_files_are_valid_and_use_known_foods():
     b = load_baskets()
-    assert set(b["country"]) == set(COUNTRIES)
+    assert set(b["country"]) == set(FORECAST_COUNTRIES)  # a basket per forecast country (not Chad: ingest only)
     assert set(b["commodity"]) <= set(COMMODITY_FR)  # every basket food is a WFP name we export (and translate)
     for r in b.itertuples():  # every component can be priced per KG or L
         assert any(quantity_in(r.quantity, r.unit, u, r.component, CONV) > 0

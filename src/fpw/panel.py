@@ -5,7 +5,7 @@ from datetime import date
 import numpy as np
 import pandas as pd
 
-from fpw.countries import STAPLE_PATTERN
+from fpw.countries import FORECAST_COUNTRIES, STAPLE_PATTERN
 from fpw.silver import SERIES_KEY
 
 
@@ -24,15 +24,18 @@ def series_ids(df: pd.DataFrame) -> pd.Series:
     return df[SERIES_KEY].astype(str).agg("|".join, axis=1)
 
 
-def monthly_panel(prices: pd.DataFrame, staples_only: bool = True) -> pd.DataFrame:
+def monthly_panel(prices: pd.DataFrame, staples_only: bool = True, countries=FORECAST_COUNTRIES) -> pd.DataFrame:
     """Retail series as (series_id, identity columns, m, lp, suspect_from), invalid prices excluded.
+
+    Only `countries` (default: the forecast countries, fpw.countries.FORECAST_COUNTRIES): a country that is ingested
+    but not forecast (Chad) stays out of backtests, models, live forecasts, signals and baskets.
 
     Suspect values are kept with `suspect_from`, the month in which they are known to be suspect (NaN = never): a
     backtest drops them only from origins at which that month was published (fpw.backtest.history_at), and never
     scores them as targets. `commodity` and `market` are the latest names of a series (a linked commodity keeps its
     newest name). Two observations in one series-month (only across a commodity link) are averaged in log space.
     """
-    p = prices[(prices["pricetype"] == "Retail") & (prices["price"] > 0)]
+    p = prices[(prices["pricetype"] == "Retail") & (prices["price"] > 0) & prices["country"].isin(countries)]
     if staples_only:
         p = p[p["commodity"].str.contains(STAPLE_PATTERN, case=False, regex=True)]
     suspect_from = np.where(p["is_suspect"], month_index(p["confirmed_date"].where(p["is_suspect"], p["date"])), np.nan)
