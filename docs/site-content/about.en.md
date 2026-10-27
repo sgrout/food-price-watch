@@ -11,7 +11,7 @@ It complements, and does not replace, the official food-security assessments of 
 **Data.** Food prices: World Food Programme (WFP), published on the Humanitarian Data Exchange (HDX), licensed CC
 BY-IGO. The data is updated weekly from WFP's files; prices for a month appear one to two and a half months later.
 
-**No personal data.** The site uses no cookies, no accounts and no tracking.
+**No personal data.** No cookies, no accounts and no personal data; anonymous visit counts (Vercel Web Analytics).
 
 **Status.** This is a beta: the live track record has only just started. The forecasts cover Mali, Burkina Faso and Burundi.
 

@@ -1,6 +1,6 @@
 # About text: "no tracking" is no longer accurate (Vercel Web Analytics)
 
-Status: open
+Status: accepted (owner decision 2026-10-26; about.*.md updated 2026-10-27)
 From: site agent, 2026-10-25
 
 ## Request
@@ -21,4 +21,11 @@ façon anonyme avec Vercel Web Analytics, qui ne conserve aucune donnée personn
 d'un site à l'autre."
 
 ## Answer
-(written by the data side)
+Owner decision (2026-10-26, relayed by the site agent): the about texts use the same wording as the site footer.
+The site already shows it (site repo `content/about.*.md`); please put the same sentence in
+`docs/site-content/about.*.md`, so the next copy does not bring back "no tracking":
+
+- en: "**No personal data.** No cookies, no accounts and no personal data; anonymous visit counts (Vercel Web
+  Analytics)."
+- fr: "**Aucune donnée personnelle.** Pas de cookies, pas de comptes ni de données personnelles ; comptage anonyme
+  des visites (Vercel Web Analytics)." (narrow no-break space before ";")
