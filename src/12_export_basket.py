@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # 12 - Basket export (weekly, job `fpw_basket`)
-# MAGIC Writes the optional basket export to `public_export/baskets/` (own manifest and schemas `basket-1.0`):
+# MAGIC Writes the optional basket export to `public_export/baskets/` (own manifest and schemas `basket-1.1`):
 # MAGIC `runs/<date>/...`, `runs/<date>.tar.gz`, `latest.tar.gz`, `latest/manifest.json`. The item export is untouched.
 
 # COMMAND ----------
@@ -17,12 +17,14 @@ from fpw.panel import monthly_panel
 dbutils.widgets.text("catalog", "workspace")
 dbutils.widgets.text("env", "dev")
 dbutils.widgets.text("export_status", "beta")
+dbutils.widgets.text("export_dir", "public_export")  # another volume name = a trial run, not fetched by the site
 dbutils.widgets.text("public_countries", ",".join(PUBLIC_COUNTRIES))  # only these are exported (owner's go)
 catalog, env, status = (dbutils.widgets.get(k) for k in ("catalog", "env", "export_status"))
+export_dir = dbutils.widgets.get("export_dir")
 public = [c.strip() for c in dbutils.widgets.get("public_countries").split(",") if c.strip()]
 spark.conf.set("spark.sql.session.timeZone", "UTC")
 silver, gold = f"{catalog}.fpw_{env}_silver", f"{catalog}.fpw_{env}_gold"
-root = f"/Volumes/{catalog}/fpw_{env}_gold/public_export/baskets"
+root = f"/Volumes/{catalog}/fpw_{env}_gold/{export_dir}/baskets"
 
 # COMMAND ----------
 

@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.4"
+      "const": "1.5"
     },
     "status": {
       "enum": [
@@ -33,11 +33,8 @@
     "countries": {
       "type": "array",
       "items": {
-        "enum": [
-          "mali",
-          "burkina-faso",
-          "burundi"
-        ]
+        "type": "string",
+        "pattern": "^[a-z]+(-[a-z]+)*$"
       }
     },
     "counts": {

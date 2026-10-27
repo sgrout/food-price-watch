@@ -14,6 +14,6 @@ d'un mois paraissent un à deux mois et demi plus tard.
 
 **Aucune donnée personnelle.** Pas de cookies, pas de comptes ni de données personnelles ; comptage anonyme des visites (Vercel Web Analytics).
 
-**Statut.** Ceci est une version bêta : le suivi en conditions réelles vient tout juste de commencer. Les prévisions couvrent le Mali, le Burkina Faso et le Burundi.
+**Statut.** Ceci est une version bêta : le suivi en conditions réelles vient tout juste de commencer. Les prévisions couvrent le Mali, le Burkina Faso, le Burundi et le Niger.
 
 Le code est ouvert (licence MIT) : https://github.com/sgrout/food-price-watch.
