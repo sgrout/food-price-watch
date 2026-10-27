@@ -1,6 +1,6 @@
 # Food-basket pages: one page per market (owner decision)
 
-Status: open (for the site side to build)
+Status: accepted (built 2026-10-27); questions answered by the data side 2026-10-27
 From: data side, 2026-10-27, on the owner's decision
 
 ## Request
@@ -69,4 +69,52 @@ of other markets (millet 185-204 XOF/kg in August). The basket sum is correct fo
 looking at whether the prices are plausible. Show it as exported for now.
 
 ## Answer
-(written by the site side: when it is built, set `Status: accepted` with the site commit, or ask questions here)
+Built as described (site repo `sgrout/food-price-watch-web`, 2026-10-27):
+- §1 Separate workflow `update-baskets.yml` (Mondays 09:30 UTC; serialised with the item update): sha256, size and
+  `basket-1.0` schemas checked; a failure keeps the last good basket data and never touches the items. Without basket
+  data, or with a basket status other than `beta`/`published` (contract §4.6), the site has no basket pages or links.
+  Basket pages use the basket manifest's status, `generated_at` and attribution.
+- §2 Basket page `/<country>/<basket-id>/` and `/fr/...` (267 per language), all items 1-9; no status, no spike
+  chance; `eligible: false` = history, chart and table plus "Not enough data for a forecast".
+- §3 Country page section, §4 link on item pages, §5 track record section, §6 rules kept (no country comparison:
+  "compare markets within this country only" on the country page).
+- Checks: 2,733 pages within budget (largest 16.4 KB gzip); 10,520 key numbers on 2,350 item and basket pages match
+  their explanations; axe 0 on item and basket pages, light and dark.
+
+**Questions**
+1. **Observed months after `data_up_to`.** 66 of 267 baskets (58 Burkina Faso, 8 Burundi) have
+   `dates.last_observed_month` and a `history[]` entry for **2026-09**, while `data_up_to` is 2026-08 and the item
+   series of the same markets end in 2026-08. The forecast also starts at 2026-09 (`nowcast_last_month`), so that month
+   is both observed and estimated. Example: `burkina-faso-1043-basket-ration_v1` (history ... 2026-08 964.2,
+   2026-09 951.6; explanation "cost about 952 XOF in September 2026"), while `burkina-faso-1043-73-retail-kg` has
+   `last_observed_month` 2026-08. The page now says "Basket cost up to September 2026; prices up to August 2026".
+   Is the September cost intended (from newer item prices than the item export uses)? If not, please align.
+2. **Baskets in markets without item series.** 47 baskets (e.g. `mali-878`, `mali-11720`, `mali-8715`) have no item
+   series with the same `market.id` in the item export; Mali has 136 baskets but 90 markets with items. Their pages
+   show no region and no item page links to them. Intended (the basket needs fewer months than the item eligibility
+   rule?), or should the item export include those markets?
+
+Small: the methods text has the basket paragraph but no heading, so the site links to `/methods/` (not to the
+paragraph). A heading (e.g. `### Food basket`) would give the link an anchor.
+
+**Answers (data side, 2026-10-27)**
+1. **Observed months after `data_up_to`: intended to keep, now consistent.** September 2026 is real: WFP published
+   it early for most Burkina Faso and some Burundi markets. The **item files have it too**: 291 Burkina Faso and 45
+   Burundi series have a 2026-09 entry in `history[]`, but their `last_observed_month` is set to `data_up_to` (what the
+   forecast used). The basket export took the real last month instead; it now follows the item rule:
+   `last_observed_month` and the explanation use the last month up to `data_up_to` (Namouno: "964 XOF in August
+   2026"); `history[]` keeps the later months. Contract §4 now says this for both exports. For the site (items and
+   baskets alike): draw a month after `data_up_to` as an observed point; the fan starts at `last_observed_month`;
+   keep the `nowcast_last_month` estimate visible (it is the estimate made without that price). Your page text
+   "prices up to August 2026" can stay; the line "basket cost up to September 2026" is no longer needed. The methods
+   text explains it ("Which data a forecast uses", last two sentences).
+2. **Baskets without item series: not intended, fixed.** The basket export took every market that ever had the
+   foods, including stopped markets (last price 2012-2025, some with one month). A basket is now exported only if all
+   its foods are series in the item export, so every basket market has item pages and a region: **211 baskets**
+   (was 267; 180 with a forecast, unchanged; Burkina Faso 60, Burundi 70, Mali 81). Export regenerated on Databricks
+   2026-10-27T14:47 (hashes and `basket-1.0` schemas verified; schema unchanged); sample `export/sample-baskets/`
+   regenerated. Pages for the 56 dropped ids disappear on your next basket fetch.
+3. **Methods anchors:** every section of `site-content/methods.{en,fr}.md` is now a `##` heading (the bold lead-ins
+   are gone), e.g. "## Food basket" / "## Panier alimentaire"; link to its anchor. Please re-copy both files.
+
+Status after these answers: accepted on the site side; the data side has nothing open here.

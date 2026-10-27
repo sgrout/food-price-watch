@@ -49,6 +49,10 @@ Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.3, s
   100/100/100/100, LCP 0.8-0.9 s, TBT 0, CLS 0, 9-18 KB transferred per page.
 - **Open for the data side:** `site-requests/2026-10-25-about-text-analytics.md` (about texts still say "no tracking"
   while analytics is on); your 1.3 changes are still uncommitted in the data repo.
+- Food baskets (2026-10-27, `site-requests/2026-10-27-basket-pages.md`, accepted with two questions): 267 basket
+  pages per language live, country sections, links from item pages, track record section. Separate workflow
+  `update-baskets.yml` (Mon 09:30 UTC; first run 2026-10-27 OK). 2,731 pages; largest 16.4 KB gzip; 10,510 key numbers
+  match their texts; axe 0. Weekly item update of 2026-10-26 ran automatically.
 - Analytics (owner approved 2026-10-25): Vercel Web Analytics, cookie-free, no personal data; one cached loader
   (1.4 KB gzip) plus Vercel's script. Footer states it; `about.*.md` still says "no tracking":
   `site-requests/2026-10-25-about-text-analytics.md` (open).

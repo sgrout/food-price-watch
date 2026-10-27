@@ -463,8 +463,12 @@ conversions in `config/unit_conversions.csv` (oil 0.92 kg/L).
   comonotone runs live as a hidden shadow, the live track record decides.
 - **Live (job `fpw_basket`, Mondays 08:30):** 211 baskets forecast for October 2026 (180 with all items eligible);
   `gold.live_basket_forecasts` append-only; scoring as for items.
-- **Export (optional, `public_export/baskets/`, schema `basket-1.0`):** 267 baskets (180 with a forecast), 212 KB
+- **Export (optional, `public_export/baskets/`, schema `basket-1.0`):** 211 baskets (180 with a forecast), 188 KB
   compressed; hashes and schemas verified. Contract §4b; sample `export/sample-baskets/`.
+- Fix (2026-10-27, questions from the site side): the first export had 267 baskets; 56 used a food series that is
+  not in the item export (47 of them in markets with no item pages at all, mostly stopped: last price 2012-2025).
+  A basket is now exported only if all its foods are item-export series. Its `last_observed_month` and text now use the last month up to `data_up_to`, as for
+  items; `history[]` keeps months WFP published early (September 2026 in 66 baskets), as the item files already do.
 - Gotcha: the basket job first failed (`No module named 'lightgbm'`): `fpw.live` imports the ML module, so the job
   needs the `ml` environment. The item pipeline was not affected.
 

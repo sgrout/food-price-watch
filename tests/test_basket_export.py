@@ -121,3 +121,18 @@ def test_committed_basket_sample_matches_schemas_and_manifest(path):
     if path == "manifest.json":
         for f in doc["files"]:
             assert hashlib.sha256((BSAMPLE / f["path"]).read_bytes()).hexdigest() == f["sha256"], f["path"]
+
+
+def test_months_after_data_up_to_are_history_only_and_baskets_follow_the_item_export():
+    comps, hist, fc, metrics, metrics_country, live = inputs()
+    late = hist[hist["m"] == ORIGIN - 2].assign(m=ORIGIN - 1, cost=9999.0)  # September, published early
+    hist = pd.concat([hist, late], ignore_index=True)
+    files = build_basket_export(comps, hist, fc, metrics, metrics_country, live, generated_at=datetime(2026, 10, 26),
+                                item_series={"a", "b"})  # market 2's foods are not in the item export
+    assert set(files) == {"manifest.json", "index/burkina-faso.json", "basket/burkina-faso-1-basket-ration_v1.json",
+                          "track_record.json"}
+    b = load(files, "basket/burkina-faso-1-basket-ration_v1.json")
+    assert b["history"][-1] == {"month": "2026-09", "cost": 9999.0}  # kept, as in the item export
+    assert b["dates"]["last_observed_month"] == b["dates"]["data_up_to"] == "2026-08"
+    assert "in August 2026" in b["explanation"]["en"] and "9,999" not in b["explanation"]["en"]
+    assert load(files, "index/burkina-faso.json")["baskets"][0]["last_observed_month"] == "2026-08"
