@@ -30,6 +30,27 @@ du modèle, en n'utilisant que les erreurs déjà connues à ce moment-là.
 L'intervalle à 80 % signifie : si l'historique se confirme, le prix réel s'y
 trouvera environ 8 fois sur 10. La page sur la fiabilité des prévisions montre combien de fois c'est vraiment arrivé.
 
+Comment l'utiliser : la valeur la plus probable indique la direction (par exemple une baisse après la récolte) ; la
+borne haute montre jusqu'où le prix pourrait raisonnablement monter, par exemple comme marge pour prévoir un budget.
+Dans un même pays, un intervalle plus large signifie moins de certitude pour ce marché.
+
+## Pourquoi les intervalles sont larges
+
+Les intervalles sont larges parce que les prix alimentaires varient vraiment autant, et nous préférons le montrer
+plutôt que de paraître plus précis que nous ne le sommes. Un intervalle plus étroit aurait l'air meilleur, mais il
+se tromperait plus souvent. Trois choses les élargissent :
+
+- **Les prix varient beaucoup.** Autour de la récolte et de la période de soudure, les prix des denrées de base
+  peuvent monter ou baisser fortement en quelques mois, et le moment change d'une année à l'autre.
+- **Le prix le plus récent est déjà ancien.** Le PAM publie les prix environ deux mois plus tard : « le mois
+  prochain » se situe donc environ trois mois après le dernier prix connu.
+- **Certains marchés publient de façon irrégulière.** Si un marché n'a pas publié de prix depuis un moment, la
+  prévision part d'un prix plus ancien et son intervalle est encore plus large ; le texte le signale alors.
+
+Dans les tests sur 2023 et après, l'erreur typique (la moitié des erreurs étaient plus petites) était d'environ 5 %
+pour le mois écoulé, d'environ 10 % pour le mois prochain et d'environ 15 % à trois mois, pour les denrées seules
+comme pour le panier.
+
 ## Ce qu'est une flambée des prix
 
 Un prix nettement au-dessus de son niveau habituel pour cette période de

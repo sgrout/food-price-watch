@@ -72,6 +72,8 @@ TEXTS = {
         "forecast": "{Month}: most likely between {lo} and {hi} {currency}/{unit} (8 in 10 chance).",
         "spike": "Chance of a spike in {month} (price well above the usual level for the season): {p}%.",
         "caveat": "Warnings of new spikes have no proven skill yet (track record 2023-2026).",
+        "stale": "No price has been published for this market since {month}: {next} is {k} months after the last "
+                 "known price, so the range is wider than usual.",
     },
     "fr": {
         "status_normal": "normal", "status_stress": "stress", "status_alert": "alerte", "status_crisis": "crise",
@@ -93,6 +95,8 @@ TEXTS = {
                  "la saison) : {p} %.",
         "caveat": "Les alertes de nouvelles flambées des prix n'ont pas encore fait leurs preuves (historique "
                   "2023-2026).",
+        "stale": "Aucun prix n'a été publié pour ce marché depuis {month} : {next} se situe {k} mois après le "
+                 "dernier prix connu, l'intervalle est donc plus large que d'habitude.",
     },
 }
 
