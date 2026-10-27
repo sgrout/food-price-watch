@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.4"
+      "const": "1.5"
     },
     "id": {
       "type": "string"
@@ -13,11 +13,8 @@
       "type": "object",
       "properties": {
         "id": {
-          "enum": [
-            "mali",
-            "burkina-faso",
-            "burundi"
-          ]
+          "type": "string",
+          "pattern": "^[a-z]+(-[a-z]+)*$"
         },
         "name": {
           "type": "string"

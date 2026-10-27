@@ -13,6 +13,6 @@ BY-IGO. The data is updated weekly from WFP's files; prices for a month appear o
 
 **No personal data.** No cookies, no accounts and no personal data; anonymous visit counts (Vercel Web Analytics).
 
-**Status.** This is a beta: the live track record has only just started. The forecasts cover Mali, Burkina Faso and Burundi.
+**Status.** This is a beta: the live track record has only just started. The forecasts cover Mali, Burkina Faso, Burundi and Niger.
 
 The code is open source (MIT) at https://github.com/sgrout/food-price-watch.

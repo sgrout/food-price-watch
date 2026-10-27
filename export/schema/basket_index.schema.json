@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "basket-1.0"
+      "const": "basket-1.1"
     },
     "forecast_origin": {
       "type": [

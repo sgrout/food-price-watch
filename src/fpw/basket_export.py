@@ -1,6 +1,6 @@
 """Basket export (optional, next to the item export): JSON files for the public site under public_export/baskets/.
 
-Own schema version (`basket-1.0`, schemas export/schema/basket_*.schema.json). The item export is not touched.
+Own schema version (`basket-1.1`, schemas export/schema/basket_*.schema.json). The item export is not touched.
 Files: manifest.json, index/<country>.json, basket/<id>.json, track_record.json.
 """
 
@@ -16,7 +16,7 @@ from fpw.explain import export_price
 from fpw.export import HORIZONS, LICENSE, SOURCES, STATUSES, _json, _pct, _round, month_str
 from fpw.texts import ATTRIBUTION, COMMODITY_FR, DISCLAIMER
 
-BASKET_SCHEMA_VERSION = "basket-1.0"
+BASKET_SCHEMA_VERSION = "basket-1.1"  # 1.1: any country id (Niger)
 NEXT_STEP, LAST_STEP = 3, 5
 
 

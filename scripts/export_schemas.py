@@ -13,10 +13,10 @@ price = {"type": "number", "exclusiveMinimum": 0}
 nprice = {"type": ["number", "null"], "exclusiveMinimum": 0}
 prob = {"type": ["number", "null"], "minimum": 0, "maximum": 1}
 status = {"enum": ["normal", "stress", "alert", "crisis"]}
-version = {"const": "1.4"}
+version = {"const": "1.5"}
 common = {"forecast_origin": month, "data_up_to": month, "model_version": {"type": "string"}}
 attribution = {"type": "string", "pattern": "World Food Programme"}
-country_id = {"enum": ["mali", "burkina-faso", "burundi"]}
+country_id = {"type": "string", "pattern": "^[a-z]+(-[a-z]+)*$"}  # 1.5 / basket-1.1: any HDX country slug
 horizon = {"enum": ["nowcast_last_month", "nowcast_this_month", "next_month", "in_2_months", "in_3_months"]}
 
 
@@ -79,6 +79,7 @@ SCHEMAS = {
             "markets": {"type": "integer"},
             "status_counts": obj({k: {"type": "integer"} for k in ["normal", "stress", "alert", "crisis"]}),
             "last_observed_month": month, "reference_month": nmonth,
+            "note": {"anyOf": [obj({"en": {"type": "string"}, "fr": {"type": "string"}}), {"type": "null"}]},
             "far_above_usual": {"type": "integer", "minimum": 0},
             "silent_markets": {"type": "array", "items": obj({
                 "market_id": {"type": "integer"}, "market": {"type": "string"}, "admin1": {"type": ["string", "null"]},
@@ -125,7 +126,7 @@ SCHEMAS = {
 }
 
 # --- basket export (separate, optional; public_export/baskets/) ---
-bversion = {"const": "basket-1.0"}
+bversion = {"const": "basket-1.1"}
 nmonth_ = {"type": ["string", "null"], "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"}
 bcommon = {"forecast_origin": nmonth_, "data_up_to": nmonth_}
 component = {"enum": ["cereal", "pulses", "oil"]}

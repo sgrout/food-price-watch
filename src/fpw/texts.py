@@ -42,9 +42,11 @@ GROUPS = {
 # French names of WFP commodities (English WFP name -> French). A name missing here falls back to English and is
 # listed in the export manifest (`missing_translations`), so it is noticed and added.
 COMMODITY_FR = {
+    "Beans (haricot)": "Haricots",
     "Beans (haricot, yellow)": "Haricots (jaunes)",
     "Beans (niebe)": "Niébé",
     "Beans (niebe, red)": "Niébé (rouge)",
+    "Cassava": "Manioc",
     "Cassava (cossette)": "Cossettes de manioc",
     "Cassava flour": "Farine de manioc",
     "Maize": "Maïs",
@@ -105,6 +107,19 @@ TEXTS = {
                   "2023-2026).",
         "stale": "Aucun prix n'a été publié pour ce marché depuis {month} : {next} se situe {k} mois après le "
                  "dernier prix connu, l'intervalle est donc plus large que d'habitude.",
+    },
+}
+
+# A fixed note per country about its track record (no numbers: those come from track_record.json); null if none.
+COUNTRY_NOTES = {
+    "niger": {
+        "en": "Niger was added in October 2026. In its backtest the ranges were too narrow during the 2024-2025 shocks "
+              "(after the July 2023 coup, with the border to Benin closed, and the 2024 floods): prices then fell "
+              "outside them much more often than claimed. See the track record.",
+        "fr": "Le Niger a été ajouté en octobre 2026. Dans les tests sur le passé, les intervalles étaient trop étroits "
+              "pendant les chocs de 2024-2025 (après le coup d'État de juillet 2023, avec la frontière avec le Bénin "
+              "fermée, et les inondations de 2024) : les prix en sont alors sortis bien plus souvent qu'annoncé. "
+              "Voir la page sur la fiabilité des prévisions.",
     },
 }
 

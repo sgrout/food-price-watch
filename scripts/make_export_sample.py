@@ -1,8 +1,8 @@
 """Make a small, real sample of the public export for building the site offline (export/sample/).
 
 Usage: .venv/bin/python scripts/make_export_sample.py <extracted export dir>
-Picks six real series (with a forecast and a data-error flag; in alert or crisis; reporting irregularly; without
-enough data; in a market that stopped reporting; far above the national price), filters the indexes to them and rebuilds the manifest with the hashes of the sample files.
+Picks seven real series (with a forecast and a data-error flag; in alert or crisis; reporting irregularly; without
+enough data; in a market that stopped reporting; far above the national price; in Niger), filters the indexes to them and rebuilds the manifest with the hashes of the sample files.
 """
 
 import hashlib
@@ -27,7 +27,8 @@ irregular = next(r["id"] for r in rows if r["eligible"] and r.get("irregular_rep
 too_short = next(r["id"] for r in rows if not r["eligible"] and not r.get("silent_months"))
 silent = next(r["id"] for r in rows if r.get("silent_months"))  # 1.4: a market that stopped reporting
 far = next(r["id"] for r in rows if r.get("far_above_usual") and r["id"] not in (flagged, severe, irregular))
-picked = [flagged, severe, irregular, too_short, silent, far]
+niger = next(r["id"] for r in rows if r["country"] == "niger" and r["eligible"])  # 1.5: a newly added country
+picked = [flagged, severe, irregular, too_short, silent, far, niger]
 
 if dst.exists():
     shutil.rmtree(dst)

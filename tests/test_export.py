@@ -259,3 +259,14 @@ def test_only_public_countries_are_exported():
                          generated_at=datetime(2026, 10, 26))
     assert not [p for p in files if "niger" in p] and b"niger" not in b"".join(files.values())
     assert load(files, "manifest.json")["countries"] == ["mali"]
+
+
+def test_country_notes_are_bilingual_and_carry_no_numbers_but_years():
+    import re
+    from fpw.countries import COUNTRIES
+    from fpw.texts import COUNTRY_NOTES
+    assert set(COUNTRY_NOTES) <= set(COUNTRIES)
+    for note in COUNTRY_NOTES.values():
+        assert set(note) == {"en", "fr"}
+        for text in note.values():
+            assert all(1990 <= int(n) <= 2100 for n in re.findall(r"\d+", text))  # years only; numbers come from data

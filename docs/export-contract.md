@@ -1,4 +1,4 @@
-# Public export contract (v1.4): food-price-watch → public site
+# Public export contract (v1.5): food-price-watch → public site
 
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
@@ -46,8 +46,14 @@ used only in CI, never in the browser or in the built site.
 ## 3. Files
 
 All JSON is UTF-8, compact. Months are `"YYYY-MM"`. Prices are **nominal, in local currency per `unit`** (XOF for
-Mali and Burkina Faso, BIF for Burundi; units such as `KG`, `L`, `100 KG`), already converted from the model's log
-scale. Every JSON file has `schema_version` (`"1.4"`) and `attribution`.
+Mali, Burkina Faso and Niger, BIF for Burundi; units such as `KG`, `L`, `100 KG`), already converted from the model's log
+scale. Every JSON file has `schema_version` (`"1.5"`) and `attribution`.
+
+Changes in 1.5 (2026-10-27): country ids are any HDX slug (`^[a-z]+(-[a-z]+)*$`) instead of a fixed list, so a new
+country needs no schema change; first new country: **Niger** (`niger`, XOF). `countries.json` entries gain `note`
+(`{en, fr}` or `null`): a fixed text about that country's track record, to show on its country page (Niger: ranges too
+narrow in its 2024-2025 shocks). The basket export moves to `basket-1.1` for the same country-id change. Nothing else
+changes. Rollout as for 1.4: the site accepts 1.5 / basket-1.1 first; then the data side adds Niger to the exports.
 
 Changes in 1.4 (2026-10-27, additive): market signals (owner's idea). Series files gain `signals` and
 `national_median[]`; index rows gain `gap_pct`, `far_above_usual`, `silent_months`; `countries.json` entries gain
@@ -178,7 +184,7 @@ the forecast date (`irregular_definition` says the rule), so a note on irregular
    `text` (it names the caveats). A market that stopped reporting is shown with its last prices and "No price since
    <month>", never hidden.
 
-## 4b. Basket export (optional, separate; schema `basket-1.0`)
+## 4b. Basket export (optional, separate; schema `basket-1.1`)
 
 Next to the item export, a weekly job (`fpw_basket`, Mondays 08:30 Europe/Amsterdam, after the item pipeline) writes
 food-basket cost forecasts to `/Volumes/workspace/fpw_dev_gold/public_export/baskets/` (`latest.tar.gz`,
@@ -189,7 +195,7 @@ Mondays 09:30 UTC.
 **What a basket is.** Ours: a simple ration-based basket for one person for one month (WFP general ration:
 12 kg cereal, 1.8 kg pulses, 0.75 L oil), **not an official minimum expenditure basket** (MEB). Per country only
 what WFP monitors long enough: Burundi full ration (cassava flour, beans, palm oil); Burkina Faso millet + niébé
-(WFP publishes no oil prices there); Mali millet only (the cereal part). `basket.missing` lists what is not included;
+(WFP publishes no oil prices there); Mali and Niger millet only (the cereal part). `basket.missing` lists what is not included;
 always show it. Compare baskets within a country, not across countries.
 
 Files: `manifest.json` (status, dates, counts, attribution(_fr), disclaimer(_fr), files with sha256),

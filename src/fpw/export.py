@@ -22,11 +22,11 @@ from fpw.features import commodity_group
 from fpw.panel import month_index
 from fpw.signals import MEDIAN_MONTHS, Signals, describe_signals, signal_facts
 from fpw.texts import ATTRIBUTION as ATTRIBUTION_I18N
-from fpw.texts import COMMODITY_FR
+from fpw.texts import COMMODITY_FR, COUNTRY_NOTES
 from fpw.texts import DISCLAIMER as DISCLAIMER_I18N
 
-SCHEMA_VERSION = "1.4"  # 1.1: status null without a forecast; 1.2: French, reporting regularity; 1.3: status "beta";
-# 1.4: market signals (national gap, silence), silent series kept with history only
+SCHEMA_VERSION = "1.5"  # 1.1: status null without a forecast; 1.2: French, reporting regularity; 1.3: status "beta";
+# 1.4: market signals (national gap, silence), silent series kept with history only; 1.5: any country id, country note
 STATUSES = ("preview", "beta", "published")  # preview: not public; beta: public with a beta banner; published
 ATTRIBUTION = ATTRIBUTION_I18N["en"]
 LICENSE = {"data": "CC BY-IGO 3.0 (WFP)", "url": "https://creativecommons.org/licenses/by/3.0/igo/"}
@@ -234,6 +234,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "last_observed_month": g["last_observed_month"].max(),
             "reference_month": month_str(signals.reference[c]) if signals is not None and c in signals.reference
             else None,
+            "note": COUNTRY_NOTES.get(c),
             "far_above_usual": int(g["far_above_usual"].sum()),
             "silent_markets": [{"market_id": int(r.market_id), "market": r.market,
                                 "admin1": admin1_of.get((c, r.market_id)), "months": int(r.months),
