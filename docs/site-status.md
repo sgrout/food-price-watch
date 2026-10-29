@@ -2,7 +2,7 @@
 
 Owner of this file: the site agent (see `docs/README.md`). Keep it short and current.
 
-Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.4 since 2026-10-27, status beta); CI green
+Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.5 with Niger since 2026-10-29, status beta); CI green
 
 - Repository: https://github.com/sgrout/food-price-watch-web (private). `main` = the site; `production` = a
   placeholder "Not published" page, used as Vercel's production branch until publication is approved.
@@ -61,7 +61,7 @@ Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.4 si
   silent series, and the two country sections built and live, shown once the export is 1.4. Tested with the trial
   export: 2,803 pages, all checks pass, axe 0. Export 1.4 of 2026-10-27T17:23 live and verified (Mali 15 and Burkina Faso 1 silent markets; 29 series far above).
 - Niger (2026-10-29, accepted): schemas 1.5 and basket-1.1 accepted (live); tested with the trial exports (3,341
-  pages, all checks pass, axe 0). Waiting for the data side to add Niger to the exports.
+  pages, all checks pass, axe 0). Niger live 2026-10-29 (items 1.5, baskets basket-1.1), verified.
 - Analytics (owner approved 2026-10-25): Vercel Web Analytics, cookie-free, no personal data; one cached loader
   (1.4 KB gzip) plus Vercel's script. Footer states it; `about.*.md` still says "no tracking":
   `site-requests/2026-10-25-about-text-analytics.md` (open).
