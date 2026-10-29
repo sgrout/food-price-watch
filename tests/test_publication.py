@@ -44,3 +44,16 @@ def test_forecast_time_is_the_last_monday_of_the_origin_month():
     assert forecast_time(2026 * 12 + 9) == datetime(2026, 10, 26, 6)  # October 2026
     assert forecast_time(2026 * 12 + 10) == datetime(2026, 11, 30, 6)  # November 2026: the 30th is a Monday
     assert forecast_time(2026 * 12 + 11).weekday() == 0 and forecast_time(2026 * 12 + 11).month == 12
+
+
+def test_data_months_known_fresher_older_or_unknown():
+    from fpw.publication import data_months
+    acts = pd.DataFrame({"country": "mali", "timestamp": ["2023-01-10T08:00:00", "2026-07-26T10:00:00",
+                                                          "2026-10-18T19:48:00"],
+                         "dataset_end": ["[2003 TO 2023-06-15T23:59:59]",  # a month that had not ended: projections
+                                         "[2003 TO 2026-05-15T23:59:59]", "[2003 TO 2026-09-15T23:59:59]"]})
+    dm = data_months(calendar(acts), ["mali"], [2022 * 12 + 11, 2023 * 12, 2026 * 12 + 6, 2026 * 12 + 9])
+    assert dm[("mali", 2022 * 12 + 11)] is None  # before the calendar starts
+    assert dm[("mali", 2023 * 12)] is None  # January 2023: the dataset claimed June 2023
+    assert dm[("mali", 2026 * 12 + 6)] == 2026 * 12 + 4  # July 2026: May published (= origin - 2)
+    assert dm[("mali", 2026 * 12 + 9)] == 2026 * 12 + 8  # October 2026: September published (origin - 1)

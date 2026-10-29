@@ -51,6 +51,9 @@ _METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, co
     onset_precision DOUBLE, onset_recall DOUBLE"""
 
 BACKTEST_METRICS = "population STRING, model STRING, split STRING, step BIGINT, " + _METRICS
+FRESH_FORECASTS = BACKTEST_FORECASTS + ", m_data BIGINT, h BIGINT"  # phase 7 candidate (13_backtest_fresh)
+FRESH_DECISION = """rule STRING, split STRING, cal_pinball DOUBLE, fresh_pinball DOUBLE, fresh_coverage80 DOUBLE, passed BOOLEAN,
+    n BIGINT"""
 BACKTEST_METRICS_COUNTRY = "population STRING, model STRING, split STRING, country STRING, step BIGINT, " + _METRICS
 SPIKE_CALIBRATION = "population STRING, model STRING, split STRING, bin BIGINT, n BIGINT, mean_prob DOUBLE, observed DOUBLE"
 

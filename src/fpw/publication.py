@@ -70,3 +70,19 @@ def forecast_time(origin: int) -> datetime:
     y, m = origin // 12, origin % 12 + 1
     last = (datetime(y + (m == 12), m % 12 + 1, 1) - timedelta(days=1))
     return datetime(last.year, last.month, last.day, 6) - timedelta(days=last.weekday())
+
+
+def data_months(cal: pd.DataFrame, countries, origins) -> dict[tuple[str, int], int | None]:
+    """Per (country, origin): the newest data month published at the official forecast time (forecast_time), or None
+    when unknown: before the calendar starts, or when the dataset then claimed months that had not ended yet (in
+    2023 the files apparently held WFP's own projections, so `dataset_date` says nothing about publication)."""
+    cal = cal.assign(made=cal["published_at"].dt.year * 12 + cal["published_at"].dt.month - 1)
+    out = {}
+    for c in countries:
+        g = cal[cal["country"] == c]
+        t = g["published_at"].to_numpy()
+        for o in origins:
+            i = int(np.searchsorted(t, np.datetime64(forecast_time(o)), side="right")) - 1
+            plausible = i >= 0 and g["data_month"].iloc[i] <= g["made"].iloc[i] - 1
+            out[(c, int(o))] = int(min(g["data_month"].iloc[i], o - 1)) if plausible else None
+    return out

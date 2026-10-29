@@ -88,6 +88,14 @@ This file is the brief for coding agents. Read it fully before the first change,
     `public_countries` bundle variable filters the exports); Chad ingest only (`Country.forecast = False`: WFP
     publishes it 2-4 months late). A new country: probe, `COUNTRIES` + texts + basket, ingest, backtest, train, live,
     review with the owner, then schema/site/`public_countries`.
+  - **Fresher data (phase 7, fixed 2026-10-29 before the run):** candidate `lgbm_fresh` starts each case from the
+    data month WFP had actually published at the official forecast time (`fpw.publication`, HDX activity stream
+    from 2020-12; unknown or earlier: origin - 2), same targets, model and refits; recalibration per (country,
+    h = target - data month). Compared with stored `lgbm_cal` on common rows at calendar-known origins, population
+    `all` (`13_backtest_fresh.py`, job `fpw_fresh_backtest`). **Switch rule (owner: right after the backtest):**
+    replace `lgbm_cal` only if validation mean pinball < `lgbm_cal` with 80 % coverage in [0.70, 0.90], and holdout
+    (2023+) mean pinball <= `lgbm_cal` with 80 % coverage in [0.70, 0.90]. Finding: the origin - 2 rule used
+    unpublished data in 37 % of Mali's origins (all of 2024), so Mali's current track record is optimistic.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by

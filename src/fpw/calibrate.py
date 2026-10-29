@@ -23,15 +23,20 @@ _REPORT_IN_GRID = [int(np.argmin(np.abs(GRID_LEVELS - q))) for q in REPORT_LEVEL
 
 
 def recalibrate(fc: pd.DataFrame, by=("model", "country", "step"), window: int = WINDOW_MONTHS,
-                min_pits: int = MIN_PITS, lag: int = LAG, suffix: str = "_cal") -> pd.DataFrame:
+                min_pits: int = MIN_PITS, lag: int = LAG, suffix: str = "_cal",
+                data_month_col: str | None = None) -> pd.DataFrame:
     """Recalibrated copies of the forecast rows (model name + suffix). Rows without enough past PITs keep their
-    original distribution and get `calibrated = False`. Needs the columns of backtest.walk_forward, incl. `pit`."""
+    original distribution and get `calibrated = False`. Needs the columns of backtest.walk_forward, incl. `pit`.
+
+    data_month_col (phase 7 candidate): a past PIT counts once its target month was published by the origin's own
+    data month (this column, the same for every row of a group at one origin) instead of origin - lag."""
     out = []
     for _, g in fc.groupby(list(by), sort=False):
         g = g.sort_values("origin")
         pit, target = g["pit"].to_numpy(), g["target"].to_numpy()
         for origin, rows in g.groupby("origin", sort=False):
-            known = (target <= origin - lag) & (target > origin - lag - window)
+            cutoff = int(rows[data_month_col].iloc[0]) if data_month_col else origin - lag
+            known = (target <= cutoff) & (target > cutoff - window)
             rows = rows.copy()
             if known.sum() < min_pits:
                 rows["calibrated"] = False
