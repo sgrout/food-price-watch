@@ -543,6 +543,23 @@ pilots; `fpw.export.public_scope`), verified on the downloaded exports (no file 
   export with Niger (`public_export_next`): 1,397 series (1,097 with a forecast), 264 baskets, 1.8 MB, schemas and
   hashes OK. Switched 2026-10-29 after the site accepted 1.5: public exports with four countries (1,397 series, 264 baskets).
 
+### Phase 7: forecasts from the freshest published prices
+The forecasts used data up to origin - 2 (a fixed, assumed publication lag). HDX's activity stream (bronze
+`hdx_activity`, `fpw/publication.py`) gives each country's latest published data month from 2020-12 on.
+- **The old assumption:** at the official forecast time WFP had published a newer month than origin - 2 in 60 % of
+  origins (Burkina Faso), 49 % (Niger), 34 % (Burundi), 21 % (Mali), but an older one in 37 % for Mali (all of 2024)
+  and 17 % for Niger. There the backtest used prices that were not yet published, so `lgbm_cal`'s published track
+  record is optimistic: with only published data its holdout pinball is 0.0275 instead of 0.0266. 2023 is mostly
+  unknown (`dataset_date` then claimed months that had not ended, apparently WFP projections).
+- **Test 1 (rule fixed before):** `lgbm_fresh` passed on validation (0.0234 vs 0.0252) and failed on the holdout
+  (0.0283 vs 0.0263): it lost where WFP was behind (it honestly forecast from old data, uncalibrated for h >= 6 and
+  from up to 15-month-old data) while `lgbm_cal` used unpublished prices.
+- **Re-test (owner's decision; fixed before):** honest reference `lgbm_cal_pub` vs `lgbm_fresh2` (calibration pooled
+  for h >= 5; no forecast from data older than origin - 4). **Both rules passed:** validation 0.0233 vs 0.0256,
+  holdout 0.0251 vs 0.0275 (-9 %), holdout 80 % coverage 76.4 % (75.3 %); typical error next month 8.2 vs 9.5 %, in
+  3 months 12.1 vs 14.0 %. Known optimism: before 2026-10 we know when a country's month first appeared, not when
+  each market's price did.
+
 ### How to run
 
 ```bash

@@ -103,6 +103,9 @@ This file is the brief for coding agents. Read it fully before the first change,
     min(published, origin - 2)), calibrated per (country, step) with the published-month PIT cutoff; candidate
     `lgbm_fresh2` = `lgbm_fresh` with calibration per (country, min(h, 5)); both without forecasts when the data
     month is older than origin - 4. Same switch rule, now vs `lgbm_cal_pub`.
+    **Result 2 (2026-10-29): switch.** Mean pinball validation 0.0233 vs 0.0256, holdout 0.0251 vs 0.0275 (stored
+    `lgbm_cal` 0.0266: optimistic), holdout 80 % coverage 76.4 %; typical error next month 8.2 vs 9.5 %, 3 months
+    12.1 vs 14.0 %. The switch (live, training, export, site, baskets) is planned separately.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by
