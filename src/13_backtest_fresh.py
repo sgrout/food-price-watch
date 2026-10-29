@@ -1,6 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # 13 - Backtest of the fresher-data candidate `lgbm_fresh` (phase 7)
+# MAGIC # 13 - Backtest of the fresher-data candidate (phase 7)
+# MAGIC Re-test (owner, 2026-10-29): `lgbm_fresh2` vs the honest reference `lgbm_cal_pub`; see CLAUDE.md.
 # MAGIC Fixed before running (CLAUDE.md, phase 7):
 # MAGIC - Cases start from the data month WFP had actually published at the official forecast time
 # MAGIC   (`fpw.publication.data_months`, from the HDX activity stream, December 2020 on); unknown or earlier: origin - 2.
@@ -9,7 +10,7 @@
 # MAGIC   month), counting past PITs whose target was published by the origin's data month.
 # MAGIC - Compared with the stored `lgbm_cal` rows (`gold.backtest_forecasts`, not changed here) on the cases both have,
 # MAGIC   at origins where the calendar is known, population `all`.
-# MAGIC - Switch rule (owner's choice: right after the backtest): `lgbm_fresh` replaces `lgbm_cal` only if
+# MAGIC - Switch rule (owner's choice: right after the backtest): the candidate replaces `lgbm_cal` only if (vs the reference)
 # MAGIC   (1) validation mean pinball < `lgbm_cal` and its 80 % coverage in [0.70, 0.90], and
 # MAGIC   (2) holdout (2023+) mean pinball <= `lgbm_cal` and its 80 % coverage in [0.70, 0.90].
 # MAGIC
@@ -52,17 +53,29 @@ dm = data_months(cal, FORECAST_COUNTRIES, origins)
 known = {k for k, v in dm.items() if v is not None}
 log(f"calendar: {len(known):,} known (country, origin) of {len(dm):,}")
 
-cases = build_cases(panel, origins, data_months=dm)
-log(f"cases: {len(cases):,}")
-fresh = lgbm_walk_forward(cases, first_test_year=first_ml_year)
-fresh = fresh.merge(cases[["series_id", "origin", "step", "m_data", "h"]], on=["series_id", "origin", "step"])
-fresh = recalibrate(fresh.assign(model="lgbm_fresh", calibrated=False), by=("model", "country", "h"),
-                    data_month_col="m_data", suffix="")
-log(f"lgbm_fresh: {len(fresh):,} forecasts ({int(fresh['calibrated'].sum()):,} recalibrated)")
+MAX_DELAY = 4  # no forecast when the data month is older than origin - 4 (fixed 2026-10-29, re-test)
+H_POOL = 5  # calibration groups pool h >= 5 (fixed 2026-10-29, re-test)
+dm_pub = {k: (None if v is None else min(v, k[1] - LAG)) for k, v in dm.items()}  # never fresher than origin - 2
+
+
+def candidate(data_month_map, by, name):
+    c = build_cases(panel, origins, data_months=data_month_map)
+    c = c[c["m_data"] >= c["origin"] - MAX_DELAY].assign(h_cal=lambda d: d["h"].clip(upper=H_POOL))
+    f = lgbm_walk_forward(c, first_test_year=first_ml_year)
+    f = f.merge(c[["series_id", "origin", "step", "m_data", "h", "h_cal"]], on=["series_id", "origin", "step"])
+    f = recalibrate(f.assign(model=name, calibrated=False), by=("model", "country", by), data_month_col="m_data",
+                    suffix="").drop(columns="h_cal")
+    log(f"{name}: {len(f):,} forecasts ({int(f['calibrated'].sum()):,} recalibrated)")
+    return f
+
+
+fresh = candidate(dm, "h_cal", "lgbm_fresh2")
+reference = candidate(dm_pub, "step", "lgbm_cal_pub")
 
 stored = spark.table(f"{gold}.backtest_forecasts").where("model = 'lgbm_cal'").toPandas()
 score_cols = ["split", "in80", "in95", "pinball", "abs_err", "z_actual", "is_spike", "spike_now"]
-both = pd.concat([stored.drop(columns=score_cols), fresh.drop(columns=["m_data", "h"])], ignore_index=True)
+both = pd.concat([stored.drop(columns=score_cols), fresh.drop(columns=["m_data", "h"]),
+                  reference.drop(columns=["m_data", "h"])], ignore_index=True)
 both = both[[(c, o) in known for c, o in zip(both["country"], both["origin"])]]
 scored = score(common_rows(both))
 eligible = scored[scored["eligible_at_origin"]]
@@ -78,7 +91,7 @@ m = metrics[metrics["population"] == "all"].groupby(["model", "split"])[["pinbal
     .agg({"pinball": "mean", "coverage80": "mean", "n": "sum"})
 rows = []
 for rule, split, strict in [("1", "validation", True), ("2", "holdout", False)]:
-    cal_p, fr = m.loc[("lgbm_cal", split), "pinball"], m.loc[("lgbm_fresh", split)]
+    cal_p, fr = m.loc[("lgbm_cal_pub", split), "pinball"], m.loc[("lgbm_fresh2", split)]  # re-test
     better = fr["pinball"] < cal_p if strict else fr["pinball"] <= cal_p
     rows.append({"rule": rule, "split": split, "cal_pinball": cal_p, "fresh_pinball": fr["pinball"],
                  "fresh_coverage80": fr["coverage80"], "passed": bool(better and 0.70 <= fr["coverage80"] <= 0.90),
@@ -94,8 +107,9 @@ def write(df, ddl, table):
 write(decision, FRESH_DECISION, "fresh_decision")  # small results first: a large write cannot lose them
 write(metrics, BACKTEST_METRICS, "fresh_backtest_metrics")
 write(metrics_country, BACKTEST_METRICS_COUNTRY, "fresh_backtest_metrics_country")
-out = fresh.merge(scored[scored["model"] == "lgbm_fresh"][["series_id", "origin", "step", *score_cols]],
-                  on=["series_id", "origin", "step"])  # fresh already has m_data and h
+out = pd.concat([fresh, reference]).merge(scored[scored["model"].isin(["lgbm_fresh2", "lgbm_cal_pub"])][
+    ["series_id", "origin", "step", "model", *score_cols]],
+                  on=["series_id", "origin", "step", "model"])  # both already have m_data and h
 chunk = 250_000
 for i, start in enumerate(range(0, len(out), chunk)):
     spark.createDataFrame(to_rows(out.iloc[start:start + chunk], FRESH_FORECASTS), FRESH_FORECASTS).write \
