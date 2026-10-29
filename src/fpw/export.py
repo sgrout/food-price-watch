@@ -300,7 +300,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
     return files
 
 
-PUBLIC_COUNTRIES = ("mali", "burkina-faso", "burundi")  # job parameter public_countries; others need the owner's go
+PUBLIC_COUNTRIES = ("mali", "burkina-faso", "burundi", "niger")  # job parameter public_countries; others need the owner's go
 
 
 def public_scope(frames: dict[str, pd.DataFrame], countries) -> dict[str, pd.DataFrame]:
