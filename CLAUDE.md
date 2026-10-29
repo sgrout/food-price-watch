@@ -84,8 +84,8 @@ This file is the brief for coding agents. Read it fully before the first change,
   - **Market signals (phase 6b, 2026-10-27, export 1.4):** distance from the national median and markets that stopped
     reporting (`fpw/signals.py`), descriptions not warnings; silent markets' series stay in the export (history only).
     Deploy 1.4 only after the site accepts it; trial runs with the `export_dir` widget.
-  - **Countries (phase 6c, 2026-10-27):** Niger ingested and forecast, **not public until the owner's go**
-    (`public_countries` bundle variable filters the exports); Chad ingest only (`Country.forecast = False`: WFP
+  - **Countries (phase 6c, 2026-10-27):** Niger public since 2026-10-29 (owner's go 2026-10-27; the
+    `public_countries` bundle variable filters the exports); Chad ingest only (`Country.forecast = False`: WFP
     publishes it 2-4 months late). A new country: probe, `COUNTRIES` + texts + basket, ingest, backtest, train, live,
     review with the owner, then schema/site/`public_countries`.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it

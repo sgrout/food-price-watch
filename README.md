@@ -541,7 +541,7 @@ pilots; `fpw.export.public_scope`), verified on the downloaded exports (no file 
 - **Owner's go (2026-10-27).** Export 1.5 / basket-1.1: country ids are any slug (no schema change for later
   countries) and `countries.json` gains a fixed `note` (Niger: ranges too narrow in its 2024-2025 shocks). Trial
   export with Niger (`public_export_next`): 1,397 series (1,097 with a forecast), 264 baskets, 1.8 MB, schemas and
-  hashes OK. Switch (`public_countries` + deploy) after the site accepts 1.5 (`docs/site-requests/2026-10-27-niger.md`).
+  hashes OK. Switched 2026-10-29 after the site accepted 1.5: public exports with four countries (1,397 series, 264 baskets).
 
 ### How to run
 
