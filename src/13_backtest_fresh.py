@@ -91,16 +91,15 @@ def write(df, ddl, table):
         .saveAsTable(f"{gold}.{table}")
 
 
+write(decision, FRESH_DECISION, "fresh_decision")  # small results first: a large write cannot lose them
+write(metrics, BACKTEST_METRICS, "fresh_backtest_metrics")
+write(metrics_country, BACKTEST_METRICS_COUNTRY, "fresh_backtest_metrics_country")
 out = fresh.merge(scored[scored["model"] == "lgbm_fresh"][["series_id", "origin", "step", *score_cols]],
-                  on=["series_id", "origin", "step"])
-out = out.merge(cases[["series_id", "origin", "step", "m_data", "h"]], on=["series_id", "origin", "step"])
+                  on=["series_id", "origin", "step"])  # fresh already has m_data and h
 chunk = 250_000
 for i, start in enumerate(range(0, len(out), chunk)):
     spark.createDataFrame(to_rows(out.iloc[start:start + chunk], FRESH_FORECASTS), FRESH_FORECASTS).write \
         .mode("overwrite" if i == 0 else "append").option("overwriteSchema", "true") \
         .saveAsTable(f"{gold}.fresh_backtest_forecasts")
-write(metrics, BACKTEST_METRICS, "fresh_backtest_metrics")
-write(metrics_country, BACKTEST_METRICS_COUNTRY, "fresh_backtest_metrics_country")
-write(decision, FRESH_DECISION, "fresh_decision")
 log(f"switch: {bool(decision['passed'].all())}")
 display(decision)
