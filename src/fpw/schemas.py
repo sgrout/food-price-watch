@@ -14,6 +14,8 @@ FETCH_LOG = """country STRING, status STRING, message STRING, dataset STRING, li
     resource_last_modified STRING, sha256 STRING, n_rows BIGINT, file_path STRING,
     _source STRING, _source_url STRING, _ingested_at TIMESTAMP"""
 
+HDX_ACTIVITY = """country STRING, activity_id STRING, timestamp STRING, activity_type STRING, dataset STRING,
+    dataset_end STRING, price_last_modified STRING, _source STRING, _source_url STRING, _ingested_at TIMESTAMP"""
 _PRICE_COLUMNS = """country STRING, date DATE, admin1 STRING, admin2 STRING, market STRING, market_id BIGINT,
     latitude DOUBLE, longitude DOUBLE, category STRING, commodity STRING, commodity_id BIGINT, unit STRING,
     priceflag STRING, pricetype STRING, currency STRING, price DOUBLE, usdprice DOUBLE"""
