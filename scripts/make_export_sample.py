@@ -1,8 +1,8 @@
 """Make a small, real sample of the public export for building the site offline (export/sample/).
 
 Usage: .venv/bin/python scripts/make_export_sample.py <extracted export dir>
-Picks seven real series (with a forecast and a data-error flag; in alert or crisis; reporting irregularly; without
-enough data; in a market that stopped reporting; far above the national price; in Niger), filters the indexes to them and rebuilds the manifest with the hashes of the sample files.
+Picks eight real series (with a forecast and a data-error flag; in alert or crisis; reporting irregularly; without
+enough data; in a market that stopped reporting; a food that stopped in a market that still reports; far above the national price; in Niger), filters the indexes to them and rebuilds the manifest with the hashes of the sample files.
 """
 
 import hashlib
@@ -24,11 +24,13 @@ flagged = next(r["id"] for r in rows if r["eligible"] and r["status"] == "stress
                and any(h["flag"] == "data_error" for h in series(r["id"])["history"]))
 severe = next(r["id"] for r in rows if r["eligible"] and r["status"] in ("alert", "crisis"))
 irregular = next(r["id"] for r in rows if r["eligible"] and r.get("irregular_reporting") and r["id"] not in (flagged, severe))
-too_short = next(r["id"] for r in rows if not r["eligible"] and not r.get("silent_months"))
+too_short = next(r["id"] for r in rows if not r["eligible"] and not r.get("silent_months")
+                 and not r.get("food_silent_months"))
 silent = next(r["id"] for r in rows if r.get("silent_months"))  # 1.4: a market that stopped reporting
+stopped = next(r["id"] for r in rows if r.get("food_silent_months"))  # 1.7: a food that stopped, the market reports
 far = next(r["id"] for r in rows if r.get("far_above_usual") and r["id"] not in (flagged, severe, irregular))
 niger = next(r["id"] for r in rows if r["country"] == "niger" and r["eligible"])  # 1.5: a newly added country
-picked = [flagged, severe, irregular, too_short, silent, far, niger]
+picked = [flagged, severe, irregular, too_short, silent, stopped, far, niger]
 
 if dst.exists():
     shutil.rmtree(dst)

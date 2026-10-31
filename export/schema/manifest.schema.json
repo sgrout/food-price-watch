@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.6"
+      "const": "1.7"
     },
     "status": {
       "enum": [

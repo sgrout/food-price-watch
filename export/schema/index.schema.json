@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.6"
+      "const": "1.7"
     },
     "forecast_origin": {
       "type": "string",
@@ -133,6 +133,13 @@
             ],
             "minimum": 2
           },
+          "food_silent_months": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 2
+          },
           "latitude": {
             "type": [
               "number",
@@ -169,6 +176,7 @@
           "gap_pct",
           "far_above_usual",
           "silent_months",
+          "food_silent_months",
           "latitude",
           "longitude"
         ],

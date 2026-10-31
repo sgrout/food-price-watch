@@ -87,6 +87,11 @@ marchés du pays, pour que le délai de publication habituel du PAM ne compte pa
 conflit, l'absence de données peut être un premier signe de difficultés, mais elle peut aussi avoir d'autres causes,
 comme une pause du suivi ou un changement de la liste des marchés suivis par le PAM.
 
+Une seule denrée qui a cessé d'être publiée sur un marché qui publie encore d'autres denrées reste visible de la même
+façon, avec ses derniers prix et sans prévision. La page indique si d'autres marchés publient encore cette denrée. Si
+plus aucun marché du pays ne la publie, ou si ce marché la publie maintenant dans une autre unité, la cause est très
+probablement un changement dans ce que le PAM suit. Le PAM a modifié sa liste au Burundi et au Mali vers décembre 2025.
+
 ## Contrôles des données
 
 Une valeur qui saute puis revient entièrement le mois suivant est marquée comme erreur

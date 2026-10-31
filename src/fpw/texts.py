@@ -135,6 +135,15 @@ SIGNAL_TEXTS = {  # fpw.signals.describe_signals; numbers only from facts
         "silent": "No price has been published for this market since {month}, while most markets {in_country} "
                   "reported up to {ref}. Missing data can be an early sign of trouble, or have other causes, such as "
                   "a pause in monitoring.",
+        "food_silent_market": "No price has been published for this food in this market since {month}, while the "
+                              "market still reports other foods and other markets {in_country} still report this one. "
+                              "This can have ordinary causes, such as the season or a change in what WFP monitors "
+                              "here, but the food may also have become hard to find.",
+        "food_silent_country": "No price has been published for this food in this market since {month}, and no market "
+                               "{in_country} reports it now. This points to a change in what WFP monitors, not to a "
+                               "problem in this market.",
+        "food_silent_other_unit": "No price per {unit} has been published for this food in this market since {month}: "
+                                  "WFP now reports it here per {other_unit}.",
     },
     "fr": {
         "gap_above": "En {month}, le prix ici était {pct} % au-dessus de la médiane nationale de {n} marchés",
@@ -147,6 +156,16 @@ SIGNAL_TEXTS = {  # fpw.signals.describe_signals; numbers only from facts
         "silent": "Aucun prix n'a été publié pour ce marché depuis {month}, alors que la plupart des marchés "
                   "{in_country} ont publié jusqu'en {ref}. L'absence de données peut être un premier signe de "
                   "difficultés, ou avoir d'autres causes, comme une pause du suivi.",
+        "food_silent_market": "Aucun prix n'a été publié pour cette denrée sur ce marché depuis {month}, alors que le "
+                              "marché publie encore d'autres denrées et que d'autres marchés {in_country} publient "
+                              "encore celle-ci. Cela peut avoir des causes ordinaires, comme la saison ou un changement "
+                              "dans ce que le PAM suit ici, mais la denrée est peut-être aussi devenue difficile à "
+                              "trouver.",
+        "food_silent_country": "Aucun prix n'a été publié pour cette denrée sur ce marché depuis {month}, et aucun "
+                               "marché {in_country} ne la publie actuellement. Cela indique un changement dans ce que "
+                               "le PAM suit, et non un problème sur ce marché.",
+        "food_silent_other_unit": "Aucun prix par {unit} n'a été publié pour cette denrée sur ce marché depuis {month} : "
+                                  "le PAM la publie maintenant ici par {other_unit}.",
     },
 }
 

@@ -20,14 +20,14 @@ from fpw.countries import COUNTRIES
 from fpw.explain import export_price, export_prob
 from fpw.features import commodity_group
 from fpw.panel import month_index
-from fpw.signals import MEDIAN_MONTHS, Signals, describe_signals, signal_facts
+from fpw.signals import MEDIAN_MONTHS, Signals, describe_signals, food_stop_scope, signal_facts
 from fpw.texts import ATTRIBUTION as ATTRIBUTION_I18N
 from fpw.texts import COMMODITY_FR, COUNTRY_NOTES
 from fpw.texts import DISCLAIMER as DISCLAIMER_I18N
 
-SCHEMA_VERSION = "1.6"  # 1.1: status null without a forecast; 1.2: French, reporting regularity; 1.3: status "beta";
+SCHEMA_VERSION = "1.7"  # 1.1: status null without a forecast; 1.2: French, reporting regularity; 1.3: status "beta";
 # 1.4: market signals (national gap, silence), silent series kept with history only; 1.5: any country id, country note;
-# 1.6: data_up_to per country (lgbm_fresh2), 4 or 5 forecast rows
+# 1.6: data_up_to per country (lgbm_fresh2), 4 or 5 forecast rows; 1.7: stopped foods kept with history only
 STATUSES = ("preview", "beta", "published")  # preview: not public; beta: public with a beta banner; published
 ATTRIBUTION = ATTRIBUTION_I18N["en"]
 LICENSE = {"data": "CC BY-IGO 3.0 (WFP)", "url": "https://creativecommons.org/licenses/by/3.0/igo/"}
@@ -165,7 +165,10 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
         next_fc = next((f for f in forecast if f["step"] == SPIKE_STEP), None)
         gap_row = gaps.loc[s.series_id] if s.series_id in gaps.index else None
         quiet_row = quiet.loc[(s.country, s.market_id)] if (s.country, s.market_id) in quiet.index else None
-        sf = signal_facts(gap_row, quiet_row, signals.reference.get(s.country) if signals else None, s.country)
+        sf = signal_facts(gap_row, quiet_row, signals.reference.get(s.country) if signals else None, s.country,
+                          None if s.eligible_at_origin else int(s.last_obs_month),
+                          food_stop_scope(signals, s.country, s.market_id, s.series_commodity_id, s.unit)
+                          if signals and not s.eligible_at_origin else ("market", None), s.unit)
         med = medians.get((s.country, s.series_commodity_id, s.unit))
         first_m = month_index(pd.Series([hist["date"].iloc[0]])).iloc[0] if len(hist) else data_up_to + 1
         national = [] if med is None else [
@@ -180,6 +183,10 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "silence": None if sf["silence"] is None else {
                 "months": sf["silence"]["months"], "last_reported_month": month_str(sf["silence"]["last_month"]),
                 "reference_month": month_str(sf["silence"]["reference"])},
+            "food_silence": None if sf["food_silence"] is None else {
+                "months": sf["food_silence"]["months"], "last_reported_month": month_str(sf["food_silence"]["last_month"]),
+                "reference_month": month_str(sf["food_silence"]["reference"]),
+                "scope": sf["food_silence"]["scope"], "other_unit": sf["food_silence"]["other_unit"]},
             "text": {"en": describe_signals(sf, "en"), "fr": describe_signals(sf, "fr")},
         } if signals is not None else None
         doc = {
@@ -221,6 +228,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "gap_pct": sf["gap"]["pct"] if sf["gap"] else None,
             "far_above_usual": bool(sf["gap"] and sf["gap"]["far_above_usual"]),
             "silent_months": sf["silence"]["months"] if sf["silence"] else None,
+            "food_silent_months": sf["food_silence"]["months"] if sf["food_silence"] else None,
             "latitude": doc["market"]["latitude"], "longitude": doc["market"]["longitude"],
         })
 

@@ -1,4 +1,4 @@
-# Public export contract (v1.6): food-price-watch → public site
+# Public export contract (v1.7): food-price-watch → public site
 
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
@@ -47,7 +47,13 @@ used only in CI, never in the browser or in the built site.
 
 All JSON is UTF-8, compact. Months are `"YYYY-MM"`. Prices are **nominal, in local currency per `unit`** (XOF for
 Mali, Burkina Faso and Niger, BIF for Burundi; units such as `KG`, `L`, `100 KG`), already converted from the model's log
-scale. Every JSON file has `schema_version` (`"1.6"`) and `attribution`.
+scale. Every JSON file has `schema_version` (`"1.7"`) and `attribution`.
+
+Changes in 1.7 (2026-10-31, additive; owner's request): **a food that stopped in a market that still reports stays in
+the export** (`eligible: false`, `status: null`, history only) instead of disappearing, for 2-24 months and with at
+least 12 months of data, like silent markets. Series files gain `signals.food_silence`, index rows `food_silent_months`.
+These series do not count in `status_counts` or `series_with_forecast`, but do count in `series`. They do not make a
+basket: a basket still needs a forecast for all its foods. Forecasts, statuses and explanations are unchanged.
 
 Changes in 1.6 (2026-10-31): the product is now **`lgbm_fresh2`**: each forecast starts from the newest month WFP has
 published for that country. So:
@@ -145,6 +151,10 @@ change; ids do not). Suitable for URLs: `/mali/mali-1816-73-retail-kg`.
   - `silence {months, last_reported_month, reference_month}` or `null`: the market has published **no price for any
     food** for `months` (>= 2) months, counted from the country's `reference_month` (the latest month most of its
     markets reported, so WFP's late publication does not look like silence). Listed for 2-24 months.
+  - `food_silence {months, last_reported_month, reference_month, scope, other_unit}` or `null` (1.7): a series without
+    a forecast whose last price is `months` (>= 2) before the `reference_month`, in a market that is not silent. `scope`:
+    `market` = other markets still report this food; `country` = no market in the country reports it in this unit now
+    (WFP changed its list); `other_unit` = this market now reports it in `other_unit` (otherwise `null`).
   - `text.en` / `text.fr`: ready-made text from these facts (empty string when there is nothing to say). Show as is,
     near the status; it already names the caveats (data error, other reasons for missing data).
 - `national_median[]`: `{month, price}` for the last 36 months up to `data_up_to` (months with >= 5 markets), for a
