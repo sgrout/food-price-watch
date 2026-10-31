@@ -9,11 +9,11 @@ assessment**: for those, see [WFP HungerMap](https://hungermap.wfp.org) and [FEW
 
 ## Which data a forecast uses
 
-WFP publishes each month's prices one to two and a half months later. A forecast made
-in a month therefore uses only the prices published by then: a forecast made in October uses prices up to August. The
-first two months shown (the last month and the current month) are estimates of prices not yet published; the next
-three are forecasts. In some markets WFP publishes faster: the last month's price is then already in the history,
-next to its estimate, but this forecast does not use it yet (it will next month).
+WFP publishes each country's prices one to several months later, and how late differs per country and per month. A
+forecast uses the newest month WFP has published for that country, so the "data up to" date can differ between
+countries. Months not yet published are shown as estimates; the next three months are forecasts. If a country's newest
+month is more than four months old, we make no forecast for it until WFP publishes again: its prices stay on the site.
+In the tests on the past, each forecast could use only the month that had really been published at that moment.
 
 ## How a forecast is made
 
@@ -38,13 +38,14 @@ precise than we are. A narrower range would look better but be wrong more often.
 
 - **Prices move a lot.** Around the harvest and the lean season, staple prices can rise or fall sharply within a
   few months, and the timing differs from year to year.
-- **The newest price is already old.** WFP publishes prices about two months late, so "next month" is about three
-  months after the last known price.
+- **The newest price is already old.** WFP publishes prices one to several months late, so "next month" is often two
+  or three months after the last known price.
 - **Some markets report irregularly.** If a market has not reported a price for a while, the forecast starts from
   an older price and its range is wider still; the text then says so.
 
-In tests on 2023 onwards, the typical miss (half of the errors were smaller) was about 5 % for the month just past,
-about 10 % for next month and about 15 % three months ahead, for single foods and for the basket alike.
+In tests on 2023 onwards, the typical miss for single foods (half of the errors were smaller) was about 5 % for the
+month just past, 9 % for next month and 13 % three months ahead. For the food basket, which still uses the earlier
+method, it was about 4 %, 10 % and 16 %.
 
 ## What a spike is
 

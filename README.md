@@ -35,6 +35,12 @@ above the national median (usually 12 %), and 15 Malian markets (Mopti, Tombouct
 19 months. These are descriptions of the data, not proven warnings: a data error can look the same, and missing
 data can have harmless causes.
 
+**New: fresher prices.** Forecasts used to start from a fixed "two months ago". We found out when WFP really published
+each month, and now each forecast starts from the newest prices WFP has published for that country. That makes the
+forecasts better: the typical miss for next month went from about 10 % to about 9 %, and the ranges got narrower
+without being wrong more often. It also showed that our earlier track record looked a bit better than it was,
+because the old test sometimes used prices that had not been published yet. The new numbers are the honest ones.
+
 **What the checks found.** Food price data has mistakes, and we mark them rather than quietly correcting them:
 - In August 2017, the maize price in most Malian markets tripled for exactly one month and then went back to normal.
   A real price spike does not vanish that fast, so these values are marked "suspect" and will not be used to train
@@ -559,6 +565,16 @@ The forecasts used data up to origin - 2 (a fixed, assumed publication lag). HDX
   holdout 0.0251 vs 0.0275 (-9 %), holdout 80 % coverage 76.4 % (75.3 %); typical error next month 8.2 vs 9.5 %, in
   3 months 12.1 vs 14.0 %. Known optimism: before 2026-10 we know when a country's month first appeared, not when
   each market's price did.
+- **The switch (food prices, 2026-10-31).** `lgbm_fresh2` is the product (`lgbm_quantile_fresh`); `lgbm_cal` keeps running
+  next to it because the baskets read it. Trial for origin 2026-10: Burkina Faso, Burundi and Niger start from
+  September, Mali from August; median width of next month's 80 % range (p90/p10) 1.56 -> 1.43, 1.51 -> 1.42, 1.53 ->
+  1.36, Mali 1.55 -> 1.53. Export 1.6: `data_up_to` per country, 4 or 5 forecast rows; 1,393 series (1,094 with a
+  forecast). Published track record (eligible, known publication dates): 80 % range held 81 / 79 / 76 / 74 / 72 %, typical
+  error 5 / 6 / 9 / 11 / 13 %. Weakest: Niger, 68 % next month and 60 % in 3 months. New-spike Brier is now better than the
+  base rate next month (0.081 vs 0.093); the "no proven skill yet" text stays until the live record shows it.
+- Gotchas: `latest_runs` picked the official run per origin over all models, so a run with one model would have removed
+  the other's official forecast (now per model); one early market moved a country's newest month, which would have given
+  most of Burundi an old-price note (now compared with the month most markets reported).
 
 ### How to run
 

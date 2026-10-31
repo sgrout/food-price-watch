@@ -10,12 +10,12 @@ n'ont pas leur propre équipe de données. **Ce n'est pas une évaluation offici
 
 ## Quelles données une prévision utilise
 
-Le PAM publie les prix de chaque mois un à deux mois et demi plus tard.
-Une prévision faite au cours d'un mois n'utilise donc que les prix publiés à ce moment-là : une prévision faite en
-octobre utilise les prix jusqu'en août. Les deux premiers mois affichés (le mois dernier et le mois en cours) sont
-des estimations de prix pas encore publiés ; les trois suivants sont des prévisions. Dans certains marchés, le PAM
-publie plus vite : le prix du mois dernier figure alors déjà dans l'historique, à côté de son estimation, mais
-cette prévision ne l'utilise pas encore (elle le fera le mois suivant).
+Le PAM publie les prix de chaque pays un à plusieurs mois plus tard, et ce délai varie selon le pays et le mois. Une
+prévision utilise le mois le plus récent publié par le PAM pour ce pays : la date « données jusqu'à » peut donc
+différer d'un pays à l'autre. Les mois pas encore publiés sont affichés comme des estimations ; les trois mois suivants
+sont des prévisions. Si le mois le plus récent d'un pays date de plus de quatre mois, nous ne faisons pas de prévision
+pour ce pays jusqu'à une nouvelle publication du PAM : ses prix restent sur le site. Dans les tests sur le passé,
+chaque prévision ne pouvait utiliser que le mois réellement publié à ce moment-là.
 
 ## Comment une prévision est faite
 
@@ -42,14 +42,14 @@ se tromperait plus souvent. Trois choses les élargissent :
 
 - **Les prix varient beaucoup.** Autour de la récolte et de la période de soudure, les prix des denrées de base
   peuvent monter ou baisser fortement en quelques mois, et le moment change d'une année à l'autre.
-- **Le prix le plus récent est déjà ancien.** Le PAM publie les prix environ deux mois plus tard : « le mois
-  prochain » se situe donc environ trois mois après le dernier prix connu.
+- **Le prix le plus récent est déjà ancien.** Le PAM publie les prix un à plusieurs mois plus tard : « le mois
+  prochain » se situe donc souvent deux ou trois mois après le dernier prix connu.
 - **Certains marchés publient de façon irrégulière.** Si un marché n'a pas publié de prix depuis un moment, la
   prévision part d'un prix plus ancien et son intervalle est encore plus large ; le texte le signale alors.
 
-Dans les tests sur 2023 et après, l'erreur typique (la moitié des erreurs étaient plus petites) était d'environ 5 %
-pour le mois écoulé, d'environ 10 % pour le mois prochain et d'environ 15 % à trois mois, pour les denrées seules
-comme pour le panier.
+Dans les tests sur 2023 et après, l'erreur typique pour les denrées seules (la moitié des erreurs étaient plus petites)
+était d'environ 5 % pour le mois écoulé, 9 % pour le mois prochain et 13 % à trois mois. Pour le panier, qui utilise
+encore la méthode précédente, elle était d'environ 4 %, 10 % et 16 %.
 
 ## Ce qu'est une flambée des prix
 

@@ -36,7 +36,7 @@ def facts(rows: pd.DataFrame, currency: str) -> dict:
     first = rows.iloc[0]
     nxt, last = by_step.loc[NEXT_STEP], by_step.loc[LAST_STEP]
     return {
-        "data_month": int(first["m_last"]), "data_up_to": int(first["origin"]) - LAG,
+        "data_month": int(first["m_last"]), "data_up_to": int(first.get("reference_month", int(first["origin"]) - LAG)),
         "months_ahead": int(nxt["target"]) - int(first["m_last"]), "status": status(float(first["z_now"])),
         "level_pct": _pct(float(first["resid_last"])),
         "trend_pct": _pct(float(first["ret3"])) if pd.notna(first["ret3"]) else None,

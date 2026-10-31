@@ -10,7 +10,7 @@ sans les remplacer : [HungerMap du PAM](https://hungermap.wfp.org) · [FEWS NET]
 
 **Données.** Prix des denrées : Programme alimentaire mondial (PAM), publiés sur le Humanitarian Data Exchange
 (HDX), sous licence CC BY-IGO. Les données sont mises à jour chaque semaine à partir des fichiers du PAM ; les prix
-d'un mois paraissent un à deux mois et demi plus tard.
+d'un mois paraissent un à plusieurs mois plus tard.
 
 **Aucune donnée personnelle.** Pas de cookies, pas de comptes ni de données personnelles ; comptage anonyme des visites (Vercel Web Analytics).
 

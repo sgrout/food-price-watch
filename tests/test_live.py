@@ -96,10 +96,52 @@ def test_live_forecasts_raw_and_calibrated_for_one_origin(world):
         live_forecasts(cases[cases["origin"].isin([origin, origin - 1])], model, pool)
 
 
-def test_latest_runs_keeps_the_last_run_per_origin():
-    live = pd.DataFrame({"origin": [1, 1, 2], "run_at": pd.to_datetime(["2026-10-05", "2026-10-26", "2026-11-02"]),
-                         "x": [1, 2, 3]})
-    assert list(latest_runs(live)["x"]) == [2, 3]
+def test_latest_runs_keeps_the_last_run_per_origin_and_model():
+    live = pd.DataFrame({"origin": [1, 1, 2, 2], "model": ["a", "a", "a", "b"], "x": [1, 2, 3, 4],
+                         "run_at": pd.to_datetime(["2026-10-05", "2026-10-26", "2026-11-02", "2026-11-09"])})
+    assert list(latest_runs(live)["x"]) == [2, 3, 4]  # the later run of b does not remove a's official forecast
+
+
+def test_fresh_live_forecasts_recalibrate_per_distance_with_the_published_cutoff(world):
+    from fpw.live import fresh_live_forecasts
+    from fpw.publication import FRESH_MODEL, FRESH_RAW, latest_data_months, within_delay
+    p, _, _, model, _ = world
+    origin = int(p["m"].max()) + 1  # the newest month is already published: data month = origin - 1
+    now = within_delay(build_cases(p, [origin], data_months=latest_data_months(p, origin)))
+    assert set(now["step"]) == {2, 3, 4, 5} and (now["m_data"] == origin - 1).all()
+    # too narrow before (PITs at the extremes), per distance h = 1 ... 4 from the data month: must widen
+    pool = pool_rows(1200, origin - 1, np.tile([0.01, 0.99], 600)).assign(model=FRESH_RAW, m_data=origin - 5)
+    pool["target"] = pool["m_data"] + np.repeat([1, 2, 3, 4], 300)
+    pool["origin"] = origin - 3
+    out = fresh_live_forecasts(now, model, pool)
+    raw, cal = (out[out["model"] == m].set_index(["series_id", "step"]).sort_index() for m in (FRESH_RAW, FRESH_MODEL))
+    assert len(raw) == len(cal) == len(now) and (out["m_data"] == origin - 1).all() and cal["calibrated"].all()
+    assert ((cal["q90"] - cal["q10"]) > (raw["q90"] - raw["q10"])).all()
+    # PITs of targets after the data month are not known yet: nothing to calibrate with
+    later = pool.assign(target=origin, m_data=origin)
+    assert not fresh_live_forecasts(now, model, later).query("model == @FRESH_MODEL")["calibrated"].any()
+
+
+def test_a_country_more_than_four_months_behind_gets_no_forecast(world):
+    from fpw.publication import latest_data_months, within_delay
+    p, *_ = world
+    origin = int(p["m"].max()) + 5
+    cases = build_cases(p, [origin], data_months=latest_data_months(p, origin), max_staleness=99)
+    assert len(cases) and within_delay(cases).empty  # data month = origin - 5
+    origin = int(p["m"].max()) + 4
+    cases = build_cases(p, [origin], data_months=latest_data_months(p, origin))
+    assert (within_delay(cases)["h_cal"] <= 5).all() and len(within_delay(cases)) == len(cases)
+
+
+def test_the_old_price_note_compares_with_the_month_most_markets_reported(world):
+    p, cases, origin, model, _ = world
+    now = cases[cases["origin"] == origin]
+    fc = live_forecasts(now, model, calibration_pool(pd.DataFrame(), pd.DataFrame(), origin))
+    fc = fc[fc["model"] == "lgbm_cal"]
+    last = int(now["m_last"].iloc[0])
+    text = lambda ref: summarize_live(now.assign(reference_month=ref), fc, {"mali": "XOF"})["explanation"].iloc[0]
+    assert "No price has been published" not in text(last)  # a few markets ahead of the others do not matter
+    assert "No price has been published" in text(last + 2)
 
 
 def test_score_live_waits_for_the_following_month_and_skips_known_errors():

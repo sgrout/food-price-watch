@@ -73,7 +73,7 @@ This file is the brief for coding agents. Read it fully before the first change,
     Spike chance is shown for next month only, because new-spike warnings are worse than the base rate further out.
   - **Public beta (owner's go, 2026-10-25):** the export status is `beta` (job parameter `export_status`); the site
     is public at staplesignals.org with a beta banner. **Exit criterion, fixed before any live result** (owner may
-    change it until the first live scores, ~Dec 2026): beta ends when the live 80 % coverage of `lgbm_cal` (eligible
+    change it until the first live scores, ~Dec 2026): beta ends when the live 80 % coverage of the product (`lgbm_fresh2` since phase 7; eligible
     series) lies between 70 % and 90 % after at least 6 matured forecast months, and the owner agrees.
     Defaults for the launch (owner may change): no search indexing at first (soft launch), French with a
     'translation not reviewed' note, feedback via GitHub Issues.
@@ -105,7 +105,10 @@ This file is the brief for coding agents. Read it fully before the first change,
     month is older than origin - 4. Same switch rule, now vs `lgbm_cal_pub`.
     **Result 2 (2026-10-29): switch.** Mean pinball validation 0.0233 vs 0.0256, holdout 0.0251 vs 0.0275 (stored
     `lgbm_cal` 0.0266: optimistic), holdout 80 % coverage 76.4 %; typical error next month 8.2 vs 9.5 %, 3 months
-    12.1 vs 14.0 %. The switch (live, training, export, site, baskets) is planned separately.
+    12.1 vs 14.0 %. **Switch (food prices; owner, 2026-10-31):** product `lgbm_fresh2`, registered model
+    `lgbm_quantile_fresh`, `05` trains and `06` runs both models, `live_summary` and export 1.6 from the product,
+    `data_up_to` per country. `lgbm_cal` keeps running because the baskets read it; baskets follow with their own
+    re-test. Deploy only after the site accepts 1.6. The private app still reads `lgbm_cal`.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by

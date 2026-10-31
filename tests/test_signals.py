@@ -148,3 +148,11 @@ def test_an_old_gap_is_not_shown():
     old = {"month": AUG - 5, "gap": np.log(5.0), "usual_gap": 0.0, "n_markets": 9, "far_above_usual": True}
     assert signal_facts(old, None, AUG, "mali")["gap"] is None  # e.g. an unconfirmed jump five months ago
     assert signal_facts({**old, "month": AUG - 1}, None, AUG, "mali")["gap"] is not None
+
+
+def test_a_country_without_forecasts_keeps_its_series():
+    p = panel({i: full() for i in range(1, 8)})
+    s = compute_signals(p, AUG)
+    assert silent_series(p, s, set()).empty  # nobody silent, no forecasts known: nothing kept without the argument
+    kept = silent_series(p, s, set(), no_forecast={"mali"})
+    assert len(kept) == 7 and kept["m_last"].eq(AUG).all()

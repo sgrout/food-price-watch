@@ -29,8 +29,9 @@ from fpw.countries import FORECAST_COUNTRIES
 from fpw.features import build_cases
 from fpw.ml import lgbm_walk_forward
 from fpw.panel import monthly_panel
-from fpw.publication import calendar, data_months
-from fpw.schemas import BACKTEST_METRICS, BACKTEST_METRICS_COUNTRY, FRESH_DECISION, FRESH_FORECASTS, to_rows
+from fpw.publication import FRESH_MODEL, calendar, data_months, within_delay
+from fpw.schemas import (BACKTEST_METRICS, BACKTEST_METRICS_COUNTRY, FRESH_DECISION, FRESH_FORECASTS, columns,
+                         to_rows)
 
 dbutils.widgets.text("catalog", "workspace")
 dbutils.widgets.text("env", "dev")
@@ -53,24 +54,21 @@ dm = data_months(cal, FORECAST_COUNTRIES, origins)
 known = {k for k, v in dm.items() if v is not None}
 log(f"calendar: {len(known):,} known (country, origin) of {len(dm):,}")
 
-MAX_DELAY = 4  # no forecast when the data month is older than origin - 4 (fixed 2026-10-29, re-test)
-H_POOL = 5  # calibration groups pool h >= 5 (fixed 2026-10-29, re-test)
 dm_pub = {k: (None if v is None else min(v, k[1] - LAG)) for k, v in dm.items()}  # never fresher than origin - 2
 
 
 def candidate(data_month_map, by, name):
-    c = build_cases(panel, origins, data_months=data_month_map)
-    c = c[c["m_data"] >= c["origin"] - MAX_DELAY].assign(h_cal=lambda d: d["h"].clip(upper=H_POOL))
-    f = lgbm_walk_forward(c, first_test_year=first_ml_year)
-    f = f.merge(c[["series_id", "origin", "step", "m_data", "h", "h_cal"]], on=["series_id", "origin", "step"])
-    f = recalibrate(f.assign(model=name, calibrated=False), by=("model", "country", by), data_month_col="m_data",
+    c = within_delay(build_cases(panel, origins, data_months=data_month_map))
+    raw = lgbm_walk_forward(c, first_test_year=first_ml_year)
+    raw = raw.merge(c[["series_id", "origin", "step", "m_data", "h", "h_cal"]], on=["series_id", "origin", "step"])
+    f = recalibrate(raw.assign(model=name, calibrated=False), by=("model", "country", by), data_month_col="m_data",
                     suffix="").drop(columns="h_cal")
     log(f"{name}: {len(f):,} forecasts ({int(f['calibrated'].sum()):,} recalibrated)")
-    return f
+    return f, raw.drop(columns="h_cal").assign(model=f"{name}_raw", calibrated=False)
 
 
-fresh = candidate(dm, "h_cal", "lgbm_fresh2")
-reference = candidate(dm_pub, "step", "lgbm_cal_pub")
+fresh, fresh_raw = candidate(dm, "h_cal", FRESH_MODEL)
+reference, _ = candidate(dm_pub, "step", "lgbm_cal_pub")
 
 stored = spark.table(f"{gold}.backtest_forecasts").where("model = 'lgbm_cal'").toPandas()
 score_cols = ["split", "in80", "in95", "pinball", "abs_err", "z_actual", "is_spike", "spike_now"]
@@ -79,7 +77,9 @@ both = pd.concat([stored.drop(columns=score_cols), fresh.drop(columns=["m_data",
 both = both[[(c, o) in known for c, o in zip(both["country"], both["origin"])]]
 scored = score(common_rows(both))
 eligible = scored[scored["eligible_at_origin"]]
-populations = {"all": scored, "eligible": eligible}
+irregular = eligible["months_reported_12"] < IRREGULAR_BELOW
+populations = {"all": scored, "eligible": eligible, "eligible_regular": eligible[~irregular],
+               "eligible_irregular": eligible[irregular]}
 metrics = pd.concat([summarize(s).assign(population=k) for k, s in populations.items()], ignore_index=True)
 metrics_country = pd.concat([summarize(s, by=("model", "split", "country", "step")).assign(population=k)
                              for k, s in populations.items()], ignore_index=True)
@@ -91,7 +91,7 @@ m = metrics[metrics["population"] == "all"].groupby(["model", "split"])[["pinbal
     .agg({"pinball": "mean", "coverage80": "mean", "n": "sum"})
 rows = []
 for rule, split, strict in [("1", "validation", True), ("2", "holdout", False)]:
-    cal_p, fr = m.loc[("lgbm_cal_pub", split), "pinball"], m.loc[("lgbm_fresh2", split)]  # re-test
+    cal_p, fr = m.loc[("lgbm_cal_pub", split), "pinball"], m.loc[(FRESH_MODEL, split)]  # re-test
     better = fr["pinball"] < cal_p if strict else fr["pinball"] <= cal_p
     rows.append({"rule": rule, "split": split, "cal_pinball": cal_p, "fresh_pinball": fr["pinball"],
                  "fresh_coverage80": fr["coverage80"], "passed": bool(better and 0.70 <= fr["coverage80"] <= 0.90),
@@ -107,7 +107,7 @@ def write(df, ddl, table):
 write(decision, FRESH_DECISION, "fresh_decision")  # small results first: a large write cannot lose them
 write(metrics, BACKTEST_METRICS, "fresh_backtest_metrics")
 write(metrics_country, BACKTEST_METRICS_COUNTRY, "fresh_backtest_metrics_country")
-out = pd.concat([fresh, reference]).merge(scored[scored["model"].isin(["lgbm_fresh2", "lgbm_cal_pub"])][
+out = pd.concat([fresh, reference]).merge(scored[scored["model"].isin([FRESH_MODEL, "lgbm_cal_pub"])][
     ["series_id", "origin", "step", "model", *score_cols]],
                   on=["series_id", "origin", "step", "model"])  # both already have m_data and h
 chunk = 250_000
@@ -115,5 +115,11 @@ for i, start in enumerate(range(0, len(out), chunk)):
     spark.createDataFrame(to_rows(out.iloc[start:start + chunk], FRESH_FORECASTS), FRESH_FORECASTS).write \
         .mode("overwrite" if i == 0 else "append").option("overwriteSchema", "true") \
         .saveAsTable(f"{gold}.fresh_backtest_forecasts")
+# The raw rows with their PITs: what live recalibration of the product learns from (06_live_forecast)
+pits = fresh_raw[fresh_raw["target"] >= 2019 * 12].reindex(columns=columns(FRESH_FORECASTS))
+for i, start in enumerate(range(0, len(pits), chunk)):
+    spark.createDataFrame(to_rows(pits.iloc[start:start + chunk], FRESH_FORECASTS), FRESH_FORECASTS).write \
+        .mode("overwrite" if i == 0 else "append").option("overwriteSchema", "true") \
+        .saveAsTable(f"{gold}.fresh_raw_forecasts")
 log(f"switch: {bool(decision['passed'].all())}")
 display(decision)

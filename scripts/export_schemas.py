@@ -13,7 +13,7 @@ price = {"type": "number", "exclusiveMinimum": 0}
 nprice = {"type": ["number", "null"], "exclusiveMinimum": 0}
 prob = {"type": ["number", "null"], "minimum": 0, "maximum": 1}
 status = {"enum": ["normal", "stress", "alert", "crisis"]}
-version = {"const": "1.5"}
+version = {"const": "1.6"}
 common = {"forecast_origin": month, "data_up_to": month, "model_version": {"type": "string"}}
 attribution = {"type": "string", "pattern": "World Food Programme"}
 country_id = {"type": "string", "pattern": "^[a-z]+(-[a-z]+)*$"}  # 1.5 / basket-1.1: any HDX country slug
@@ -78,7 +78,7 @@ SCHEMAS = {
             "series": {"type": "integer"}, "series_with_forecast": {"type": "integer"},
             "markets": {"type": "integer"},
             "status_counts": obj({k: {"type": "integer"} for k in ["normal", "stress", "alert", "crisis"]}),
-            "last_observed_month": month, "reference_month": nmonth,
+            "last_observed_month": month, "data_up_to": month, "reference_month": nmonth,
             "note": {"anyOf": [obj({"en": {"type": "string"}, "fr": {"type": "string"}}), {"type": "null"}]},
             "far_above_usual": {"type": "integer", "minimum": 0},
             "silent_markets": {"type": "array", "items": obj({

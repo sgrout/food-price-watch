@@ -19,6 +19,7 @@ import pandas as pd
 
 from fpw.export import PUBLIC_COUNTRIES, build_export, public_scope, to_tarball
 from fpw.panel import monthly_panel
+from fpw.publication import FRESH_MODEL
 from fpw.signals import compute_signals, silent_series
 
 dbutils.widgets.text("catalog", "workspace")
@@ -41,29 +42,31 @@ root = f"/Volumes/{catalog}/fpw_{env}_gold/{export_dir}"
 
 summary = spark.table(f"{gold}.live_summary").toPandas()
 forecasts = spark.sql(f"""
-    SELECT * FROM {gold}.live_forecasts
-    WHERE model = 'lgbm_cal' AND run_at = (SELECT MAX(run_at) FROM {gold}.live_forecasts)""").toPandas()
+    SELECT * FROM {gold}.live_forecasts WHERE model = '{FRESH_MODEL}'
+    AND run_at = (SELECT MAX(run_at) FROM {gold}.live_forecasts WHERE model = '{FRESH_MODEL}')""").toPandas()
 # All retail prices: the history of the exported series, and the national medians and silence of every market
 prices = spark.sql(f"""
     SELECT country, market_id, market, commodity, series_commodity_id, unit, pricetype, date, price, is_suspect,
            confirmed_date, quality_flag, admin1, admin2, latitude, longitude
     FROM {silver}.wfp_prices
     WHERE pricetype = 'Retail' AND price > 0""").toPandas()
-metrics_country = spark.table(f"{gold}.backtest_metrics_country").toPandas()
+metrics_country = spark.table(f"{gold}.fresh_backtest_metrics_country").toPandas()
 # Every country is ingested and forecast; only the public ones are exported. National medians and silence are
 # per country, so they can be computed after the filter.
 scope = public_scope({"summary": summary, "forecasts": forecasts, "prices": prices,
                       "metrics_country": metrics_country}, public)
 summary, forecasts, prices, metrics_country = (scope[k] for k in ["summary", "forecasts", "prices", "metrics_country"])
 panel = monthly_panel(prices)
-signals = compute_signals(panel, int(summary["data_month"].iloc[0]))
-silent = silent_series(panel, signals, set(summary["series_id"]))
-metrics = spark.table(f"{gold}.backtest_metrics").toPandas()  # pooled over all countries in the backtest
+signals = compute_signals(panel, int(summary["data_month"].max()))
+# A public country with no forecast at all (WFP more than 4 months behind) keeps its pages, with history only
+silent = silent_series(panel, signals, set(summary["series_id"]), no_forecast=set(public) - set(summary["country"]))
+metrics = spark.table(f"{gold}.fresh_backtest_metrics").toPandas()  # pooled over all countries in the backtest
 live_metrics = spark.table(f"{gold}.live_metrics").toPandas()
 
 generated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 files = build_export(summary, forecasts, prices, metrics, metrics_country, live_metrics, generated_at, status=status,
-                     signals=signals, silent=silent)
+                     signals=signals, silent=silent, model=FRESH_MODEL,
+                     track_period="2023 onwards, months with known publication dates")
 tar = to_tarball(files)
 print(f"{len(files):,} files, {sum(map(len, files.values())) / 1e6:.1f} MB; tar.gz {len(tar) / 1e6:.2f} MB")
 
