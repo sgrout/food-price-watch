@@ -13,7 +13,7 @@ price = {"type": "number", "exclusiveMinimum": 0}
 nprice = {"type": ["number", "null"], "exclusiveMinimum": 0}
 prob = {"type": ["number", "null"], "minimum": 0, "maximum": 1}
 status = {"enum": ["normal", "stress", "alert", "crisis"]}
-version = {"const": "1.6"}
+version = {"const": "1.7"}
 common = {"forecast_origin": month, "data_up_to": month, "model_version": {"type": "string"}}
 attribution = {"type": "string", "pattern": "World Food Programme"}
 country_id = {"type": "string", "pattern": "^[a-z]+(-[a-z]+)*$"}  # 1.5 / basket-1.1: any HDX country slug
@@ -38,6 +38,9 @@ signals = obj({
                                     "far_above_usual": {"type": "boolean"}}), {"type": "null"}]},
     "silence": {"anyOf": [obj({"months": {"type": "integer", "minimum": 2}, "last_reported_month": month,
                                "reference_month": month}), {"type": "null"}]},
+    "food_silence": {"anyOf": [obj({"months": {"type": "integer", "minimum": 2}, "last_reported_month": month,
+                                    "reference_month": month, "scope": {"enum": ["market", "country", "other_unit"]},
+                                    "other_unit": {"type": ["string", "null"]}}), {"type": "null"}]},
     "text": obj({"en": {"type": "string"}, "fr": {"type": "string"}}),
 })
 
@@ -69,6 +72,7 @@ SCHEMAS = {
             "next_spike_probability": prob,
             "gap_pct": {"type": ["integer", "null"]}, "far_above_usual": {"type": "boolean"},
             "silent_months": {"type": ["integer", "null"], "minimum": 2},
+            "food_silent_months": {"type": ["integer", "null"], "minimum": 2},
             "latitude": {"type": ["number", "null"]}, "longitude": {"type": ["number", "null"]}})},
     }, title="food-price-watch export: index.json"),
     "countries": obj({

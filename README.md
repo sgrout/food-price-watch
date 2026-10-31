@@ -576,6 +576,13 @@ The forecasts used data up to origin - 2 (a fixed, assumed publication lag). HDX
   hashes and schemas OK. Four series left the export earlier than under the old rule (last price June, one food in a
   market that still reports others): intended, as they are not silent markets. For the same reason the next basket
   export has 262 baskets instead of 264 (Tougan and Diapaga; checked with a trial export).
+- **Stopped foods stay visible (export 1.7, owner's request, 2026-10-31; ready, not deployed).** A food that stopped in a
+  market that still reports keeps its page with history only, for 2-24 months: 311 extra pages (316 labelled), 1,704
+  series, 1,094 with a forecast as before. Trial finding: most of them are **not** market events. WFP changed its list
+  around December 2025: Burundi's rice stopped in every market and Mali's haricot beans too (188 series "no market in
+  the country reports it now"), and Mali's oil moved from KG to litres (23 "now reported per L"). Only 105 are one
+  market's food stopping while other markets continue. A single text would have suggested trouble on 211 pages, so
+  `food_silence.scope` separates the three. Baskets do not change: they still need a forecast for all their foods.
 - Gotchas: `latest_runs` picked the official run per origin over all models, so a run with one model would have removed
   the other's official forecast (now per model); one early market moved a country's newest month, which would have given
   most of Burundi an old-price note (now compared with the month most markets reported).

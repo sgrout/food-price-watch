@@ -80,6 +80,11 @@ normal publication delay does not count as silence. In conflict areas, missing d
 trouble, but it can also have other causes, such as a pause in monitoring or a change in the list of markets WFP
 follows.
 
+A single food that stopped in a market that still reports other foods stays visible in the same way, with its last
+prices and no forecast. The page says whether other markets still report that food. If no market in the country
+reports it any more, or this market now reports it in another unit, the cause is most likely a change in what WFP
+monitors. WFP changed its list in Burundi and Mali around December 2025.
+
 ## Data checks
 
 A value that jumps and fully reverses the next month is marked as a data error and not used, once the

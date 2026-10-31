@@ -6,6 +6,8 @@
 2. Markets that stopped reporting: months since a market's last price, counted from the country's reference month
    (the latest month most of its markets reported), so late publication by WFP or one early-published month does
    not look like silence.
+3. Foods that stopped reporting: the same count for one food in a market that still reports others, with its scope:
+   only this market, every market in the country (WFP changed its list), or now reported here in another unit.
 
 Input: fpw.panel.monthly_panel (staples, retail, suspect_from). Only observations up to `data_up_to` and without a
 known data error by then are used; later months never change the result.
@@ -97,32 +99,51 @@ class Signals:
     gaps: pd.DataFrame  # series_gaps
     series_last: pd.Series  # series_id -> last usable month
     series_counts: pd.Series  # series_id -> number of usable months
+    current: pd.DataFrame  # (country, market_id, series_commodity_id, unit) with a price since reference month - 1
 
 
 def compute_signals(panel: pd.DataFrame, data_up_to: int) -> Signals:
     reference = reference_months(panel, data_up_to)
     medians = national_medians(panel, data_up_to)
     u = usable(panel, data_up_to)
+    current = u[u["m"] >= u["country"].map(reference) - (SILENT_AFTER - 1)]
     return Signals(data_up_to, reference, market_silence(panel, data_up_to, reference), medians,
                    series_gaps(panel, medians, data_up_to), u.groupby("series_id")["m"].max(),
-                   u.groupby("series_id")["m"].nunique())
+                   u.groupby("series_id")["m"].nunique(),
+                   current[["country", "market_id", "series_commodity_id", "unit"]].drop_duplicates())
+
+
+def food_stop_scope(signals: Signals, country: str, market_id: int, commodity_id: int, unit: str) -> tuple[str, str | None]:
+    """Why a stopped food may have stopped: ("other_unit", unit) = this market now reports it in another unit;
+    ("country", None) = no market in the country reports it in this unit now (WFP changed its list);
+    ("market", None) = other markets still report it."""
+    c = signals.current
+    food = c[(c["country"] == country) & (c["series_commodity_id"] == commodity_id)]
+    here = sorted(food.loc[(food["market_id"] == market_id) & (food["unit"] != unit), "unit"])
+    if here:
+        return "other_unit", here[0]
+    return ("market", None) if (food["unit"] == unit).any() else ("country", None)
 
 
 def silent_series(panel: pd.DataFrame, signals: Signals, known: set, no_forecast=()) -> pd.DataFrame:
     """Series of listed silent markets (fpw.signals.market_silence) that are not in the forecast summary (`known`
     series ids) and have >= MIN_MONTHS months: kept in the export with history only, so a market that goes quiet
-    stays visible instead of disappearing. (A single food that WFP stopped collecting in a market that still
-    reports is not kept: that is not a market going silent.) `no_forecast`: countries without any forecast this
-    run (WFP more than 4 months behind): all their series are kept the same way, within LISTED_UP_TO months."""
+    stays visible instead of disappearing. The same for a food that stopped (SILENT_AFTER to LISTED_UP_TO months) in
+    a market that still reports others. `no_forecast`: countries without any forecast this run (WFP more than 4
+    months behind): all their series are kept the same way, within LISTED_UP_TO months."""
     names = panel.sort_values("m").groupby("series_id")[["country", "market_id", "series_commodity_id", "commodity",
                                                           "market", "unit"]].last()
     names = names.assign(m_last=signals.series_last.reindex(names.index),
                          n_months=signals.series_counts.reindex(names.index)).dropna(subset=["m_last"])
     listed = signals.markets.loc[signals.markets["listed"], ["country", "market_id"]]
     in_listed = pd.MultiIndex.from_frame(names[["country", "market_id"]]).isin(pd.MultiIndex.from_frame(listed))
-    recent = (names["country"].map(signals.reference) - names["m_last"]) <= LISTED_UP_TO
+    months = names["country"].map(signals.reference) - names["m_last"]
+    recent = months <= LISTED_UP_TO
     behind = names["country"].isin(list(no_forecast)) & recent
-    keep = names[~names.index.isin(known) & (in_listed | behind) & (names["n_months"] >= MIN_MONTHS)]
+    silent = signals.markets.loc[signals.markets["silent"], ["country", "market_id"]]
+    in_silent = pd.MultiIndex.from_frame(names[["country", "market_id"]]).isin(pd.MultiIndex.from_frame(silent))
+    stopped = ~in_silent & (months >= SILENT_AFTER) & recent
+    keep = names[~names.index.isin(known) & (in_listed | behind | stopped) & (names["n_months"] >= MIN_MONTHS)]
     u = usable(panel, signals.data_up_to)
     reported = u[u["m"] > signals.data_up_to - 12].groupby("series_id")["m"].nunique()
     return keep.assign(m_last=keep["m_last"].astype(int),
@@ -133,11 +154,15 @@ def pct(log_gap: float) -> int:
     return int(round(100 * (np.exp(log_gap) - 1)))
 
 
-def signal_facts(gap_row, silence_row, reference: int | None, country: str) -> dict:
-    """Facts for one series: gap (or None), silence (or None). Percentages as exported (integers). The gap is
-    given only for a current price (its month at most one month before the reference month) and not for a silent
-    market: an old gap can be an unconfirmed data error that no later price could reverse."""
-    f = {"country": country, "gap": None, "silence": None}
+def signal_facts(gap_row, silence_row, reference: int | None, country: str, no_forecast_last: int | None = None,
+                 scope: tuple[str, str | None] = ("market", None), unit: str | None = None) -> dict:
+    """Facts for one series: gap (or None), silence (or None), food silence (or None). Percentages as exported
+    (integers). The gap is given only for a current price (its month at most one month before the reference month)
+    and not for a silent market: an old gap can be an unconfirmed data error that no later price could reverse.
+    no_forecast_last: the last month of a series without a forecast (None for a series with one): a food silence
+    needs a market that is not silent and a last price SILENT_AFTER or more months before the reference month.
+    scope: fpw.signals.food_stop_scope; unit: the unit of this series."""
+    f = {"country": country, "gap": None, "silence": None, "food_silence": None}
     current = gap_row is not None and (reference is None or int(gap_row["month"]) >= reference - (SILENT_AFTER - 1))
     if current and not (silence_row is not None and silence_row["silent"]):
         f["gap"] = {"month": int(gap_row["month"]), "pct": pct(gap_row["gap"]), "n": int(gap_row["n_markets"]),
@@ -146,6 +171,9 @@ def signal_facts(gap_row, silence_row, reference: int | None, country: str) -> d
     if silence_row is not None and silence_row["silent"]:
         f["silence"] = {"months": int(silence_row["months"]), "last_month": int(silence_row["last_month"]),
                         "reference": int(reference)}
+    elif no_forecast_last is not None and reference is not None and reference - no_forecast_last >= SILENT_AFTER:
+        f["food_silence"] = {"months": int(reference - no_forecast_last), "last_month": int(no_forecast_last),
+                             "reference": int(reference), "scope": scope[0], "other_unit": scope[1], "unit": unit}
     return f
 
 
@@ -168,4 +196,9 @@ def describe_signals(f: dict, lang: str = "en") -> str:
         s = f["silence"]
         parts.append(t["silent"].format(month=month(s["last_month"]), ref=month(s["reference"]),
                                         in_country=IN_COUNTRY[lang][f["country"]]))
+    if f.get("food_silence") is not None:
+        s = f["food_silence"]
+        parts.append(t[f"food_silent_{s['scope']}"].format(month=month(s["last_month"]), unit=s["unit"],
+                                                           other_unit=s["other_unit"],
+                                                           in_country=IN_COUNTRY[lang][f["country"]]))
     return " ".join(parts)

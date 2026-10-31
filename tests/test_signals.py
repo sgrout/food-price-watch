@@ -134,13 +134,79 @@ def test_signal_texts_use_only_facts():
         assert set(SIGNAL_TEXTS[lang]) == set(SIGNAL_TEXTS["en"])
 
 
-def test_a_stopped_food_in_an_active_market_is_not_a_silent_market():
+def test_a_stopped_food_in_an_active_market_is_kept_but_is_not_a_silent_market():
     millet = panel({i: full() for i in range(1, 8)})
     rice = panel({1: full()[:-4] + [None] * 4, 2: full(), 3: full(), 4: full(), 5: full()}, commodity_id=2)
     p = pd.concat([millet, rice], ignore_index=True)  # market 1 still reports millet, its rice stopped
     s = compute_signals(p, AUG)
     assert not s.markets["silent"].any()
-    assert silent_series(p, s, set(millet["series_id"]) | {f"mali|{i}|2|Retail|KG" for i in (2, 3, 4, 5)}).empty
+    known = set(millet["series_id"]) | {f"mali|{i}|2|Retail|KG" for i in (2, 3, 4, 5)}
+    extra = silent_series(p, s, known)
+    assert extra["series_id"].tolist() == ["mali|1|2|Retail|KG"] and extra["m_last"].iloc[0] == AUG - 4
+
+
+def test_which_stopped_foods_are_kept():
+    millet = panel({i: full() for i in range(1, 8)})
+    rice = panel({1: full()[:-1] + [None],  # 1 month: not stopped yet
+                  2: full()[:-2] + [None] * 2,  # 2 months: kept
+                  3: full()[:20] + [None] * 28,  # 28 months: too long ago
+                  4: [None] * 40 + [100.0] * 4 + [None] * 4,  # only 4 months of data: too few
+                  5: full(), 6: full()}, commodity_id=2)
+    p = pd.concat([millet, rice], ignore_index=True)
+    s = compute_signals(p, AUG)
+    known = set(millet["series_id"]) | {"mali|5|2|Retail|KG", "mali|6|2|Retail|KG"}
+    assert silent_series(p, s, known)["series_id"].tolist() == ["mali|2|2|Retail|KG"]
+
+
+def test_a_stopped_food_is_decided_on_data_up_to_the_cutoff():
+    millet = panel({i: full() for i in range(1, 8)})
+    rice = panel({1: full()[:-2] + [None] * 2, 2: full()}, commodity_id=2)
+    p = pd.concat([millet, rice], ignore_index=True)
+    known = set(millet["series_id"]) | {"mali|2|2|Retail|KG"}
+    before = silent_series(p, compute_signals(p, AUG), known)
+    later = pd.concat([p, panel({1: [100.0]}, commodity_id=2, start=AUG + 1)], ignore_index=True)  # the food returns
+    pd.testing.assert_frame_equal(before, silent_series(later, compute_signals(later, AUG), known))
+
+
+def test_the_scope_of_a_stopped_food():
+    from fpw.signals import describe_signals, food_stop_scope, signal_facts
+    stop = lambda mids: panel({i: (full()[:-4] + [None] * 4 if i in mids else full()) for i in range(1, 6)}, commodity_id=2)
+    millet = panel({i: full() for i in range(1, 8)})
+    # other markets still report it
+    p = pd.concat([millet, stop({1})], ignore_index=True)
+    assert food_stop_scope(compute_signals(p, AUG), "mali", 1, 2, "KG") == ("market", None)
+    # no market reports it now: WFP changed its list, not a problem in this market
+    p = pd.concat([millet, stop({1, 2, 3, 4, 5})], ignore_index=True)
+    s = compute_signals(p, AUG)
+    assert food_stop_scope(s, "mali", 1, 2, "KG") == ("country", None)
+    active = {"silent": False, "months": 0, "last_month": AUG}
+    text = describe_signals(signal_facts(None, active, AUG, "mali", AUG - 4, ("country", None), "KG"))
+    assert "no market in Mali reports it now" in text and "hard to find" not in text
+    # the same food now in litres in this market
+    litres = panel({1: full(), 2: full()}, commodity_id=2, unit="L")
+    p = pd.concat([millet, stop({1, 2, 3, 4, 5}), litres], ignore_index=True)
+    s = compute_signals(p, AUG)
+    assert food_stop_scope(s, "mali", 1, 2, "KG") == ("other_unit", "L")
+    assert food_stop_scope(s, "mali", 3, 2, "KG") == ("country", None)  # market 3 has no litres
+    text = describe_signals(signal_facts(None, active, AUG, "mali", AUG - 4, ("other_unit", "L"), "KG"))
+    assert text == "No price per KG has been published for this food in this market since April 2026: WFP now reports it here per L."
+    fr = describe_signals(signal_facts(None, active, AUG, "mali", AUG - 4, ("other_unit", "L"), "KG"), "fr")
+    assert fr.startswith("Aucun prix par KG") and fr.endswith("par L.")
+
+
+def test_food_silence_facts_and_text():
+    from fpw.signals import describe_signals, signal_facts
+    active = {"silent": False, "months": 0, "last_month": AUG}
+    f = signal_facts(None, active, AUG, "mali", no_forecast_last=AUG - 2)
+    assert f["food_silence"] == {"months": 2, "last_month": AUG - 2, "reference": AUG, "scope": "market",
+                                 "other_unit": None, "unit": None} and f["silence"] is None
+    assert "since June 2026" in describe_signals(f) and "still reports other foods" in describe_signals(f)
+    assert "juin 2026" in describe_signals(f, "fr")
+    assert signal_facts(None, active, AUG, "mali", no_forecast_last=AUG - 1)["food_silence"] is None  # recent, no label
+    assert signal_facts(None, active, AUG, "mali")["food_silence"] is None  # a series with a forecast
+    quiet = {"silent": True, "months": 4, "last_month": AUG - 4}
+    f = signal_facts(None, quiet, AUG, "mali", no_forecast_last=AUG - 4)
+    assert f["food_silence"] is None and f["silence"]["months"] == 4  # the market's silence says it already
 
 
 def test_an_old_gap_is_not_shown():

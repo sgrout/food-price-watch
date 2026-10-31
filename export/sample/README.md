@@ -1,6 +1,6 @@
 # Export sample
 
-A small, real sample of the public export (7 series), for building the public site offline. Contract:
+A small, real sample of the public export (8 series), for building the public site offline. Contract:
 `docs/export-contract.md`; schemas: `export/schema/`. Regenerate with `scripts/make_export_sample.py`.
 
 Source: World Food Programme (WFP), food prices via the Humanitarian Data Exchange (HDX), licensed CC BY-IGO 3.0.

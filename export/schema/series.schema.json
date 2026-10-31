@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.6"
+      "const": "1.7"
     },
     "id": {
       "type": "string"
@@ -245,6 +245,51 @@
                 }
               ]
             },
+            "food_silence": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "months": {
+                      "type": "integer",
+                      "minimum": 2
+                    },
+                    "last_reported_month": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+                    },
+                    "reference_month": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+                    },
+                    "scope": {
+                      "enum": [
+                        "market",
+                        "country",
+                        "other_unit"
+                      ]
+                    },
+                    "other_unit": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "months",
+                    "last_reported_month",
+                    "reference_month",
+                    "scope",
+                    "other_unit"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "text": {
               "type": "object",
               "properties": {
@@ -265,6 +310,7 @@
           "required": [
             "national_gap",
             "silence",
+            "food_silence",
             "text"
           ],
           "additionalProperties": false
