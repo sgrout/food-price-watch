@@ -17,6 +17,9 @@ import pandas as pd
 
 from fpw import InvalidPayload
 
+FRESH_RAW, FRESH_MODEL = "lgbm_fresh2_raw", "lgbm_fresh2"  # the product since phase 7 (raw and recalibrated rows)
+MAX_DELAY = 4  # no forecast when the data month is older than origin - 4 (fixed 2026-10-29, re-test)
+H_POOL = 5  # recalibration groups pool h >= 5 (fixed 2026-10-29, re-test)
 ACTIVITY_FIELDS = ["activity_id", "timestamp", "activity_type", "dataset", "dataset_end", "price_last_modified"]
 _END = re.compile(r"TO (\d{4})-(\d{2})-\d{2}")
 
@@ -86,3 +89,16 @@ def data_months(cal: pd.DataFrame, countries, origins) -> dict[tuple[str, int], 
             plausible = i >= 0 and g["data_month"].iloc[i] <= g["made"].iloc[i] - 1
             out[(c, int(o))] = int(min(g["data_month"].iloc[i], o - 1)) if plausible else None
     return out
+
+
+def latest_data_months(panel: pd.DataFrame, origin: int) -> dict[tuple[str, int], int]:
+    """Live: per country the newest data month in our data now, which is what WFP has published (the backtest reads
+    the same thing from the activity stream). Never later than origin - 1."""
+    return {(c, int(origin)): min(int(m), int(origin) - 1) for c, m in panel.groupby("country")["m"].max().items()}
+
+
+def within_delay(cases: pd.DataFrame) -> pd.DataFrame:
+    """Cases of a fresher-data model: without those whose data month is older than origin - MAX_DELAY, with the
+    recalibration group `h_cal` (h >= H_POOL pooled)."""
+    kept = cases[cases["m_data"] >= cases["origin"] - MAX_DELAY]
+    return kept.assign(h_cal=kept["h"].clip(upper=H_POOL))

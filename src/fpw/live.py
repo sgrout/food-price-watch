@@ -1,8 +1,9 @@
 """Live forecasts: the registered model, the monthly sanity gate, this month's forecasts and their scoring.
 
-Same rules as the backtest, so the published track record describes what users see: a forecast made in month O
-uses data up to O - LAG; recalibration uses past PITs of forecasts whose target was published by O; a target is
-scored only once the month after it is published too (so a one-month data error is known and excluded).
+Same rules as the backtest, so the published track record describes what users see: a forecast uses the data its
+backtest allowed (`lgbm_cal`: up to O - LAG; `lgbm_fresh2`, the product since phase 7: the newest month published);
+recalibration uses past PITs of forecasts whose target was published by then; a target is scored only once the month
+after it is published too (so a one-month data error is known and excluded).
 """
 
 import mlflow
@@ -14,6 +15,7 @@ from fpw.calibrate import WINDOW_MONTHS, recalibrate
 from fpw.distribution import GRID_COLUMNS, GRID_LEVELS
 from fpw.features import FEATURES
 from fpw.ml import MIN_TRAIN_ROWS, fit_quantile_models, predict_grid, rows_from_grid, training_rows
+from fpw.publication import FRESH_MODEL, FRESH_RAW, H_POOL
 
 MODEL_INPUT = FEATURES + ["lp_last"]
 GATE_COVERAGE80 = (0.6, 0.95)  # in-sample 80 % coverage outside this range means a broken fit, not a bad model
@@ -53,10 +55,10 @@ def sanity_gate(model: QuantileGridModel, train: pd.DataFrame) -> tuple[bool, di
 
 
 def calibration_pool(backtest: pd.DataFrame, scored_live: pd.DataFrame, origin: int, model: str = "lgbm",
-                     lag: int = LAG, window: int = WINDOW_MONTHS) -> pd.DataFrame:
+                     lag: int = LAG, window: int = WINDOW_MONTHS, extra=()) -> pd.DataFrame:
     """Past raw forecasts with a PIT that recalibration may use at `origin`: backtest rows plus scored live rows
-    (live wins where both exist), target published by origin - lag and within the window."""
-    cols = FORECAST_COLUMNS + ["pit"]
+    (live wins where both exist), target published by origin - lag and within the window. `extra`: more columns."""
+    cols = FORECAST_COLUMNS + ["pit", *extra]
     parts = [df.loc[df["model"] == model, cols] for df in (scored_live, backtest) if len(df)]
     if not parts:
         return pd.DataFrame(columns=cols)
@@ -77,9 +79,26 @@ def live_forecasts(cases: pd.DataFrame, model: QuantileGridModel, pool: pd.DataF
     return pd.concat([raw.assign(calibrated=False), cal], ignore_index=True).drop(columns="pit")
 
 
+def fresh_live_forecasts(cases: pd.DataFrame, model: QuantileGridModel, pool: pd.DataFrame) -> pd.DataFrame:
+    """Raw (FRESH_RAW) and recalibrated (FRESH_MODEL) rows for one origin's cases (fpw.publication.within_delay), as
+    in its backtest: recalibration per (country, h_cal), past PITs known by the country's own data month (`m_data`).
+    `pool`: calibration_pool(model=FRESH_RAW, extra=["m_data"])."""
+    origins = cases["origin"].unique()
+    if len(origins) != 1:
+        raise ValueError(f"fresh_live_forecasts expects one origin, got {sorted(origins)}")
+    raw = rows_from_grid(cases, model.predict(None, cases[MODEL_INPUT]).to_numpy(), model=FRESH_RAW).assign(pit=np.nan)
+    raw = raw.merge(cases[["series_id", "step", "m_data"]], on=["series_id", "step"])
+    both = pd.concat([pool.assign(_pool=True), raw.assign(_pool=False)], ignore_index=True)
+    both = both.assign(h_cal=(both["target"] - both["m_data"]).clip(upper=H_POOL))
+    cal = recalibrate(both, by=("model", "country", "h_cal"), data_month_col="m_data", suffix="")
+    cal = cal[~cal["_pool"].astype(bool)].drop(columns=["_pool", "h_cal"]).assign(model=FRESH_MODEL)
+    return pd.concat([raw.assign(calibrated=False), cal], ignore_index=True).drop(columns="pit")
+
+
 def latest_runs(live: pd.DataFrame) -> pd.DataFrame:
-    """The official forecast per origin: the last run in that month (every run is before the outcome is known)."""
-    last = live.groupby("origin")["run_at"].transform("max")
+    """The official forecast per origin and model: the last run in that month (every run is before the outcome is
+    known). Per model, so a run without one model never removes that model's official forecast."""
+    last = live.groupby(["origin", "model"])["run_at"].transform("max")
     return live[live["run_at"] == last]
 
 
@@ -105,7 +124,8 @@ def summarize_live(cases: pd.DataFrame, fc: pd.DataFrame, currencies: dict[str, 
     calibrated live rows of one run."""
     from fpw.explain import LAST_STEP, NEXT_STEP, describe, facts
 
-    feats = cases.drop_duplicates(["series_id"])[["series_id", *SUMMARY_FEATURES]]
+    optional = [c for c in ["reference_month"] if c in cases.columns]  # the month most of the country's markets reported
+    feats = cases.drop_duplicates(["series_id"])[["series_id", *SUMMARY_FEATURES, *optional]]
     rows = fc.merge(feats, on="series_id", how="left")
     out = []
     for sid, g in rows.groupby("series_id", sort=False):
