@@ -77,3 +77,15 @@ def test_too_few_past_pits_keeps_the_raw_forecast():
     cal = recalibrate(fc, min_pits=10_000)
     assert not cal["calibrated"].any()
     assert np.allclose(cal[GRID_COLUMNS].to_numpy(), fc[GRID_COLUMNS].to_numpy())
+
+
+def test_a_published_data_month_decides_which_past_pits_are_known():
+    """With data_month_col, the cutoff is the origin's own published month instead of origin - LAG."""
+    fc = forecasts(n_origins=60, n_series=20)
+    origin = int(fc["origin"].max())
+    a = recalibrate(fc)  # about 59 x 20 known PITs at the last origin: calibrated
+    b = recalibrate(fc.assign(m_data=fc["origin"] - LAG - 50), data_month_col="m_data")  # about 9 x 20 < 300
+    assert a.loc[a["origin"] == origin, "calibrated"].all()
+    assert not b.loc[b["origin"] == origin, "calibrated"].any()
+    same = recalibrate(fc.assign(m_data=fc["origin"] - LAG), data_month_col="m_data")
+    pd.testing.assert_frame_equal(a, same.drop(columns="m_data"))

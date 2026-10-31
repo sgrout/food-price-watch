@@ -1,0 +1,28 @@
+resources:
+  jobs:
+    fpw_fresh_backtest:
+      name: fpw_fresh_backtest_${var.env}
+      description: Backtest of the fresher-data candidate lgbm_fresh vs lgbm_cal (phase 7; manual runs)
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: env
+          default: ${var.env}
+
+      environments:
+        - environment_key: ml
+          spec:
+            client: "4"
+            dependencies:
+              - lightgbm==4.7.0
+
+      tasks:
+        - task_key: fresh_backtest
+          environment_key: ml
+          notebook_task:
+            notebook_path: ../src/13_backtest_fresh.py

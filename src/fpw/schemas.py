@@ -14,6 +14,8 @@ FETCH_LOG = """country STRING, status STRING, message STRING, dataset STRING, li
     resource_last_modified STRING, sha256 STRING, n_rows BIGINT, file_path STRING,
     _source STRING, _source_url STRING, _ingested_at TIMESTAMP"""
 
+HDX_ACTIVITY = """country STRING, activity_id STRING, timestamp STRING, activity_type STRING, dataset STRING,
+    dataset_end STRING, price_last_modified STRING, _source STRING, _source_url STRING, _ingested_at TIMESTAMP"""
 _PRICE_COLUMNS = """country STRING, date DATE, admin1 STRING, admin2 STRING, market STRING, market_id BIGINT,
     latitude DOUBLE, longitude DOUBLE, category STRING, commodity STRING, commodity_id BIGINT, unit STRING,
     priceflag STRING, pricetype STRING, currency STRING, price DOUBLE, usdprice DOUBLE"""
@@ -49,6 +51,9 @@ _METRICS = """n BIGINT, n_series BIGINT, n_origins BIGINT, coverage80 DOUBLE, co
     onset_precision DOUBLE, onset_recall DOUBLE"""
 
 BACKTEST_METRICS = "population STRING, model STRING, split STRING, step BIGINT, " + _METRICS
+FRESH_FORECASTS = BACKTEST_FORECASTS + ", m_data BIGINT, h BIGINT"  # phase 7 candidate (13_backtest_fresh)
+FRESH_DECISION = """rule STRING, split STRING, cal_pinball DOUBLE, fresh_pinball DOUBLE, fresh_coverage80 DOUBLE, passed BOOLEAN,
+    n BIGINT"""
 BACKTEST_METRICS_COUNTRY = "population STRING, model STRING, split STRING, country STRING, step BIGINT, " + _METRICS
 SPIKE_CALIBRATION = "population STRING, model STRING, split STRING, bin BIGINT, n BIGINT, mean_prob DOUBLE, observed DOUBLE"
 

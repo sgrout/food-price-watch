@@ -88,6 +88,24 @@ This file is the brief for coding agents. Read it fully before the first change,
     `public_countries` bundle variable filters the exports); Chad ingest only (`Country.forecast = False`: WFP
     publishes it 2-4 months late). A new country: probe, `COUNTRIES` + texts + basket, ingest, backtest, train, live,
     review with the owner, then schema/site/`public_countries`.
+  - **Fresher data (phase 7, fixed 2026-10-29 before the run):** candidate `lgbm_fresh` starts each case from the
+    data month WFP had actually published at the official forecast time (`fpw.publication`, HDX activity stream
+    from 2020-12; unknown or earlier: origin - 2), same targets, model and refits; recalibration per (country,
+    h = target - data month). Compared with stored `lgbm_cal` on common rows at calendar-known origins, population
+    `all` (`13_backtest_fresh.py`, job `fpw_fresh_backtest`). **Switch rule (owner: right after the backtest):**
+    replace `lgbm_cal` only if validation mean pinball < `lgbm_cal` with 80 % coverage in [0.70, 0.90], and holdout
+    (2023+) mean pinball <= `lgbm_cal` with 80 % coverage in [0.70, 0.90]. Finding: the origin - 2 rule used
+    unpublished data in 37 % of Mali's origins (all of 2024), so Mali's current track record is optimistic.
+    **Result 1 (2026-10-29): no switch** (validation 0.0234 vs 0.0252 passed; holdout 0.0283 vs 0.0263 failed). The
+    loss came from origins where WFP was behind: there `lgbm_cal` used unpublished prices, and `lgbm_fresh` was
+    uncalibrated for h >= 6 (too few PITs) and forecast from data up to 15 months old. **Re-test (owner, fixed
+    2026-10-29 before the run):** reference `lgbm_cal_pub` = the current model with only published data (data month
+    min(published, origin - 2)), calibrated per (country, step) with the published-month PIT cutoff; candidate
+    `lgbm_fresh2` = `lgbm_fresh` with calibration per (country, min(h, 5)); both without forecasts when the data
+    month is older than origin - 4. Same switch rule, now vs `lgbm_cal_pub`.
+    **Result 2 (2026-10-29): switch.** Mean pinball validation 0.0233 vs 0.0256, holdout 0.0251 vs 0.0275 (stored
+    `lgbm_cal` 0.0266: optimistic), holdout 80 % coverage 76.4 %; typical error next month 8.2 vs 9.5 %, 3 months
+    12.1 vs 14.0 %. The switch (live, training, export, site, baskets) is planned separately.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by

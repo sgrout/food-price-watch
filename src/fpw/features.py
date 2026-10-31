@@ -30,8 +30,13 @@ def commodity_group(name: str) -> str:
 
 
 def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_history: int = MIN_HISTORY,
-                max_staleness: int = MAX_STALENESS) -> pd.DataFrame:
-    """Cases for every (series, origin) that also qualifies for the baselines (same history rules, a seasonal fit)."""
+                max_staleness: int = MAX_STALENESS, data_months: dict | None = None) -> pd.DataFrame:
+    """Cases for every (series, origin) that also qualifies for the baselines (same history rules, a seasonal fit).
+
+    data_months (phase 7 candidate, fpw.publication.data_months): per (country, origin) the newest data month
+    actually published at the forecast time (None or missing = origin - lag). The target months stay the same
+    (origin - lag + steps); targets already published (<= that month) get no case. Columns `m_data` (the data
+    month used) and `h` (target - m_data) record it."""
     steps = np.asarray(steps)
     out = []
     for sid, g in panel.groupby("series_id", sort=False):
@@ -41,6 +46,8 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
         group = commodity_group(commodity)
         for origin in origins:
             m_data = origin - lag
+            if data_months is not None and data_months.get((country, int(origin))) is not None:
+                m_data = int(data_months[(country, int(origin))])
             hist = history_at(m, lp, sus, m0, full, m_data, min_history, max_staleness)
             if hist is None:
                 continue
@@ -53,23 +60,26 @@ def build_cases(panel: pd.DataFrame, origins, lag: int = LAG, steps=STEPS, min_h
             back = {j: arr[-1 - j] if len(arr) > j else np.nan for j in (1, 3, 6, 12)}
             d1 = np.diff(arr[-13:])
             vol12 = np.nanstd(d1) if np.sum(~np.isnan(d1)) >= 6 else np.nan
-            targets = m_data + steps
+            targets = origin - lag + steps  # fixed calendar targets (= m_data + steps without data_months)
+            case_steps = steps[targets > m_data]  # targets already published: nothing to forecast
+            targets = targets[targets > m_data]
             ks = targets - m_last
             srw = seasonal_rw(arr, m0, ks)
             expected = fit.expected(targets)
             seas_change = expected - fit.expected(m_last)
-            for i, step in enumerate(steps):
+            for i, step in enumerate(case_steps):
                 t = int(targets[i])
                 out.append((sid, country, commodity, *info, group, origin, int(step), t, int(ks[i]), m_last, lp_last,
                             clean[t - m0] if t <= m[-1] else np.nan, expected[i], fit.sigma, fit.phi, fit.resid_last,
                             fit.resid_last / fit.sigma, n_hist, t % 12, seas_change[i],
                             lp_last - back[1], lp_last - back[3], lp_last - back[6], lp_last - back[12], vol12,
                             srw[i, _Q50] - lp_last if srw is not None else np.nan,
-                            srw[i, _Q90] - srw[i, _Q10] if srw is not None else np.nan, eligible, reported12))
+                            srw[i, _Q90] - srw[i, _Q10] if srw is not None else np.nan, eligible, reported12, m_data,
+                            t - m_data))
     cols = ["series_id", "country", "commodity", *SERIES_INFO, "commodity_group", "origin", "step", "target", "k", "m_last",
             "lp_last", "actual", "expected", "sigma", "phi", "resid_last", "z_now", "n_hist", "target_month",
             "seas_change", "ret1", "ret3", "ret6", "ret12", "vol12", "srw_change", "srw_width80", "eligible_at_origin",
-            "months_reported_12"]
+            "months_reported_12", "m_data", "h"]
     cases = pd.DataFrame(out, columns=cols)
     return add_group_features(cases)
 

@@ -1,0 +1,97 @@
+{
+ "success": true,
+ "result": [
+  {
+   "id": "6b2cf572-7899-49a3-be9f-06f826809ca5",
+   "timestamp": "2026-10-18T19:48:48.332023",
+   "activity_type": "changed package",
+   "data": {
+    "package": {
+     "name": "wfp-food-prices-for-mali",
+     "dataset_date": "[2003-01-15T00:00:00 TO 2026-08-15T23:59:59]",
+     "resources": [
+      {
+       "name": "Mali - Food Prices",
+       "format": "CSV",
+       "last_modified": "2026-10-18T19:48:44.309881"
+      },
+      {
+       "name": "Mali - Markets",
+       "format": "CSV",
+       "last_modified": "2026-09-27T14:09:49.768154"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "86a007d0-92a0-4535-bf96-930584262e6e",
+   "timestamp": "2026-10-18T19:48:45.564611",
+   "activity_type": "changed package",
+   "data": {
+    "package": {
+     "name": "wfp-food-prices-for-mali",
+     "dataset_date": "[2003-01-15T00:00:00 TO 2026-08-15T23:59:59]",
+     "resources": [
+      {
+       "name": "Mali - Food Prices",
+       "format": "CSV",
+       "last_modified": "2026-10-18T19:48:44.309881"
+      },
+      {
+       "name": "Mali - Markets",
+       "format": "CSV",
+       "last_modified": "2026-09-27T14:09:49.768154"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "6cab992a-6dda-4812-b61a-81033360eb79",
+   "timestamp": "2026-10-11T16:02:09.551831",
+   "activity_type": "changed package",
+   "data": {
+    "package": {
+     "name": "wfp-food-prices-for-mali",
+     "dataset_date": "[2003-01-15T00:00:00 TO 2026-06-15T23:59:59]",
+     "resources": [
+      {
+       "name": "Mali - Food Prices",
+       "format": "CSV",
+       "last_modified": "2026-10-11T16:02:06.428825"
+      },
+      {
+       "name": "Mali - Markets",
+       "format": "CSV",
+       "last_modified": "2026-09-27T14:09:49.768154"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "e0788632-fbe9-4f31-bcd6-7f16ecfa3f67",
+   "timestamp": "2026-10-11T16:02:07.566193",
+   "activity_type": "changed package",
+   "data": {
+    "package": {
+     "name": "wfp-food-prices-for-mali",
+     "dataset_date": "[2003-01-15T00:00:00 TO 2026-06-15T23:59:59]",
+     "resources": [
+      {
+       "name": "Mali - Food Prices",
+       "format": "CSV",
+       "last_modified": "2026-10-11T16:02:06.428825"
+      },
+      {
+       "name": "Mali - Markets",
+       "format": "CSV",
+       "last_modified": "2026-09-27T14:09:49.768154"
+      }
+     ]
+    }
+   }
+  }
+ ]
+}

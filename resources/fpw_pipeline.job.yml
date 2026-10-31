@@ -42,6 +42,14 @@ resources:
           notebook_task:
             notebook_path: ../src/01_bronze_hdx.py
 
+        # HDX activity stream: when each data month was published (publication calendar, phase 7). Nothing depends
+        # on it, so a failure does not stop the forecasts (the run still notifies).
+        - task_key: bronze_activity
+          depends_on:
+            - task_key: bronze_hdx
+          notebook_task:
+            notebook_path: ../src/09_bronze_hdx_activity.py
+
         - task_key: silver_prices
           depends_on:
             - task_key: bronze_hdx
