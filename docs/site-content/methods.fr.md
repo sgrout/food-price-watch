@@ -48,8 +48,8 @@ se tromperait plus souvent. Trois choses les élargissent :
   prévision part d'un prix plus ancien et son intervalle est encore plus large ; le texte le signale alors.
 
 Dans les tests sur 2023 et après, l'erreur typique pour les denrées seules (la moitié des erreurs étaient plus petites)
-était d'environ 5 % pour le mois écoulé, 8 % pour le mois prochain et 12 % à trois mois. Pour le panier, qui utilise
-encore la méthode précédente, elle était d'environ 4 %, 10 % et 15 %.
+était d'environ 5 % pour le mois écoulé, 9 % pour le mois prochain et 13 % à trois mois. Pour le panier, qui utilise
+encore la méthode précédente, elle était d'environ 4 %, 10 % et 16 %.
 
 ## Ce qu'est une flambée des prix
 

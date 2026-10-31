@@ -44,8 +44,8 @@ precise than we are. A narrower range would look better but be wrong more often.
   an older price and its range is wider still; the text then says so.
 
 In tests on 2023 onwards, the typical miss for single foods (half of the errors were smaller) was about 5 % for the
-month just past, 8 % for next month and 12 % three months ahead. For the food basket, which still uses the earlier
-method, it was about 4 %, 10 % and 15 %.
+month just past, 9 % for next month and 13 % three months ahead. For the food basket, which still uses the earlier
+method, it was about 4 %, 10 % and 16 %.
 
 ## What a spike is
 

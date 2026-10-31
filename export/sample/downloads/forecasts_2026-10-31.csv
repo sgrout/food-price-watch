@@ -1,0 +1,23 @@
+series_id,country,admin1,market,commodity,unit,currency,month,horizon,p025,p10,p50,p90,p975,usual_level,spike_probability,status_now,forecast_origin,data_up_to,model_version
+burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-10,nowcast_this_month,14559.24,15454.7,18684.96,22214.51,23773.84,19324.91,,stress,2026-10,2026-09,1
+burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-11,next_month,12864.82,14975.49,17877.07,22283.05,25393.95,18541.33,0.109,stress,2026-10,2026-09,1
+burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2026-12,in_2_months,13272.87,14857.84,17733.3,23279.56,28473.35,18990.2,,stress,2026-10,2026-09,1
+burundi-2429-96-retail-kg,burundi,Rumonge,Buyengero,Oil (vegetable),KG,BIF,2027-01,in_3_months,12542.9,14530.86,17853.87,24888.02,45389.68,19514.95,,stress,2026-10,2026-09,1
+burundi-206-74-retail-kg,burundi,Ngozi,Ngozi,Cassava flour,KG,BIF,2026-10,nowcast_this_month,1282.03,1449.3,1825.6,2196.25,2494.51,1582.23,,stress,2026-10,2026-09,1
+burundi-206-74-retail-kg,burundi,Ngozi,Ngozi,Cassava flour,KG,BIF,2026-11,next_month,1197.06,1423.6,1839.35,2421.23,2591.62,1772.2,0.047,stress,2026-10,2026-09,1
+burundi-206-74-retail-kg,burundi,Ngozi,Ngozi,Cassava flour,KG,BIF,2026-12,in_2_months,1192.53,1433.42,1836.0,2608.16,2697.88,1840.3,,stress,2026-10,2026-09,1
+burundi-206-74-retail-kg,burundi,Ngozi,Ngozi,Cassava flour,KG,BIF,2027-01,in_3_months,1209.68,1404.05,1811.97,2670.94,3837.96,1772.74,,stress,2026-10,2026-09,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-09,nowcast_last_month,354.78,390.66,427.52,534.06,555.02,521.84,,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-10,nowcast_this_month,359.42,385.28,423.01,543.31,579.28,525.05,,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-11,next_month,347.04,380.87,417.68,551.36,619.46,525.1,0.088,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2026-12,in_2_months,335.8,370.11,410.46,551.66,571.44,525.75,,normal,2026-10,2026-08,1
+mali-881-64-retail-kg,mali,Kayes,Kita,Rice (imported),KG,XOF,2027-01,in_3_months,341.44,362.94,401.47,549.14,627.15,546.77,,normal,2026-10,2026-08,1
+mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2026-09,nowcast_last_month,165.9,203.52,318.18,413.47,530.0,301.53,,alert,2026-10,2026-08,1
+mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2026-10,nowcast_this_month,148.56,166.83,288.58,434.71,627.63,298.05,,alert,2026-10,2026-08,1
+mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2026-11,next_month,149.85,155.3,254.04,483.01,933.69,288.41,0.264,alert,2026-10,2026-08,1
+mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2026-12,in_2_months,50.4,96.84,198.43,485.08,837.8,251.95,,alert,2026-10,2026-08,1
+mali-1816-73-retail-kg,mali,Sikasso,Yorosso,Millet,KG,XOF,2027-01,in_3_months,31.01,81.26,182.41,402.41,587.04,258.75,,alert,2026-10,2026-08,1
+niger-601-73-retail-kg,niger,Tillaberi,Mangaize,Millet,KG,XOF,2026-10,nowcast_this_month,224.58,234.26,255.78,291.05,297.97,340.71,,normal,2026-10,2026-09,1
+niger-601-73-retail-kg,niger,Tillaberi,Mangaize,Millet,KG,XOF,2026-11,next_month,193.64,217.72,252.54,295.44,298.64,326.51,0.0,normal,2026-10,2026-09,1
+niger-601-73-retail-kg,niger,Tillaberi,Mangaize,Millet,KG,XOF,2026-12,in_2_months,186.68,209.78,253.42,296.86,308.66,328.38,,normal,2026-10,2026-09,1
+niger-601-73-retail-kg,niger,Tillaberi,Mangaize,Millet,KG,XOF,2027-01,in_3_months,181.38,203.67,252.22,307.49,342.92,327.22,,normal,2026-10,2026-09,1
