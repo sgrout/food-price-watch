@@ -108,18 +108,21 @@ def compute_signals(panel: pd.DataFrame, data_up_to: int) -> Signals:
                    u.groupby("series_id")["m"].nunique())
 
 
-def silent_series(panel: pd.DataFrame, signals: Signals, known: set) -> pd.DataFrame:
+def silent_series(panel: pd.DataFrame, signals: Signals, known: set, no_forecast=()) -> pd.DataFrame:
     """Series of listed silent markets (fpw.signals.market_silence) that are not in the forecast summary (`known`
     series ids) and have >= MIN_MONTHS months: kept in the export with history only, so a market that goes quiet
     stays visible instead of disappearing. (A single food that WFP stopped collecting in a market that still
-    reports is not kept: that is not a market going silent.)"""
+    reports is not kept: that is not a market going silent.) `no_forecast`: countries without any forecast this
+    run (WFP more than 4 months behind): all their series are kept the same way, within LISTED_UP_TO months."""
     names = panel.sort_values("m").groupby("series_id")[["country", "market_id", "series_commodity_id", "commodity",
                                                           "market", "unit"]].last()
     names = names.assign(m_last=signals.series_last.reindex(names.index),
                          n_months=signals.series_counts.reindex(names.index)).dropna(subset=["m_last"])
     listed = signals.markets.loc[signals.markets["listed"], ["country", "market_id"]]
     in_listed = pd.MultiIndex.from_frame(names[["country", "market_id"]]).isin(pd.MultiIndex.from_frame(listed))
-    keep = names[~names.index.isin(known) & in_listed & (names["n_months"] >= MIN_MONTHS)]
+    recent = (names["country"].map(signals.reference) - names["m_last"]) <= LISTED_UP_TO
+    behind = names["country"].isin(list(no_forecast)) & recent
+    keep = names[~names.index.isin(known) & (in_listed | behind) & (names["n_months"] >= MIN_MONTHS)]
     u = usable(panel, signals.data_up_to)
     reported = u[u["m"] > signals.data_up_to - 12].groupby("series_id")["m"].nunique()
     return keep.assign(m_last=keep["m_last"].astype(int),

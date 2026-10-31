@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.5"
+      "const": "1.6"
     },
     "forecast_origin": {
       "type": "string",
@@ -70,6 +70,10 @@
             "additionalProperties": false
           },
           "last_observed_month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "data_up_to": {
             "type": "string",
             "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
           },
@@ -153,6 +157,7 @@
           "markets",
           "status_counts",
           "last_observed_month",
+          "data_up_to",
           "reference_month",
           "note",
           "far_above_usual",

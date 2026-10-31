@@ -25,8 +25,9 @@ from fpw.texts import ATTRIBUTION as ATTRIBUTION_I18N
 from fpw.texts import COMMODITY_FR, COUNTRY_NOTES
 from fpw.texts import DISCLAIMER as DISCLAIMER_I18N
 
-SCHEMA_VERSION = "1.5"  # 1.1: status null without a forecast; 1.2: French, reporting regularity; 1.3: status "beta";
-# 1.4: market signals (national gap, silence), silent series kept with history only; 1.5: any country id, country note
+SCHEMA_VERSION = "1.6"  # 1.1: status null without a forecast; 1.2: French, reporting regularity; 1.3: status "beta";
+# 1.4: market signals (national gap, silence), silent series kept with history only; 1.5: any country id, country note;
+# 1.6: data_up_to per country (lgbm_fresh2), 4 or 5 forecast rows
 STATUSES = ("preview", "beta", "published")  # preview: not public; beta: public with a beta banner; published
 ATTRIBUTION = ATTRIBUTION_I18N["en"]
 LICENSE = {"data": "CC BY-IGO 3.0 (WFP)", "url": "https://creativecommons.org/licenses/by/3.0/igo/"}
@@ -90,24 +91,29 @@ def _track_rows(m: pd.DataFrame) -> list[dict]:
 def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.DataFrame, metrics: pd.DataFrame,
                  metrics_country: pd.DataFrame, live_metrics: pd.DataFrame, generated_at: datetime,
                  status: str = "preview", signals: Signals | None = None,
-                 silent: pd.DataFrame | None = None) -> dict[str, bytes]:
+                 silent: pd.DataFrame | None = None, model: str = "lgbm_cal",
+                 track_period: str = "2023-01 onwards") -> dict[str, bytes]:
     """All export files as {path: bytes}; manifest.json lists every other file with its size and sha256.
 
     summary: gold.live_summary; forecasts: the latest run of gold.live_forecasts, model lgbm_cal; prices: silver
     retail prices (at least of the summary and silent series; with admin1, admin2, latitude, longitude);
     metrics / metrics_country: gold.backtest_metrics(_country) population 'eligible'; live_metrics: gold.live_metrics
     (may be empty). signals: fpw.signals.compute_signals (None = no signals); silent: fpw.signals.silent_series,
-    series that stopped reporting, exported with history only so they stay visible.
+    series that stopped reporting, exported with history only so they stay visible. model: the product whose track
+    record is exported. `data_up_to` is per country (summary `data_month`); top-level files carry the newest.
     """
     if status not in STATUSES:
         raise ValueError(f"status must be one of {STATUSES}, got {status!r}")
     files: dict[str, bytes] = {}
     origin = int(summary["origin"].iloc[0])
-    data_up_to = int(summary["data_month"].iloc[0])
+    data_month = summary.groupby("country")["data_month"].max().astype(int).to_dict()
+    data_up_to = max(data_month.values())
     model_version = str(summary["model_version"].iloc[0])
     run_at = pd.Timestamp(summary["run_at"].iloc[0]).isoformat()
     if silent is not None and len(silent):
         first = summary.iloc[0]
+        for c in set(silent["country"]) - set(data_month):  # a country without forecasts: its reference month
+            data_month[c] = signals.reference[c]
         summary = pd.concat([summary, pd.DataFrame({
             "series_id": silent["series_id"], "country": silent["country"], "market_id": silent["market_id"],
             "series_commodity_id": silent["series_commodity_id"], "unit": silent["unit"], "market": silent["market"],
@@ -115,7 +121,8 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "currency": silent["country"].map(lambda c: COUNTRIES[c].currencies[0]), "eligible_at_origin": False,
             "status": None, "level_pct": 0, "explanation": "", "explanation_fr": "",
             "months_reported_12": silent["months_reported_12"], "last_obs_month": silent["m_last"],
-            **{c: first[c] for c in ["origin", "data_month", "model_version", "run_at"]}})], ignore_index=True)
+            "data_month": silent["country"].map(data_month),
+            **{c: first[c] for c in ["origin", "model_version", "run_at"]}})], ignore_index=True)
     key = ["country", "market_id", "series_commodity_id", "unit"]
     prices = prices.sort_values("date")
     by_series = {k: g for k, g in prices.groupby(key, sort=False)}
@@ -153,6 +160,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
                     "p90": _price(np.exp(f.q90)), "p975": _price(np.exp(f.q975)),
                     "usual_level": _price(np.exp(f.expected)),
                     "spike_probability": export_prob(f.spike_prob) if show else "", "status_now": s.status, **common,
+                    "data_up_to": month_str(data_month[s.country]),
                 })
         next_fc = next((f for f in forecast if f["step"] == SPIKE_STEP), None)
         gap_row = gaps.loc[s.series_id] if s.series_id in gaps.index else None
@@ -162,7 +170,8 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
         first_m = month_index(pd.Series([hist["date"].iloc[0]])).iloc[0] if len(hist) else data_up_to + 1
         national = [] if med is None else [
             {"month": month_str(r.m), "price": _price(np.exp(r.median_lp))}
-            for r in med[(med["m"] >= max(first_m, data_up_to - MEDIAN_MONTHS + 1)) & (med["m"] <= data_up_to)]
+            for r in med[(med["m"] >= max(first_m, data_month[s.country] - MEDIAN_MONTHS + 1))
+                         & (med["m"] <= data_month[s.country])]
             .sort_values("m").itertuples()]
         doc_signals = {
             "national_gap": None if sf["gap"] is None else {
@@ -192,7 +201,8 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "reporting": {"months_reported_12": int(s.months_reported_12),
                           "irregular": int(s.months_reported_12) < IRREGULAR_BELOW},
             "signals": doc_signals,
-            "dates": {**common, "last_observed_month": month_str(s.last_obs_month), "run_at": run_at},
+            "dates": {**common, "data_up_to": month_str(data_month[s.country]),
+                      "last_observed_month": month_str(s.last_obs_month), "run_at": run_at},
             "history": history, "national_median": national, "forecast": forecast,
             "attribution": ATTRIBUTION,
         }
@@ -232,6 +242,7 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
             "series": len(g), "series_with_forecast": len(el), "markets": int(g["market"].nunique()),
             "status_counts": {k: int((el["status"] == k).sum()) for k in ["normal", "stress", "alert", "crisis"]},
             "last_observed_month": g["last_observed_month"].max(),
+            "data_up_to": month_str(data_month[c]),
             "reference_month": month_str(signals.reference[c]) if signals is not None and c in signals.reference
             else None,
             "note": COUNTRY_NOTES.get(c),
@@ -244,21 +255,21 @@ def build_export(summary: pd.DataFrame, forecasts: pd.DataFrame, prices: pd.Data
     files["countries.json"] = _json({"schema_version": SCHEMA_VERSION, **common, "countries": countries,
                                      "attribution": ATTRIBUTION})
 
-    bt = metrics[(metrics["population"] == "eligible") & (metrics["model"] == "lgbm_cal")
+    bt = metrics[(metrics["population"] == "eligible") & (metrics["model"] == model)
                  & (metrics["split"] == "holdout")]
-    bc = metrics_country[(metrics_country["population"] == "eligible") & (metrics_country["model"] == "lgbm_cal")
+    bc = metrics_country[(metrics_country["population"] == "eligible") & (metrics_country["model"] == model)
                          & (metrics_country["split"] == "holdout")]
-    lv = live_metrics[(live_metrics["population"] == "eligible") & (live_metrics["model"] == "lgbm_cal")] \
+    lv = live_metrics[(live_metrics["population"] == "eligible") & (live_metrics["model"] == model)] \
         if len(live_metrics) else live_metrics
     by_reporting = {}
     for name in ("regular", "irregular"):
-        part = metrics[(metrics["population"] == f"eligible_{name}") & (metrics["model"] == "lgbm_cal")
+        part = metrics[(metrics["population"] == f"eligible_{name}") & (metrics["model"] == model)
                        & (metrics["split"] == "holdout")]
         by_reporting[name] = _track_rows(part)
     files["track_record.json"] = _json({
-        "schema_version": SCHEMA_VERSION, "model": "lgbm_cal", **common,
+        "schema_version": SCHEMA_VERSION, "model": model, **common,
         "backtest": {
-            "period": "2023-01 onwards", "population": "series eligible for publication at the forecast date",
+            "period": track_period, "population": "series eligible for publication at the forecast date",
             "method": "walk-forward: each forecast made with only the data published by then",
             "by_horizon": _track_rows(bt),
             "by_country": {c: _track_rows(g) for c, g in bc.groupby("country")},

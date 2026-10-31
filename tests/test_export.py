@@ -270,3 +270,28 @@ def test_country_notes_are_bilingual_and_carry_no_numbers_but_years():
         assert set(note) == {"en", "fr"}
         for text in note.values():
             assert all(1990 <= int(n) <= 2100 for n in re.findall(r"\d+", text))  # years only; numbers come from data
+
+
+def test_data_up_to_is_per_country_and_the_track_record_follows_the_product():
+    summary, forecasts, prices, metrics, metrics_country, live = inputs()
+    niger = summary.iloc[:1].assign(country="niger", series_id="niger|9|51|Retail|KG", market_id=9,
+                                    data_month=ORIGIN - 1, last_obs_month=ORIGIN - 1)
+    p = pd.concat([prices, prices[prices["market_id"] == 247].assign(country="niger", market_id=9)], ignore_index=True)
+    fresh = pd.concat([metrics.assign(model="lgbm_fresh2", coverage80=0.76),
+                       metrics_country.assign(model="lgbm_fresh2", coverage80=0.76)], ignore_index=True)
+    fc = pd.concat([forecasts, forecasts[forecasts["step"] > 1].assign(series_id="niger|9|51|Retail|KG")], ignore_index=True)
+    files = build_export(pd.concat([summary, niger], ignore_index=True), fc, p, fresh,
+                         fresh[fresh["country"].notna()], live, generated_at=datetime(2026, 10, 26),
+                         model="lgbm_fresh2", track_period="2023 onwards, months with known publication dates")
+    for name, path in [("series", "series/niger-9-51-retail-kg.json"), ("countries", "countries.json"),
+                       ("manifest", "manifest.json"), ("track_record", "track_record.json")]:
+        jsonschema.validate(load(files, path), json.loads((SCHEMAS / f"{name}.schema.json").read_text()))
+    countries = {c["id"]: c for c in load(files, "countries.json")["countries"]}
+    assert countries["mali"]["data_up_to"] == "2026-08" and countries["niger"]["data_up_to"] == "2026-09"
+    assert load(files, "manifest.json")["data_up_to"] == "2026-09"  # the newest
+    n = load(files, "series/niger-9-51-retail-kg.json")
+    assert n["dates"]["data_up_to"] == "2026-09" and len(n["forecast"]) == 4  # September is published: no estimate
+    assert load(files, "series/mali-247-51-retail-kg.json")["dates"]["data_up_to"] == "2026-08"
+    t = load(files, "track_record.json")
+    assert t["model"] == "lgbm_fresh2" and t["backtest"]["by_horizon"][0]["coverage80"] == 0.76
+    assert t["backtest"]["period"].startswith("2023 onwards")

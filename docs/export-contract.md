@@ -1,4 +1,4 @@
-# Public export contract (v1.5): food-price-watch → public site
+# Public export contract (v1.6): food-price-watch → public site
 
 Audience: the agent or developer building the public site (Vercel). The site only consumes these files; it never
 computes forecasts or changes numbers. The producing side is this repository (`src/fpw/export.py`,
@@ -47,7 +47,20 @@ used only in CI, never in the browser or in the built site.
 
 All JSON is UTF-8, compact. Months are `"YYYY-MM"`. Prices are **nominal, in local currency per `unit`** (XOF for
 Mali, Burkina Faso and Niger, BIF for Burundi; units such as `KG`, `L`, `100 KG`), already converted from the model's log
-scale. Every JSON file has `schema_version` (`"1.5"`) and `attribution`.
+scale. Every JSON file has `schema_version` (`"1.6"`) and `attribution`.
+
+Changes in 1.6 (2026-10-31): the product is now **`lgbm_fresh2`**: each forecast starts from the newest month WFP has
+published for that country. So:
+- **`data_up_to` is per country:** in `countries.json` (new field) and in each series' `dates`. Top-level files
+  (`manifest`, indexes, `track_record`) carry the **newest across countries**: use the country or series value on pages.
+- **`forecast[]` has 4 or 5 rows:** a month already published gets no estimate, so `nowcast_last_month` can be missing.
+  Do not assume index positions; find rows by `horizon`.
+- **`track_record.json`:** `model` is `lgbm_fresh2`, and `backtest.period` says "2023 onwards, months with known
+  publication dates". Numbers come only from cases that used really published data.
+- A country whose newest month is older than 4 months has **no forecasts** that week: its series stay in the export
+  with `eligible: false`, `status: null`, history only.
+- Baskets are unchanged (`basket-1.1`, still based on the earlier model), so a basket's `data_up_to` can differ from
+  its country's.
 
 Changes in 1.5 (2026-10-27): country ids are any HDX slug (`^[a-z]+(-[a-z]+)*$`) instead of a fixed list, so a new
 country needs no schema change; first new country: **Niger** (`niger`, XOF). `countries.json` entries gain `note`
@@ -116,8 +129,8 @@ change; ids do not). Suitable for URLs: `/mali/mali-1816-73-retail-kg`.
   and `irregular` = fewer than 9 (the same 75 % bar as the eligibility rule). Show a note and a marker (icon + text)
   for irregular markets; wording per `track_record.backtest.by_reporting` (below).
 - `dates {forecast_origin, data_up_to, last_observed_month, run_at, model_version}`: a forecast made in
-  `forecast_origin` uses only prices published by then, i.e. up to `data_up_to` (two months earlier: WFP publishes
-  with a lag). `last_observed_month` is the last month with a price up to `data_up_to` (what the forecast and the
+  `forecast_origin` uses only prices published by then, i.e. up to `data_up_to` (the country's newest published month,
+  one to four months earlier). `last_observed_month` is the last month with a price up to `data_up_to` (what the forecast and the
   explanation use).
 - `history[]` contains every published month, so it can go **beyond `data_up_to`** where WFP published faster
   (2026-10: September prices in most Burkina Faso and some Burundi series). Such a month is a real observation the
@@ -139,7 +152,7 @@ change; ids do not). Suitable for URLs: `/mali/mali-1816-73-retail-kg`.
 - `history[]` entries: `{month, price, flag}`; `flag` is `null`, `data_error` (a value that jumped and reversed; the model
   does not use it: draw it as a separate marker, not on the line), `break` (a lasting jump, e.g. a unit change), or
   `unconfirmed_jump` (a big move in the latest month: may be a real spike, judged next month).
-- `forecast[]` (5 entries, `step` 1-5): `month`, `horizon`, the quantiles `p025 p10 p50 p90 p975`, `usual_level`,
+- `forecast[]` (4 or 5 entries, `step` 1-5; a month already published has no row): `month`, `horizon`, the quantiles `p025 p10 p50 p90 p975`, `usual_level`,
   `spike_threshold`, `spike_probability`, `show_spike_probability`.
   - `horizon`: `nowcast_last_month` and `nowcast_this_month` (months not yet published), then `next_month`,
     `in_2_months`, `in_3_months`. Label the first two as estimates of the recent past, not forecasts.
