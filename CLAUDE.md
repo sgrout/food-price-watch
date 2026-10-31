@@ -108,7 +108,7 @@ This file is the brief for coding agents. Read it fully before the first change,
     12.1 vs 14.0 %. **Switch (food prices; owner, 2026-10-31):** product `lgbm_fresh2`, registered model
     `lgbm_quantile_fresh`, `05` trains and `06` runs both models, `live_summary` and export 1.6 from the product,
     `data_up_to` per country. `lgbm_cal` keeps running because the baskets read it; baskets follow with their own
-    re-test. Deploy only after the site accepts 1.6. The private app still reads `lgbm_cal`.
+    re-test. Export 1.6 live since 2026-10-31 (the site accepted it first). The private app still reads `lgbm_cal`.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by

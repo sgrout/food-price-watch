@@ -572,6 +572,10 @@ The forecasts used data up to origin - 2 (a fixed, assumed publication lag). HDX
   forecast). Published track record (eligible, known publication dates): 80 % range held 81 / 79 / 76 / 74 / 72 %, typical
   error 5 / 6 / 9 / 11 / 13 %. Weakest: Niger, 68 % next month and 60 % in 3 months. New-spike Brier is now better than the
   base rate next month (0.081 vs 0.093); the "no proven skill yet" text stays until the live record shows it.
+  Switched 2026-10-31 after the site accepted 1.6: public export generated 13:14 UTC, same counts as the trial, all
+  hashes and schemas OK. Four series left the export earlier than under the old rule (last price June, one food in a
+  market that still reports others): intended, as they are not silent markets. For the same reason the next basket
+  export has 262 baskets instead of 264 (Tougan and Diapaga; checked with a trial export).
 - Gotchas: `latest_runs` picked the official run per origin over all models, so a run with one model would have removed
   the other's official forecast (now per model); one early market moved a country's newest month, which would have given
   most of Burundi an old-price note (now compared with the month most markets reported).
