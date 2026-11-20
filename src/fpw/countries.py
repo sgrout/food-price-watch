@@ -20,8 +20,8 @@ COUNTRIES = {
         Country("burundi", "BDI", "Burundi", ("BIF",)),
         Country("niger", "NER", "Niger", ("XOF",)),  # phase 6c (2026-10-27): public only after the owner's go
         # Senegal (2026-11-20, probe: 130 eligible series in 32 markets, 8 foods, median 16 years, all 'actual'):
-        # ingest first; forecast after its backtest, public only after the owner's go.
-        Country("senegal", "SEN", "Senegal", ("XOF",), forecast=False),
+        # ingested 2026-11-20; backtest and training on five countries next, public only after the owner's go.
+        Country("senegal", "SEN", "Senegal", ("XOF",)),
         # Chad: WFP publishes its prices 2-4 months late and irregularly (HDX activity: data to 2026-02 on 2026-05-24,
         # to 2026-05 on 2026-07-26, to 2026-06 on 2026-10-19), so with the origin - 2 rule its forecasts would come and
         # go. Owner decision 2026-10-27: ingest only; revisit with a per-country lag or when publication is regular.
