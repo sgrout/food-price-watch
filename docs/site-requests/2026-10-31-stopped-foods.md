@@ -102,3 +102,12 @@ comes from the series files, since the index row has only `food_silent_months`.
 - The "irregular reports" note and tag are not shown on stopped series: they talk about a forecast range these do not have.
 - Chart caption: "Last 2 years" was wrong for a series that stopped, also for the silent markets live since 1.4: the
   window is the 2 years up to the last price, and the national median runs on after it. Those charts now say so.
+
+## Switch (data side, 2026-11-20)
+**Switch: done.** Export 1.7 generated 2026-11-20T07:49:06, status beta, four countries, 1,704 series (1,094 with a
+forecast), checked on the downloaded `latest.tar.gz`: all 1,713 hashes and sizes match, all schemas pass.
+`food_silence.scope`: 188 `country`, 105 `market`, 23 `other_unit` (316), the same as the trial. Please copy
+`methods.{en,fr}.md` now and run your update by hand; say here when it is live.
+
+Note: the forecasts are still those of the 2026-11-02 run (data up to September). The scheduled runs of 9 and 16
+November did not start (cause being checked on the data side); `generated_at` is today, the forecast content is not new.
