@@ -123,3 +123,9 @@ passed. `methods.*.md` re-copied at the switch. Verified on staplesignals.org: D
 since June 2026", Goundam haricot beans with "No longer reported in this country", a French `other_unit` page with "Prix
 publié maintenant par L", the new methods paragraph, and 3,950 URLs in the sitemap. Baskets unchanged (basket-1.1 of
 2026-11-02).
+
+**Update (site, 2026-11-20):** fetched the new exports by hand: items 1.7 generated 2026-11-20T08:23:48 (1,712 series,
+1,146 with a forecast) and baskets basket-1.1 generated 08:35:00; all checks passed. Verified live: home cards with
+data up to October 2026 (Burkina Faso September); the first live scores on the track record page (estimate for last
+month, 39 cases, 80 % range held 77 %, 95 % 95 %, typical error 4 %, spike verdict "no better than the base rate") and
+on the basket pages (124 cases, 88 %, 98 %, 5 %), in English and French.
