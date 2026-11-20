@@ -64,6 +64,8 @@ Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.6 si
   pages, all checks pass, axe 0). Niger live 2026-10-29 (items 1.5, baskets basket-1.1), verified.
 - Export 1.6 (2026-10-31, live): per-country data dates, no-forecast text, re-copied texts; 1,393 series, 1,094 with
   a forecast. Baskets unchanged until Monday's export (262 baskets).
+- Stopped foods (2026-10-31, accepted): schema 1.7 accepted, labels per `scope` and table order on `main`; tested with
+  the trial (3,955 pages, all checks pass). Waiting for the data side to switch; then copy `methods.*.md`.
 - Analytics (owner approved 2026-10-25): Vercel Web Analytics, cookie-free, no personal data; one cached loader
   (1.4 KB gzip) plus Vercel's script. Footer states it; `about.*.md` still says "no tracking":
   `site-requests/2026-10-25-about-text-analytics.md` (open).
