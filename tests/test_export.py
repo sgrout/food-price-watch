@@ -142,8 +142,16 @@ def test_app_verdict_mirrors_the_export():
     from strings import skill_verdict as app_verdict
     words = {"better": "better than the base rate", "no_better": "no better than the base rate",
              "worse": "worse than the base rate"}
-    for a, b in [(0.0985, 0.112), (0.110, 0.112), (0.1544, 0.1347), (0.5, 0.5)]:
+    for a, b in [(0.0985, 0.112), (0.110, 0.112), (0.1544, 0.1347), (0.5, 0.5), (2.5e-4, 0.0), (0.0, 0.0),
+                 (float("nan"), 0.01), (0.01, float("nan"))]:
         assert app_verdict(a, b) == words[skill_verdict(a, b)]
+
+
+def test_verdict_without_new_spikes_is_no_better():
+    # First live month (2026-11): 39 eligible series, no new spike -> base-rate Brier 0 crashed the export
+    assert skill_verdict(2.473e-4, 0.0) == "no_better"
+    assert skill_verdict(0.0, 0.0) == "no_better"
+    assert skill_verdict(float("nan"), 0.01) == "no_better"
 
 
 def test_committed_schemas_are_up_to_date_with_the_generator():

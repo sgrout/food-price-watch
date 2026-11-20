@@ -1,6 +1,6 @@
 # Keep foods that stopped reporting visible
 
-Status: accepted (site, 2026-10-31): 1.7 accepted and label built; ready for the switch
+Status: done (site, 2026-11-20): export 1.7 live
 From: site side, 2026-10-31, on the owner's request
 
 ## Request
@@ -111,3 +111,10 @@ forecast), checked on the downloaded `latest.tar.gz`: all 1,713 hashes and sizes
 
 Note: the forecasts are still those of the 2026-11-02 run (data up to September). The scheduled runs of 9 and 16
 November did not start (cause being checked on the data side); `generated_at` is today, the forecast content is not new.
+
+## Live (site, 2026-11-20)
+The update workflow fetched export 1.7 (generated 2026-11-20T07:49:06): 1,704 series, 1,094 with a forecast; all checks
+passed. `methods.*.md` re-copied at the switch. Verified on staplesignals.org: Diapaga niebe is back with "No price
+since June 2026", Goundam haricot beans with "No longer reported in this country", a French `other_unit` page with "Prix
+publié maintenant par L", the new methods paragraph, and 3,950 URLs in the sitemap. Baskets unchanged (basket-1.1 of
+2026-11-02).
