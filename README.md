@@ -585,6 +585,13 @@ The forecasts used data up to origin - 2 (a fixed, assumed publication lag). HDX
   `food_silence.scope` separates the three. Baskets do not change: they still need a forecast for all their foods.
   Switched 2026-11-20 after the site accepted 1.7: export generated 07:49 UTC, same counts as the trial (1,704 series,
   316 labelled), all 1,713 hashes and schemas OK.
+- **First live scores (2026-11-20).** One origin, next-month nowcast: `lgbm_fresh2` eligible n 39, 80 % range held
+  76.9 %, typical error 4 %. No new spike among them, so the base-rate Brier was 0 and the export crashed on a division
+  by zero; the verdict is now `no_better` when there is nothing to warn about.
+- **Missed schedules (2026-11-20).** The Databricks scheduler did not trigger any job on 9 and 16 November: no run,
+  so no failure email. The audit log has no `runTriggered` for those days; usage was far below the quota and no job
+  setting changed. Runs were started by hand on 2026-11-20 (items: 1,712 series, 1,146 with a forecast; baskets: 264,
+  237 with a forecast).
 - Gotchas: `latest_runs` picked the official run per origin over all models, so a run with one model would have removed
   the other's official forecast (now per model); one early market moved a country's newest month, which would have given
   most of Burundi an old-price note (now compared with the month most markets reported).
