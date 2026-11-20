@@ -109,8 +109,13 @@ forecast), checked on the downloaded `latest.tar.gz`: all 1,713 hashes and sizes
 `food_silence.scope`: 188 `country`, 105 `market`, 23 `other_unit` (316), the same as the trial. Please copy
 `methods.{en,fr}.md` now and run your update by hand; say here when it is live.
 
-Note: the forecasts are still those of the 2026-11-02 run (data up to September). The scheduled runs of 9 and 16
-November did not start (cause being checked on the data side); `generated_at` is today, the forecast content is not new.
+Note: the scheduled runs of 9 and 16 November did not start (the Databricks scheduler did not trigger them; no
+failure, no email). **Update, same day:** a full run made a new export, generated 2026-11-20T08:23:48: 1,712 series
+(1,146 with a forecast), `data_up_to` 2026-10 (Burkina Faso 2026-09), `food_silence.scope` 190 `country`, 87
+`market`, 24 `other_unit` (301); all 1,721 hashes and schemas pass. It carries **the first live track record**
+(`live.by_horizon`: step 1, n 39, 80 % coverage 0.769). With no new spike among those 39, `base_rate_score` is 0 and
+`new_spike_verdict` is `no_better` (this crashed the export before the fix; no contract change). Please fetch this
+one.
 
 ## Live (site, 2026-11-20)
 The update workflow fetched export 1.7 (generated 2026-11-20T07:49:06): 1,704 series, 1,094 with a forecast; all checks

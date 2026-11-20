@@ -72,8 +72,8 @@ This file is the brief for coding agents. Read it fully before the first change,
   - App (`app/`) is self-contained (no `fpw` import); mirrored helpers are tested against `fpw` (`month_date`).
     Spike chance is shown for next month only, because new-spike warnings are worse than the base rate further out.
   - **Public beta (owner's go, 2026-10-25):** the export status is `beta` (job parameter `export_status`); the site
-    is public at staplesignals.org with a beta banner. **Exit criterion, fixed before any live result** (owner may
-    change it until the first live scores, ~Dec 2026): beta ends when the live 80 % coverage of the product (`lgbm_fresh2` since phase 7; eligible
+    is public at staplesignals.org with a beta banner. **Exit criterion, fixed before any live result** (owner could
+    change it until the first live scores; these arrived 2026-11-20, so it is fixed now): beta ends when the live 80 % coverage of the product (`lgbm_fresh2` since phase 7; eligible
     series) lies between 70 % and 90 % after at least 6 matured forecast months, and the owner agrees.
     Defaults for the launch (owner may change): no search indexing at first (soft launch), French with a
     'translation not reviewed' note, feedback via GitHub Issues.
@@ -111,6 +111,9 @@ This file is the brief for coding agents. Read it fully before the first change,
     `lgbm_quantile_fresh`, `05` trains and `06` runs both models, `live_summary` and export 1.6 from the product,
     `data_up_to` per country. `lgbm_cal` keeps running because the baskets read it; baskets follow with their own
     re-test. Export 1.6 live since 2026-10-31 (the site accepted it first). The private app still reads `lgbm_cal`.
+  - **Scheduler gap (2026-11-20):** the Databricks scheduler skipped every job on 9 and 16 November (no
+    `runTriggered` in `system.access.audit`, quota and settings ruled out, cause unknown; Free Edition has no SLA). A
+    skipped run sends no failure email, so staleness must be checked from outside Databricks.
   - **Public name: Staple Signals, domain staplesignals.org** (owner, 2026-10-25). User-facing texts use it
     (`fpw.texts.SITE_NAME`); code, repositories, bundle and tables keep `food-price-watch` / `fpw`.
   - **Owner decision 2026-10-25: show everything that has data, conflict-affected areas included.** No hiding by
