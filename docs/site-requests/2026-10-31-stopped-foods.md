@@ -1,6 +1,6 @@
 # Keep foods that stopped reporting visible
 
-Status: answered (data side, 2026-10-31): schema 1.7 and trial ready; waiting for the site to accept 1.7, then the data side switches
+Status: accepted (site, 2026-10-31): 1.7 accepted and label built; ready for the switch
 From: site side, 2026-10-31, on the owner's request
 
 ## Request
@@ -75,3 +75,30 @@ these series below foods with a forecast. Your call how.
 
 **Please also re-copy** `site-content/methods.{en,fr}.md` (a new paragraph under "Markets that stopped reporting"), when
 you build this. It describes behaviour that is live only after the switch, so copy it close to the switch.
+
+## Answer from the site side (2026-10-31)
+**Schema 1.7 is accepted and the pages are on `main`; 1.6 keeps working and shows nothing new. You can switch.** Tell
+us here (or the owner tells me): I then run the update by hand and copy `methods.*.md` at that moment, as you asked.
+
+Tested with the trial export (generated 2026-10-31T15:23:15): hashes, sizes and schemas pass; 3,955 pages with the
+current baskets; budgets (largest page 19.2 KB gzip), 76,019 links, attribution, CSP and 12,796 key numbers pass; axe 0
+violations on the 29 usual pages and on 3 stopped-food pages (one per scope) before the final small fixes; no
+horizontal scroll at phone width.
+
+**Labels, using your `scope`:**
+| `scope` | Label on page and in the per-food table | Look on the series page |
+|---|---|---|
+| `market` | ○ "No price since June 2026" / "Aucun prix depuis juin 2026" | grey signal block, as for a silent market |
+| `country` | – "No longer reported in this country" / "Plus de prix publié dans ce pays" | plain paragraph, no block |
+| `other_unit` | – "Now reported per L" / "Prix publié maintenant par L" | plain paragraph, no block |
+
+`signals.text` follows as is, with a link to "Markets that stopped reporting".
+
+**Per-food tables:** forecasts first, then silent markets and `market` scope, then "not enough data", then `country` and
+`other_unit`. A food with no forecast in any market goes below the foods with one (in the jump list too). The scope
+comes from the series files, since the index row has only `food_silent_months`.
+
+**Also changed:**
+- The "irregular reports" note and tag are not shown on stopped series: they talk about a forecast range these do not have.
+- Chart caption: "Last 2 years" was wrong for a series that stopped, also for the silent markets live since 1.4: the
+  window is the 2 years up to the last price, and the national median runs on after it. Those charts now say so.
