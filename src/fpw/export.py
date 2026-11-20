@@ -50,7 +50,12 @@ def series_slug(country: str, market_id: int, commodity_id: int, unit: str) -> s
 
 def skill_verdict(score: float, base_rate_score: float, margin: float = 0.03) -> str:
     """Brier score vs the base-rate score (lower is better); within +-3 % counts as no difference.
-    Mirrored in app/strings.py (a test checks they agree)."""
+    Mirrored in app/strings.py (a test checks they agree).
+
+    No new spikes in the sample (base-rate score 0, first live month 2026-11: 39 series) or no score: nothing to
+    warn about, so no skill can show; "no_better", in line with "no proven skill yet"."""
+    if not base_rate_score > 0 or pd.isna(score):
+        return "no_better"
     ratio = score / base_rate_score
     if ratio < 1 - margin:
         return "better"

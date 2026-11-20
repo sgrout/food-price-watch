@@ -26,7 +26,10 @@ def month_label(m: int) -> str:
 
 
 def skill_verdict(score: float, base_rate_score: float, margin: float = 0.03) -> str:
-    """Plain verdict on a Brier score against the base-rate score (lower is better), within +-3 % = no difference."""
+    """Plain verdict on a Brier score against the base-rate score (lower is better), within +-3 % = no difference.
+    No new spikes in the sample (base-rate score 0) or no score: no skill can show."""
+    if not base_rate_score > 0 or score != score:  # score != score: NaN without importing math/pandas
+        return "no better than the base rate"
     ratio = score / base_rate_score
     if ratio < 1 - margin:
         return "better than the base rate"
