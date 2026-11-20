@@ -18,6 +18,7 @@
 
 # COMMAND ----------
 
+import gc
 import time
 
 import mlflow
@@ -64,21 +65,39 @@ cases = build_cases(panel, origins)
 log(f"cases: {len(cases):,} ({int(cases['actual'].notna().sum()):,} observed)")
 ml = lgbm_walk_forward(cases, first_test_year=first_ml_year)
 log(f"lgbm: {len(ml):,} forecasts")
+# Free each intermediate frame once the next step has it: with five countries (Senegal, 2026-11-20) the run ran out
+# of memory on Free Edition serverless right after recalibration. Results are unchanged.
+del cases
 raw = pd.concat([baselines, ml], ignore_index=True).assign(calibrated=False)
+del baselines, ml
+gc.collect()
 calibrated = recalibrate(raw[raw["model"].isin(["seasonal_rw", "lgbm"])])
 log(f"recalibrated: {len(calibrated):,} forecasts ({int(calibrated['calibrated'].sum()):,} with enough past PITs)")
 
-scored = score(common_rows(pd.concat([raw, calibrated], ignore_index=True)))
+fc = pd.concat([raw, calibrated], ignore_index=True)
+del raw, calibrated
+gc.collect()
+scored = score(common_rows(fc))
+del fc
+gc.collect()
+log(f"scored: {len(scored):,} rows")
 # Two populations: all scored cases (model choice) and the series eligible for publication at the origin
 # (the track record shown next to a published forecast).
-eligible = scored[scored["eligible_at_origin"]]
-irregular = eligible["months_reported_12"] < IRREGULAR_BELOW  # fixed before looking at the split
-populations = {"all": scored, "eligible": eligible, "eligible_regular": eligible[~irregular],
-               "eligible_irregular": eligible[irregular]}
-metrics = pd.concat([summarize(s).assign(population=k) for k, s in populations.items()], ignore_index=True)
-metrics_country = pd.concat([summarize(s, by=("model", "split", "country", "step")).assign(population=k)
-                             for k, s in populations.items()], ignore_index=True)
-spike_cal = pd.concat([calibration(s).assign(population=k) for k, s in populations.items()], ignore_index=True)
+# One population at a time (a filtered copy each), so at most one copy of `scored` is alive besides it.
+eligible = scored["eligible_at_origin"].to_numpy()
+irregular = eligible & (scored["months_reported_12"] < IRREGULAR_BELOW).to_numpy()  # fixed before looking at the split
+masks = {"all": None, "eligible": eligible, "eligible_regular": eligible & ~irregular, "eligible_irregular": irregular}
+parts = {"metrics": [], "country": [], "spike": []}
+for k, mask in masks.items():
+    s = scored if mask is None else scored[mask]
+    parts["metrics"].append(summarize(s).assign(population=k))
+    parts["country"].append(summarize(s, by=("model", "split", "country", "step")).assign(population=k))
+    parts["spike"].append(calibration(s).assign(population=k))
+    del s
+    gc.collect()
+metrics = pd.concat(parts["metrics"], ignore_index=True)
+metrics_country = pd.concat(parts["country"], ignore_index=True)
+spike_cal = pd.concat(parts["spike"], ignore_index=True)
 chosen = choose_model(metrics[metrics["population"] == "all"], candidates=CANDIDATES)
 log(f"{len(scored):,} scored rows in common, {scored['series_id'].nunique():,} series; chosen on validation: {chosen}")
 

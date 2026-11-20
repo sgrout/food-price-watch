@@ -596,6 +596,27 @@ The forecasts used data up to origin - 2 (a fixed, assumed publication lag). HDX
   the other's official forecast (now per model); one early market moved a country's newest month, which would have given
   most of Burundi an old-price note (now compared with the month most markets reported).
 
+### Phase 6c, continued: Senegal (2026-11-20)
+Owner's choice after a probe of Senegal and Côte d'Ivoire (USA considered and dropped: WFP has no US data, and the
+USDA already publishes US food price forecasts). Côte d'Ivoire is not added: only 5 markets with a long history (all
+north and west, WFP aggregates 2020-2025); 4 markets were added in 2026 and need years of history.
+- **Senegal:** XOF, 67 markets, priceflag `actual` only, data to 2026-10; 130 eligible series in 32 markets (millet 30,
+  imported rice 29, niebe 21, local and imported maize, sorghum, two rices), median 16 years. No renamed commodities.
+  French names added for 7 foods (also the two rice names that were missing in the live export).
+- **Backtest, `lgbm_fresh2`, all cases, holdout 2023+:** 80 % range held 76.5 % next month, 74.1 % in 3 months;
+  typical error 6 / 9 % (Mali 76 / 71 %, 8 / 12 %; Niger 68 / 63 %, 9 / 14 %). Validation 74.6 / 73.2 %. New-spike
+  Brier better than the base rate at every step (next month 0.038 vs 0.050). Steadier prices than the Sahel pilots.
+- **Live countries after adding Senegal** (`lgbm_fresh2`, same cases as before): pinball 1-3 % lower almost
+  everywhere, 80 % coverage within 2 points (part of it is the new data month).
+- **Basket (provisional: imported rice 12 kg + niebe 1.8 kg, owner to confirm):** 32 markets live. Holdout: copula
+  72 % next month, 64 % in 3 months (900 cases; eligible only 94-120, niebe starts 2020); comonotone 82 / 81 %.
+- **Model:** champions `lgbm_quantile` v5 and `lgbm_quantile_fresh` v3 on five countries (sanity gate passed); live run
+  2026-11-20 with 225 Senegal series; public exports unchanged in scope (four countries, no Senegal file or text).
+- **Gotchas:** the five-country `fpw_backtest` ran out of memory on Free Edition serverless (1.84 M recalibrated
+  forecasts); `04_backtest.py` now frees each intermediate frame and filters one population at a time (same results).
+  `fpw_fresh_backtest` must start after `fpw_backtest` has written: a failed or running main backtest leaves it comparing
+  against the old stored `lgbm_cal`, which silently drops the new country from its common rows.
+
 ### How to run
 
 ```bash
