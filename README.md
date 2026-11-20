@@ -608,10 +608,14 @@ north and west, WFP aggregates 2020-2025); 4 markets were added in 2026 and need
   Brier better than the base rate at every step (next month 0.038 vs 0.050). Steadier prices than the Sahel pilots.
 - **Live countries after adding Senegal** (`lgbm_fresh2`, same cases as before): pinball 1-3 % lower almost
   everywhere, 80 % coverage within 2 points (part of it is the new data month).
-- **Basket (provisional: imported rice 12 kg + niebe 1.8 kg, owner to confirm):** 32 markets live. Holdout: copula
+- **Basket (imported rice 12 kg + niebe 1.8 kg, owner confirmed; no oil prices in Senegal):** 32 markets live. Holdout: copula
   72 % next month, 64 % in 3 months (900 cases; eligible only 94-120, niebe starts 2020); comonotone 82 / 81 %.
 - **Model:** champions `lgbm_quantile` v5 and `lgbm_quantile_fresh` v3 on five countries (sanity gate passed); live run
   2026-11-20 with 225 Senegal series; public exports unchanged in scope (four countries, no Senegal file or text).
+- **Public (2026-11-20, after the site accepted the trial exports):** `public_countries` gains `senegal`. Live
+  exports: 2,065 series (1,276 with a forecast; Senegal 353 in 47 markets, 130 with a forecast), 297 baskets (Senegal
+  33, 18 with a forecast); hashes, sizes and schemas OK on the downloaded files (2,373 files). The site keeps its own
+  French country names ("Sénégal"); a `name_fr` in `countries.json` is an optional later export change.
 - **Gotchas:** the five-country `fpw_backtest` ran out of memory on Free Edition serverless (1.84 M recalibrated
   forecasts); `04_backtest.py` now frees each intermediate frame and filters one population at a time (same results).
   `fpw_fresh_backtest` must start after `fpw_backtest` has written: a failed or running main backtest leaves it comparing
