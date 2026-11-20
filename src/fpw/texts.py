@@ -27,9 +27,9 @@ NUMBER_FORMAT = {"en": (",", "."), "fr": (NNBSP, ",")}
 # "in <country>" and the commodity group as used in a sentence.
 IN_COUNTRY = {
     "en": {"mali": "in Mali", "burkina-faso": "in Burkina Faso", "burundi": "in Burundi", "niger": "in Niger",
-           "chad": "in Chad"},
+           "senegal": "in Senegal", "chad": "in Chad"},
     "fr": {"mali": "au Mali", "burkina-faso": "au Burkina Faso", "burundi": "au Burundi", "niger": "au Niger",
-           "chad": "au Tchad"},
+           "senegal": "au Sénégal", "chad": "au Tchad"},
 }
 GROUPS = {
     "en": {"beans": "beans", "cassava": "cassava", "maize": "maize", "millet": "millet", "oil": "cooking oil",
@@ -50,6 +50,8 @@ COMMODITY_FR = {
     "Cassava (cossette)": "Cossettes de manioc",
     "Cassava flour": "Farine de manioc",
     "Maize": "Maïs",
+    "Maize (imported)": "Maïs (importé)",
+    "Maize (local)": "Maïs (local)",
     "Maize (white)": "Maïs (blanc)",
     "Maize flour": "Farine de maïs",
     "Millet": "Mil",
@@ -57,10 +59,15 @@ COMMODITY_FR = {
     "Oil (palm)": "Huile de palme",
     "Oil (vegetable)": "Huile végétale",
     "Rice (imported)": "Riz (importé)",
+    "Rice (high quality, local)": "Riz local (qualité supérieure)",
     "Rice (local)": "Riz (local)",
+    "Rice (low quality, local)": "Riz local (qualité inférieure)",
+    "Rice (ordinary, first quality)": "Riz ordinaire (première qualité)",
+    "Rice (ordinary, second quality)": "Riz ordinaire (deuxième qualité)",
     "Rice (paddy)": "Riz (paddy)",
     "Sorghum": "Sorgho",
     "Sorghum (berbere)": "Sorgho (berbéré)",
+    "Sorghum (imported)": "Sorgho (importé)",
     "Sorghum (red)": "Sorgho (rouge)",
     "Sorghum (white)": "Sorgho (blanc)",
     "Wheat": "Blé",
