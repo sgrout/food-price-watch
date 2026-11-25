@@ -43,3 +43,18 @@ def test_check_price_csv_rejects_redirect_page():
 def test_check_price_csv_rejects_empty_or_changed_format(text):
     with pytest.raises(InvalidPayload):
         check_price_csv(text)
+
+
+def test_fetch_reports_hdx_throttling_instead_of_an_empty_payload(monkeypatch):
+    import requests
+    from fpw import hdx
+
+    class Throttled:
+        status_code, content, url = 202, b"", "https://data.humdata.org/api/3/action/package_activity_list"
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr(requests, "get", lambda *a, **k: Throttled())
+    with pytest.raises(InvalidPayload, match="throttled"):
+        hdx.fetch(Throttled.url)
