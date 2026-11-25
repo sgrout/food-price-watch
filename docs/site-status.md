@@ -2,7 +2,7 @@
 
 Owner of this file: the site agent (see `docs/README.md`). Keep it short and current.
 
-Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.7 of 2026-11-20T12:11, model_version 3, baskets of 12:35, four countries, status beta; first live scores shown); CI green. Senegal tested on the trial exports and ready (2026-11-20); waiting for the live switch
+Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.7 of 2026-11-20T14:32, model_version 3, baskets of 14:42, five countries with Senegal since 2026-11-20, status beta; first live scores shown); CI green
 
 - Repository: https://github.com/sgrout/food-price-watch-web (private). `main` = the site; `production` = a
   placeholder "Not published" page, used as Vercel's production branch until publication is approved.
@@ -71,3 +71,4 @@ Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.7 of
 - Consistency: all 9,080 key numbers on English and French series pages match their explanations (0 differences).
 - Data workflow: first run 2026-10-25 succeeded (fetch, sha256 + size + schema check, build, checks, commit);
   weekly Mondays 09:00 UTC. Bot commits deploy on Vercel. `DATABRICKS_TOKEN` expires 2027-01-24: renew before then.
+- 2026-11-21: "Markets that stopped reporting" shows one block per market on phone widths (was a narrow table with very tall rows); desktop unchanged.
