@@ -21,7 +21,7 @@ variables:
     default: dev
   countries:
     description: Comma-separated HDX country slugs that are ingested and forecast (public ones are in public_countries)
-    default: mali,burkina-faso,burundi,niger,senegal,chad
+    default: mali,burkina-faso,burundi,niger,senegal,cote-d-ivoire,chad
   public_countries:
     description: Countries in the public exports (item and basket); others are ingested and forecast but not exported until the owner's go
     default: mali,burkina-faso,burundi,niger,senegal  # Niger: owner's go 2026-10-27, site ready 2026-10-29; Senegal: owner's go and site ready 2026-11-20
