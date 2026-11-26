@@ -24,8 +24,9 @@ COUNTRIES = {
         Country("senegal", "SEN", "Senegal", ("XOF",)),
         # Cote d'Ivoire (owner's go 2026-11-25 after two probes): thin. 30 retail series in 5 markets with >= 60 months
         # (only 11 in 2 markets with >= 96), all in the north and west (Savanes, Man), none in Abidjan; WFP publishes
-        # 'aggregate' values only from 2021 to 2025; 4-5 markets added in 2026. Ingest only until its backtest.
-        Country("cote-d-ivoire", "CIV", "Côte d'Ivoire", ("XOF",), forecast=False),
+        # 'aggregate' values only from 2021 to 2025; 4-5 markets added in 2026. Ingested 2026-11-25; forecast=True for
+        # the backtests (2026-11-26); training and public only after the owner's go.
+        Country("cote-d-ivoire", "CIV", "Côte d'Ivoire", ("XOF",)),
         # Chad: WFP publishes its prices 2-4 months late and irregularly (HDX activity: data to 2026-02 on 2026-05-24,
         # to 2026-05 on 2026-07-26, to 2026-06 on 2026-10-19), so with the origin - 2 rule its forecasts would come and
         # go. Owner decision 2026-10-27: ingest only; revisit with a per-country lag or when publication is regular.

@@ -51,6 +51,19 @@ def parse_activity_page(text: str) -> list[dict]:
     return out
 
 
+def stop_paging(rows: list[dict], fresh: list[dict], page_size: int, oldest: str, stored_from: str | None) -> bool:
+    """Whether to stop paging back through a country's activity stream (newest first) after this page.
+
+    Stop at the end of the stream, or once the page reaches back before `oldest` (the calendar is not needed earlier).
+    Stop at activities we already have only if the stored history is complete (`stored_from`, the oldest stored
+    timestamp, is before `oldest`): a first fetch that was interrupted (HDX throttling, 2026-11-25) leaves only its
+    newest pages, and stopping at those would never fill the rest.
+    """
+    if len(rows) < page_size or rows[-1]["timestamp"] < oldest:
+        return True
+    return len(fresh) < len(rows) and stored_from is not None and stored_from < oldest
+
+
 def calendar(activities: pd.DataFrame) -> pd.DataFrame:
     """(country, published_at, data_month) for activities that carry a data month, sorted per country."""
     a = activities.assign(published_at=pd.to_datetime(activities["timestamp"], format="ISO8601"),

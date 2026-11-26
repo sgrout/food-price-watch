@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 import pandas as pd
 
 from fpw.hdx import HDX_API, dataset_name, fetch
-from fpw.publication import parse_activity_page
+from fpw.publication import parse_activity_page, stop_paging
 from fpw.schemas import HDX_ACTIVITY, to_rows
 
 dbutils.widgets.text("catalog", "workspace")
@@ -33,6 +33,8 @@ bronze = f"{catalog}.fpw_{env}_bronze"
 spark.sql(f"CREATE TABLE IF NOT EXISTS {bronze}.hdx_activity ({HDX_ACTIVITY})")
 volume_dir = f"/Volumes/{catalog}/fpw_{env}_bronze/raw/activity"
 known = {r["activity_id"] for r in spark.sql(f"SELECT activity_id FROM {bronze}.hdx_activity").collect()}
+stored_from = {r["country"]: r["first"] for r in spark.sql(
+    f"SELECT country, MIN(timestamp) AS first FROM {bronze}.hdx_activity GROUP BY country").collect()}
 PAGE, MAX_PAGES, OLDEST = 100, 20, "2020-11-01"
 
 # COMMAND ----------
@@ -55,8 +57,9 @@ for country in countries:
                 new_rows += [{**r, "country": country, "_source": "hdx", "_source_url": url, "_ingested_at": now}
                              for r in fresh]
                 known |= {r["activity_id"] for r in fresh}
-            # stop at the end of the stream, at activities we already have, or before the calendar is useful
-            if len(rows) < PAGE or len(fresh) < len(rows) or rows[-1]["timestamp"] < OLDEST:
+            # stop at the end of the stream, before the calendar is useful, or at activities we already have
+            # (only once the stored history is complete: an interrupted first fetch must be finished)
+            if stop_paging(rows, fresh, PAGE, OLDEST, stored_from.get(country)):
                 break
             time.sleep(2)  # be polite to HDX
         print(f"{country}: {sum(r['country'] == country for r in new_rows)} new activities")
