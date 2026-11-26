@@ -36,6 +36,7 @@ known = {r["activity_id"] for r in spark.sql(f"SELECT activity_id FROM {bronze}.
 stored_from = {r["country"]: r["first"] for r in spark.sql(
     f"SELECT country, MIN(timestamp) AS first FROM {bronze}.hdx_activity GROUP BY country").collect()}
 PAGE, MAX_PAGES, OLDEST = 100, 20, "2020-11-01"
+PAUSE = 10  # seconds between requests: HDX throttles (HTTP 202) after a few 2-3 MB pages in a row (2026-11-25)
 
 # COMMAND ----------
 
@@ -61,11 +62,11 @@ for country in countries:
             # (only once the stored history is complete: an interrupted first fetch must be finished)
             if stop_paging(rows, fresh, PAGE, OLDEST, stored_from.get(country)):
                 break
-            time.sleep(2)  # be polite to HDX
+            time.sleep(PAUSE)  # be polite to HDX
         print(f"{country}: {sum(r['country'] == country for r in new_rows)} new activities")
     except Exception as e:  # InvalidPayload, HTTP errors: report, keep the others
         failures.append((country, type(e).__name__, str(e)[:200]))
-    time.sleep(2)
+    time.sleep(PAUSE)
 
 if new_rows:
     spark.createDataFrame(to_rows(pd.DataFrame(new_rows), HDX_ACTIVITY), HDX_ACTIVITY).write.mode("append") \
