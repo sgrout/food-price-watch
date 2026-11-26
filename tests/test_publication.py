@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from fpw import InvalidPayload
-from fpw.publication import calendar, forecast_time, month_of, parse_activity_page, published_month
+from fpw.publication import calendar, forecast_time, month_of, parse_activity_page, published_month, start_offset, stop_paging
 
 DATA = Path(__file__).parent / "data"
 
@@ -57,3 +57,23 @@ def test_data_months_known_fresher_older_or_unknown():
     assert dm[("mali", 2023 * 12)] is None  # January 2023: the dataset claimed June 2023
     assert dm[("mali", 2026 * 12 + 6)] == 2026 * 12 + 4  # July 2026: May published (= origin - 2)
     assert dm[("mali", 2026 * 12 + 9)] == 2026 * 12 + 8  # October 2026: September published (origin - 1)
+
+
+def test_stop_paging_finishes_an_interrupted_first_fetch():
+    page = [{"timestamp": f"2025-0{m}-01T00:00:00"} for m in (9, 8, 7)]
+    # end of the stream, or back before the oldest month we need
+    assert stop_paging(page[:2], [], 3, "2020-11-01", None)
+    assert stop_paging([{"timestamp": "2020-10-01T00:00:00"}] * 3, page, 3, "2020-11-01", None)
+    # a full page of new activities: go on
+    assert not stop_paging(page, page, 3, "2020-11-01", None)
+    # known activities and a complete stored history: caught up, stop
+    assert stop_paging(page, page[:1], 3, "2020-11-01", "2020-10-20T00:00:00")
+    # known activities but the stored history stops in 2025 (first fetch was interrupted): keep paging
+    assert not stop_paging(page, [], 3, "2020-11-01", "2025-07-01T00:00:00")
+
+
+def test_start_offset_resumes_an_incomplete_history():
+    assert start_offset(0, None, "2020-11-01") == 0  # nothing stored: from the newest page
+    assert start_offset(809, "2020-07-12T08:12:49", "2020-11-01") == 0  # complete: only the newest is missing
+    assert start_offset(600, "2022-08-07T08:14:42", "2020-11-01") == 590  # incomplete: resume, 10 overlap
+    assert start_offset(5, "2025-12-14T09:34:50", "2020-11-01") == 0

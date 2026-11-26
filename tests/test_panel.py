@@ -53,7 +53,7 @@ def test_forecast_rows_can_be_grouped_by_market():
 def test_record_only_countries_stay_out_of_the_panel():
     from fpw.countries import COUNTRIES, FORECAST_COUNTRIES
     assert "chad" in COUNTRIES and "chad" not in FORECAST_COUNTRIES and "niger" in FORECAST_COUNTRIES
-    assert "senegal" in COUNTRIES
+    assert "senegal" in COUNTRIES and "cote-d-ivoire" in COUNTRIES
     rows = months("2024-01", [100] * 6)
     both = pd.concat([prices(rows), prices(rows, country="chad", currency="XAF")], ignore_index=True)
     both["is_suspect"], both["confirmed_date"] = False, None

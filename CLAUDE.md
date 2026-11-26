@@ -93,7 +93,10 @@ This file is the brief for coding agents. Read it fully before the first change,
     (`bronze_activity`), then `fpw_backtest` **before** `fpw_fresh_backtest` (it reads the stored `lgbm_cal`; never
     run them in parallel), and keep the country `forecast=False` until the new champion is trained.
     Senegal (2026-11-20): forecast and trained (champions `lgbm_quantile` v5, `lgbm_quantile_fresh` v3), public
-    since 2026-11-20 (site ready the same day); basket imported rice + niebe (owner confirmed). Côte d'Ivoire: probe only (5 long markets), not added.
+    since 2026-11-20 (site ready the same day); basket imported rice + niebe (owner confirmed). Côte d'Ivoire (owner's go 2026-11-25): forecast and trained
+    (champions v6 / v4, 20 eligible series in 5 markets), not public; basket denikassia rice + niebe (owner confirmed).
+    HDX throttles the activity stream (HTTP 202, empty body): a new country's first activity fetch may need a few
+    runs (`--params countries=<slug>`); never retry in a loop.
   - **Fresher data (phase 7, fixed 2026-10-29 before the run):** candidate `lgbm_fresh` starts each case from the
     data month WFP had actually published at the official forecast time (`fpw.publication`, HDX activity stream
     from 2020-12; unknown or earlier: origin - 2), same targets, model and refits; recalibration per (country,

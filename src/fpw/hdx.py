@@ -34,6 +34,8 @@ def fetch(url: str, params: dict | None = None, timeout: int = 120) -> tuple[str
     """
     resp = requests.get(url, params=params, timeout=timeout, headers={"User-Agent": USER_AGENT})
     resp.raise_for_status()
+    if resp.status_code == 202:  # HDX's rate limiter: "accepted", empty body (seen 2026-11-25); back off, retry later
+        raise InvalidPayload(f"HDX throttled the request (HTTP 202, empty body): {url}")
     return resp.url.split("?")[0], resp.content.decode("utf-8-sig")
 
 

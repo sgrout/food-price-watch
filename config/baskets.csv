@@ -8,3 +8,5 @@ mali,ration_v1,2026-10,cereal,Millet,12,KG,WFP general food ration (cereals 400 
 niger,ration_v1,2026-10,cereal,Millet,12,KG,WFP general food ration (cereals 400 g/person/day),Cereal part only (52 markets): Niger's niebe series are too irregular for a forecast and WFP publishes no cooking-oil prices there.
 senegal,ration_v1,2026-11,cereal,Rice (imported),12,KG,WFP general food ration (cereals 400 g/person/day),"Imported rice is Senegal's main staple cereal (owner confirmed 2026-11-20); WFP publishes no cooking-oil prices for Senegal (32 markets)."
 senegal,ration_v1,2026-11,pulses,Beans (niebe),1.8,KG,WFP general food ration (pulses 60 g/person/day),Niebe series start in 2020-04.
+cote-d-ivoire,ration_v1,2026-11,cereal,"Rice (denikassia, imported)",12,KG,WFP general food ration (cereals 400 g/person/day),"Imported rice is the main staple cereal (owner confirmed 2026-11-26); cooking-oil series are too short (vegetable oil from 2026, palm oil in 2 markets)."
+cote-d-ivoire,ration_v1,2026-11,pulses,Beans (niebe),1.8,KG,WFP general food ration (pulses 60 g/person/day),Long niebe series in 4 northern markets only.

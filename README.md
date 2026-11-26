@@ -621,6 +621,28 @@ north and west, WFP aggregates 2020-2025); 4 markets were added in 2026 and need
   `fpw_fresh_backtest` must start after `fpw_backtest` has written: a failed or running main backtest leaves it comparing
   against the old stored `lgbm_cal`, which silently drops the new country from its common rows.
 
+### Phase 6c, continued: Côte d'Ivoire (2026-11-26)
+Owner's go after two probes (the first, 2026-11-20, advised against it as too thin; Ukraine was looked at on
+2026-11-25 and set aside: regional averages from the State Statistics Service, not local markets).
+- **Côte d'Ivoire:** XOF, 17 markets, 11,091 rows (2005 to 2026-10, 22 suspect); WFP publishes only `aggregate`
+  values from 2021 to 2025. **20 eligible series in 5 markets** (Senegal 130), all in the north and west (Savanes,
+  Man), none in Abidjan; median 7.5 years. French names added for attiéké, fresh cassava and denikassia rice.
+- **Backtest, `lgbm_fresh2`, all cases, holdout 2023+:** 80 % range held 81.2 % next month, 77.9 % in 3 months;
+  typical error 8.5 / 10.5 %. Validation 77.4 / 81.3 %. Only 478 / 425 holdout cases (25 series): a few points either
+  way mean little. New-spike Brier equals the base rate (0.071 vs 0.073). `lgbm_cal`: 78.4 / 76.2 %, 7.7 / 9.6 %.
+- **Other countries after adding it:** unchanged within half a point (Mali 76.8 / 72.3 %, Niger 68.4 / 62.5 %,
+  Senegal 76.7 / 74.5 %).
+- **Basket (owner confirmed: denikassia rice 12 kg + niebe 1.8 kg; oil series too short):** 5 markets live. Holdout:
+  copula 73 % next month, 69 % in 3 months (160 cases); comonotone 87 / 82 %.
+- **Model:** champions `lgbm_quantile` v6 and `lgbm_quantile_fresh` v4 on six countries; live run 2026-11-26 with 20
+  Côte d'Ivoire series; public exports unchanged in scope (five countries, `model_version` 4, 2,094 series).
+- **Gotchas (HDX activity stream):** HDX now throttles `package_activity_list` with **HTTP 202 and an empty body**
+  after a few 2-3 MB pages in a row; `fpw.hdx.fetch` reports it as throttling (it read as "not JSON"). A first fetch
+  that is interrupted was never finished (paging stopped at the first known activity) and re-paging the known pages
+  triggered the throttling again: the notebook now resumes an incomplete history where it ends
+  (`publication.start_offset`, `stop_paging`) and waits 10 s between requests. A country's first fetch can take a
+  few runs; run it alone with `--params countries=<slug>`.
+
 ### How to run
 
 ```bash

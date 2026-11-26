@@ -27,9 +27,9 @@ NUMBER_FORMAT = {"en": (",", "."), "fr": (NNBSP, ",")}
 # "in <country>" and the commodity group as used in a sentence.
 IN_COUNTRY = {
     "en": {"mali": "in Mali", "burkina-faso": "in Burkina Faso", "burundi": "in Burundi", "niger": "in Niger",
-           "senegal": "in Senegal", "chad": "in Chad"},
+           "senegal": "in Senegal", "cote-d-ivoire": "in Côte d'Ivoire", "chad": "in Chad"},
     "fr": {"mali": "au Mali", "burkina-faso": "au Burkina Faso", "burundi": "au Burundi", "niger": "au Niger",
-           "senegal": "au Sénégal", "chad": "au Tchad"},
+           "senegal": "au Sénégal", "cote-d-ivoire": "en Côte d'Ivoire", "chad": "au Tchad"},
 }
 GROUPS = {
     "en": {"beans": "beans", "cassava": "cassava", "maize": "maize", "millet": "millet", "oil": "cooking oil",
@@ -48,7 +48,9 @@ COMMODITY_FR = {
     "Beans (niebe, red)": "Niébé (rouge)",
     "Cassava": "Manioc",
     "Cassava (cossette)": "Cossettes de manioc",
+    "Cassava (fresh)": "Manioc (frais)",
     "Cassava flour": "Farine de manioc",
+    "Cassava meal (attieke)": "Attiéké (semoule de manioc)",
     "Maize": "Maïs",
     "Maize (imported)": "Maïs (importé)",
     "Maize (local)": "Maïs (local)",
@@ -59,6 +61,7 @@ COMMODITY_FR = {
     "Oil (palm)": "Huile de palme",
     "Oil (vegetable)": "Huile végétale",
     "Rice (imported)": "Riz (importé)",
+    "Rice (denikassia, imported)": "Riz importé (dénikassia)",
     "Rice (high quality, local)": "Riz local (qualité supérieure)",
     "Rice (local)": "Riz (local)",
     "Rice (low quality, local)": "Riz local (qualité inférieure)",
