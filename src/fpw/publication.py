@@ -64,6 +64,19 @@ def stop_paging(rows: list[dict], fresh: list[dict], page_size: int, oldest: str
     return len(fresh) < len(rows) and stored_from is not None and stored_from < oldest
 
 
+def start_offset(stored_n: int, stored_from: str | None, oldest: str, overlap: int = 10) -> int:
+    """Where to start paging a country's activity stream (newest first).
+
+    From the newest page if nothing is stored or the stored history is complete (reaches back before `oldest`).
+    Otherwise resume where the stored history ends (minus a small overlap, as new activities shift the offsets):
+    paging again through the pages we already have triggers HDX's throttling before the missing ones are reached
+    (2026-11-26). Activities newer than the stored ones then follow in the next run, once the history is complete.
+    """
+    if stored_from is None or stored_from < oldest:
+        return 0
+    return max(0, stored_n - overlap)
+
+
 def calendar(activities: pd.DataFrame) -> pd.DataFrame:
     """(country, published_at, data_month) for activities that carry a data month, sorted per country."""
     a = activities.assign(published_at=pd.to_datetime(activities["timestamp"], format="ISO8601"),

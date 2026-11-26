@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from fpw import InvalidPayload
-from fpw.publication import calendar, forecast_time, month_of, parse_activity_page, published_month, stop_paging
+from fpw.publication import calendar, forecast_time, month_of, parse_activity_page, published_month, start_offset, stop_paging
 
 DATA = Path(__file__).parent / "data"
 
@@ -70,3 +70,10 @@ def test_stop_paging_finishes_an_interrupted_first_fetch():
     assert stop_paging(page, page[:1], 3, "2020-11-01", "2020-10-20T00:00:00")
     # known activities but the stored history stops in 2025 (first fetch was interrupted): keep paging
     assert not stop_paging(page, [], 3, "2020-11-01", "2025-07-01T00:00:00")
+
+
+def test_start_offset_resumes_an_incomplete_history():
+    assert start_offset(0, None, "2020-11-01") == 0  # nothing stored: from the newest page
+    assert start_offset(809, "2020-07-12T08:12:49", "2020-11-01") == 0  # complete: only the newest is missing
+    assert start_offset(600, "2022-08-07T08:14:42", "2020-11-01") == 590  # incomplete: resume, 10 overlap
+    assert start_offset(5, "2025-12-14T09:34:50", "2020-11-01") == 0

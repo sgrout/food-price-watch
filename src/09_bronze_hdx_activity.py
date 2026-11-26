@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 import pandas as pd
 
 from fpw.hdx import HDX_API, dataset_name, fetch
-from fpw.publication import parse_activity_page, stop_paging
+from fpw.publication import parse_activity_page, start_offset, stop_paging
 from fpw.schemas import HDX_ACTIVITY, to_rows
 
 dbutils.widgets.text("catalog", "workspace")
@@ -33,8 +33,8 @@ bronze = f"{catalog}.fpw_{env}_bronze"
 spark.sql(f"CREATE TABLE IF NOT EXISTS {bronze}.hdx_activity ({HDX_ACTIVITY})")
 volume_dir = f"/Volumes/{catalog}/fpw_{env}_bronze/raw/activity"
 known = {r["activity_id"] for r in spark.sql(f"SELECT activity_id FROM {bronze}.hdx_activity").collect()}
-stored_from = {r["country"]: r["first"] for r in spark.sql(
-    f"SELECT country, MIN(timestamp) AS first FROM {bronze}.hdx_activity GROUP BY country").collect()}
+stored = {r["country"]: (r["n"], r["first"]) for r in spark.sql(
+    f"SELECT country, COUNT(*) AS n, MIN(timestamp) AS first FROM {bronze}.hdx_activity GROUP BY country").collect()}
 PAGE, MAX_PAGES, OLDEST = 100, 20, "2020-11-01"
 PAUSE = 10  # seconds between requests: HDX throttles (HTTP 202) after a few 2-3 MB pages in a row (2026-11-25)
 
@@ -44,14 +44,17 @@ new_rows, failures = [], []
 for country in countries:
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     url = f"{HDX_API}/package_activity_list"
+    stored_n, stored_from = stored.get(country, (0, None))
+    start = start_offset(stored_n, stored_from, OLDEST)  # resume an incomplete history where it ends
     try:
         for page in range(MAX_PAGES):
-            params = {"id": dataset_name(country), "limit": PAGE, "offset": page * PAGE, "include_data": "true"}
+            offset = start + page * PAGE
+            params = {"id": dataset_name(country), "limit": PAGE, "offset": offset, "include_data": "true"}
             _, text = fetch(url, params=params)
             rows = parse_activity_page(text)
             fresh = [r for r in rows if r["activity_id"] not in known]
             if fresh:
-                path = f"{volume_dir}/{country}/{now:%Y-%m-%dT%H%M%S}_{page:02d}.json"
+                path = f"{volume_dir}/{country}/{now:%Y-%m-%dT%H%M%S}_{offset:05d}.json"
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(fresh, f, ensure_ascii=False)
@@ -60,7 +63,7 @@ for country in countries:
                 known |= {r["activity_id"] for r in fresh}
             # stop at the end of the stream, before the calendar is useful, or at activities we already have
             # (only once the stored history is complete: an interrupted first fetch must be finished)
-            if stop_paging(rows, fresh, PAGE, OLDEST, stored_from.get(country)):
+            if stop_paging(rows, fresh, PAGE, OLDEST, stored_from):
                 break
             time.sleep(PAUSE)  # be polite to HDX
         print(f"{country}: {sum(r['country'] == country for r in new_rows)} new activities")
