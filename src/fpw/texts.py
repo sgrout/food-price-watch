@@ -131,6 +131,14 @@ COUNTRY_NOTES = {
               "fermée, et les inondations de 2024) : les prix en sont alors sortis bien plus souvent qu'annoncé. "
               "Voir la page sur la fiabilité des prévisions.",
     },
+    "cote-d-ivoire": {
+        "en": "Côte d'Ivoire was added in November 2026. WFP publishes long price histories for only a few markets "
+              "here, all in the north and west of the country (none in Abidjan). Forecasts therefore cover few "
+              "markets, and their track record rests on few cases. See the track record.",
+        "fr": "La Côte d'Ivoire a été ajoutée en novembre 2026. Le PAM ne publie de longues séries de prix que pour "
+              "quelques marchés, tous dans le nord et l'ouest du pays (aucun à Abidjan). Les prévisions couvrent donc "
+              "peu de marchés, et leur fiabilité repose sur peu de cas. Voir la page sur la fiabilité des prévisions.",
+    },
 }
 
 SIGNAL_TEXTS = {  # fpw.signals.describe_signals; numbers only from facts
