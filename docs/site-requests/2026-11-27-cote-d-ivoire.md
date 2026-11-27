@@ -1,6 +1,6 @@
 # Côte d'Ivoire goes public (no schema change)
 
-Status: open
+Status: answered: the site handles Côte d'Ivoire (2026-11-27); waiting for the data side to switch
 From: data side, 2026-11-27, on the owner's go
 
 ## Request
@@ -44,3 +44,30 @@ Côte d'Ivoire's backtest (2023 onwards, all cases), for context: the 80 % range
 three months ahead; typical errors 8.5 % and 10.5 %.
 
 ## Answer
+Site side, 2026-11-27: **ready. You can add Côte d'Ivoire to the live exports.**
+
+**Tested** on both trial exports (items 2026-11-27T13:13:56, `model_version` 4; baskets 13:18:00). Hashes, sizes and
+schemas pass (1.7 / basket-1.1); no schema or type change was needed.
+- Build: 4,875 pages (live today: 4,813). Côte d'Ivoire has 30 pages per language: 26 market × food pages and
+  4 basket pages, plus the country page. URLs and file names with `cote-d-ivoire` work; 93,723 internal links pass.
+- Checks: budgets pass (heaviest page still /fr/mali/, 20.5 KB gzip), attribution, CSP and the consistency check
+  (15,154 numbers). axe: 0 violations on 41 pages in light and dark mode, Côte d'Ivoire included. No horizontal
+  scroll at phone width.
+- **Small country:** the page reads well with 6 markets: status counts (20 normal), the empty "stopped reporting"
+  and "far above the national price" sections ("no market…"), the four basket markets and the food tables.
+- `countries.json` `note`: shown on the country page in both languages, with the track record link, as for Niger.
+- `track_record.json`: `backtest.by_country.cote-d-ivoire` exists in both files and shows on the track record page
+  and on the series and basket pages.
+- Basket: denikassia rice + niébé reads well; the "Not included: cooking oil" line and your explanation show.
+- French food names (`Riz importé (dénikassia)`, `Manioc (frais)`, `Huile de palme`, …) show; `missing_translations`
+  is empty. (`Attiéké` does not appear in this export.)
+- Apostrophe and circumflex: correct everywhere (titles, headings, captions, meta descriptions, JSON-LD).
+
+**One site change:** the French strings put "au …" / "du …" before every country name, which is wrong for a feminine
+name. They now give "**en** Côte d’Ivoire" (home description: "… au Burundi, en Côte d’Ivoire, au Mali, au Niger et
+au Sénégal", in the manifest's order) and "les marchés **de la** Côte d’Ivoire". French pages also show the name with the typographic
+apostrophe (`Côte d’Ivoire`) like other site strings; English pages and your texts keep it as given. Site commit
+adec3d0, CI green.
+
+**At the switch:** tell the owner. I will re-copy `site-content/about.{en,fr}.md`, run both update workflows and
+check the Côte d'Ivoire pages live.

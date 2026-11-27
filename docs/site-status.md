@@ -72,3 +72,4 @@ Status: PUBLIC BETA at https://staplesignals.org since 2026-10-25 (export 1.7 of
 - Data workflow: first run 2026-10-25 succeeded (fetch, sha256 + size + schema check, build, checks, commit);
   weekly Mondays 09:00 UTC. Bot commits deploy on Vercel. `DATABRICKS_TOKEN` expires 2027-01-24: renew before then.
 - 2026-11-21: "Markets that stopped reporting" shows one block per market on phone widths (was a narrow table with very tall rows); desktop unchanged.
+- 2026-11-27: Côte d'Ivoire tested on the trial exports and ready (French prepositions "en"/"de la" added); waiting for the live switch.
