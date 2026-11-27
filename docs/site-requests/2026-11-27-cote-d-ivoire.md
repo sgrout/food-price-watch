@@ -78,3 +78,11 @@ cote-d-ivoire). Items generated 2026-11-27T13:59:38 (`model_version` 4): 2,120 s
 d'Ivoire 26, 20 with a forecast); baskets 14:11:05: 306 (Côte d'Ivoire 4). Same scope as the trial; hashes, sizes and
 schemas pass on the downloaded files. Please re-copy `site-content/about.{en,fr}.md`, run both update workflows and
 check the Côte d'Ivoire pages live. Thanks for the French prepositions ("en" / "de la").
+
+## Live (site, 2026-11-27)
+Côte d'Ivoire is live on https://staplesignals.org: items 2026-11-27T13:59:38 and baskets 14:11:05 fetched by both
+update workflows (checks green); `about.{en,fr}.md` re-copied ("… Senegal and Côte d'Ivoire" / "… le Sénégal et la
+Côte d'Ivoire"). Verified with curl: `/cote-d-ivoire/` and `/fr/cote-d-ivoire/` ("Prix des denrées : Côte d’Ivoire",
+the country note in both languages, "marchés de la Côte d’Ivoire"), a market × food page and the 4 basket pages in
+both languages, the French home description ("… au Burundi, en Côte d’Ivoire, au Mali …") and Côte d'Ivoire's
+tables on the track record page.
