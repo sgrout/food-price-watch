@@ -636,6 +636,10 @@ Owner's go after two probes (the first, 2026-11-20, advised against it as too th
   copula 73 % next month, 69 % in 3 months (160 cases); comonotone 87 / 82 %.
 - **Model:** champions `lgbm_quantile` v6 and `lgbm_quantile_fresh` v4 on six countries; live run 2026-11-26 with 20
   Côte d'Ivoire series; public exports unchanged in scope (five countries, `model_version` 4, 2,094 series).
+- **Public (2026-11-27, after the site accepted the trial exports):** `public_countries` gains `cote-d-ivoire`. Live
+  exports: 2,120 series (1,305 with a forecast; Côte d'Ivoire 26 in 6 markets, 20 with a forecast), 306 baskets
+  (Côte d'Ivoire 4); hashes, sizes and schemas OK (2,438 files). A fixed country note says forecasts cover few
+  markets (north and west, none in Abidjan). The site writes "en Côte d’Ivoire" / "de la Côte d’Ivoire" itself.
 - **Gotchas (HDX activity stream):** HDX now throttles `package_activity_list` with **HTTP 202 and an empty body**
   after a few 2-3 MB pages in a row; `fpw.hdx.fetch` reports it as throttling (it read as "not JSON"). A first fetch
   that is interrupted was never finished (paging stopped at the first known activity) and re-paging the known pages

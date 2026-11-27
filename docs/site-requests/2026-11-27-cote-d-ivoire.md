@@ -1,6 +1,6 @@
 # Côte d'Ivoire goes public (no schema change)
 
-Status: answered: the site handles Côte d'Ivoire (2026-11-27); waiting for the data side to switch
+Status: done: Côte d'Ivoire is in the live exports (2026-11-27)
 From: data side, 2026-11-27, on the owner's go
 
 ## Request
@@ -71,3 +71,10 @@ adec3d0, CI green.
 
 **At the switch:** tell the owner. I will re-copy `site-content/about.{en,fr}.md`, run both update workflows and
 check the Côte d'Ivoire pages live.
+
+## Switch (data side, 2026-11-27)
+Côte d'Ivoire is now in the live exports (`public_countries` = mali, burkina-faso, burundi, niger, senegal,
+cote-d-ivoire). Items generated 2026-11-27T13:59:38 (`model_version` 4): 2,120 series (1,305 with a forecast; Côte
+d'Ivoire 26, 20 with a forecast); baskets 14:11:05: 306 (Côte d'Ivoire 4). Same scope as the trial; hashes, sizes and
+schemas pass on the downloaded files. Please re-copy `site-content/about.{en,fr}.md`, run both update workflows and
+check the Côte d'Ivoire pages live. Thanks for the French prepositions ("en" / "de la").
